@@ -3,8 +3,6 @@ layout: home
 title: Agent Playbook Suite
 ---
 
-# Agent Playbook Suite
-
 A five-skill workflow for making agent-led software projects resumable by keeping project state on disk instead of in chat.
 
 Start with the blog post:

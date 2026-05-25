@@ -4,8 +4,6 @@ title: Technical References
 permalink: /references/
 ---
 
-# Technical References
-
 The source repository contains the full Markdown reference set:
 
 - [Overview](https://github.com/ArtRichards/agent-playbook-suite/blob/main/overview.md)
