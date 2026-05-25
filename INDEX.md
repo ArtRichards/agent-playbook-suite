@@ -1,5 +1,5 @@
 <!-- docs:generated start -->
-_Generated 2026-05-25. 8 docs active, 0 archived._
+_Generated 2026-05-25. 9 docs active, 0 archived._
 
 ## Project — agent-playbook-suite
 
@@ -13,6 +13,7 @@ _Generated 2026-05-25. 8 docs active, 0 archived._
 
 - [AGENTS.md](AGENTS.md) — _notes_ — This project produces an **overview document** and a **blog post** about a suite of five Agent Skills, originally…. Updated 2026-05-25.
 - [CLAUDE.md](CLAUDE.md) — _notes_ — This project produces an **overview document** and a **blog post** about a suite of five Agent Skills, originally…. Updated 2026-05-25.
+- [README.md](README.md) — _notes_ — This file is the source of truth for installing the Agent Playbook Suite from its public sources. It covers **Claude…. Updated 2026-05-25.
 - [agent-skill-installation.md](agent-skill-installation.md) — _notes_ — This file is the source of truth for installing the Agent Playbook Suite from its public sources. It covers **Claude…. Updated 2026-05-25.
 - [blog-post.md](blog-post.md) — _notes_ — I keep running into the same problem with coding agents: they can write the code, but they are much worse at…. Updated 2026-05-25.
 - [briefing.md](briefing.md) — _notes_ — Five Agent Skills, published 2026-05-25 under [ArtRichards](https://github.com/ArtRichards), that together form an…. Updated 2026-05-25.
