@@ -1,0 +1,14 @@
+[project]
+name = "agent-playbook-suite"
+
+[archive]
+dir = "archive"
+date_format = "%Y-%m-%d"
+
+[exclude]
+dirs = [
+    "site",
+    ".github",
+]
+globs = []
+exts = []
