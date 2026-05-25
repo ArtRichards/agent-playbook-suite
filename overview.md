@@ -5,7 +5,9 @@ Role: guide
 Project: agent-playbook-suite
 Updated: 2026-05-25
 
-This guide explains a public workflow built from five Agent Skills, originally designed for Claude Code and now installable in several compatible agent CLIs, plus one supporting CLI:
+This guide explains a public workflow built from five workflow skills and the
+supporting `docs` skill, distributed as one suite plugin for Codex and Claude
+Code, plus one supporting CLI:
 
 - [`project-foundation`](https://github.com/ArtRichards/project-foundation)
 - [`create-milestones`](https://github.com/ArtRichards/create-milestones)
@@ -55,56 +57,66 @@ The workflow is sequential:
 First, install the published `docs-cli` package from PyPI:
 
 ```bash
-python -m pip install --upgrade docs-cli
+python3 -m pip install --upgrade docs-cli
 docs --version
 ```
 
-Then install the bundled `docs` skill and the five workflow skills into the location your agent uses. Treat [`agent-skill-installation.md`](agent-skill-installation.md) as the canonical public install manifest for Claude Code, Codex, Gemini CLI, and OpenCode, and keep this overview as a summary.
+Then install the Agent Playbook Suite plugin from this repository's marketplace
+catalog. Treat [`README.md`](README.md) as the canonical public install guide
+and keep this overview as a summary.
+
+For Codex:
+
+```bash
+codex plugin marketplace add ArtRichards/agent-playbook-suite --ref main
+codex plugin add agent-playbook-suite@agent-playbook-suite
+```
 
 For Claude Code:
 
 ```bash
-docs install-skill
-git clone https://github.com/ArtRichards/project-foundation ~/.claude/skills/project-foundation
-git clone https://github.com/ArtRichards/create-milestones ~/.claude/skills/create-milestones
-git clone https://github.com/ArtRichards/ship-milestone ~/.claude/skills/ship-milestone
-git clone https://github.com/ArtRichards/sync-and-commit ~/.claude/skills/sync-and-commit
-git clone https://github.com/ArtRichards/simplify ~/.claude/skills/simplify
+claude plugin marketplace add ArtRichards/agent-playbook-suite
+claude plugin install agent-playbook-suite@agent-playbook-suite
 ```
 
-For Codex, install into `$CODEX_HOME/skills`, which defaults to `~/.codex/skills`. The five workflow skills should be cloned from their public repos as git checkouts; the `docs` skill should be materialized from the PyPI-installed `docs-cli` package with `docs install-skill`. See [`agent-skill-installation.md`](agent-skill-installation.md) for the current source-of-truth skill list, per-agent fresh install commands, safe update flow, and replacement flow for older copied installs.
+The repository contains both marketplace catalogs:
 
-For Gemini CLI, skills can live in user scope or workspace scope. Supported locations include `~/.gemini/skills/`, `~/.agents/skills/`, `.gemini/skills/`, and `.agents/skills/`. If you want one shared project-local path across tools that support it, `.agents/skills/` is a practical choice:
+- `.agents/plugins/marketplace.json` for Codex
+- `.claude-plugin/marketplace.json` for Claude Code
+
+Both catalogs point at the same suite plugin under
+`plugins/agent-playbook-suite/`, which contains the shared `skills/` payload.
+
+Gemini CLI and OpenCode do not consume these Codex or Claude marketplace
+manifests directly. The suite still remains portable because the packaged skill
+payload lives in `plugins/agent-playbook-suite/skills/`, and the individual
+workflow skill repositories remain public for manual direct-skill installs when
+an agent does not support these marketplace formats.
+
+Update Codex by refreshing the marketplace:
 
 ```bash
-mkdir -p .agents/skills
-docs install-skill --dest .agents/skills/docs
-git clone https://github.com/ArtRichards/project-foundation .agents/skills/project-foundation
-git clone https://github.com/ArtRichards/create-milestones .agents/skills/create-milestones
-git clone https://github.com/ArtRichards/ship-milestone .agents/skills/ship-milestone
-git clone https://github.com/ArtRichards/sync-and-commit .agents/skills/sync-and-commit
-git clone https://github.com/ArtRichards/simplify .agents/skills/simplify
+codex plugin marketplace upgrade agent-playbook-suite
 ```
 
-Update them by pulling in the directory that matches your agent. For example, on Claude Code:
+Update Claude Code by refreshing the marketplace and plugin:
 
 ```bash
-git -C ~/.claude/skills/project-foundation pull
-git -C ~/.claude/skills/create-milestones pull
-git -C ~/.claude/skills/ship-milestone pull
-git -C ~/.claude/skills/sync-and-commit pull
-git -C ~/.claude/skills/simplify pull
+claude plugin marketplace update agent-playbook-suite
+claude plugin update agent-playbook-suite@agent-playbook-suite
 ```
-
-Claude Code auto-discovers skills from `~/.claude/skills/`. Codex reads user skills from `$CODEX_HOME/skills`, defaulting to `~/.codex/skills`. Gemini CLI reads `~/.gemini/skills/` and `.gemini/skills/`, and also supports the `.agents/skills/` aliases.
-
-OpenCode reads native skill directories at `~/.config/opencode/skills/` and `.opencode/skills/`. It also supports Claude-compatible `~/.claude/skills/` and `.claude/skills/` paths plus the shared `~/.agents/skills/` and `.agents/skills/` aliases.
 
 `docs-cli` itself is lightweight: Python 3.11+, published on PyPI, and has no runtime dependencies. The `docs` console command is the tool the other skills rely on.
 
-The workflow is still portable outside Claude Code. In Codex, Gemini CLI, OpenCode, and similar agent shells, the install path and auto-discovery behavior differ, but the operating model still works if the agent can read the same repo, the project instruction file, and the same docs tree and run the same commands.
+The workflow is still portable outside Codex and Claude Code. In Gemini CLI,
+OpenCode, and similar agent shells, the marketplace support and auto-discovery
+behavior differ, but the operating model still works if the agent can read the
+same repo, project instruction file, docs tree, and commands.
 
-Use a current PyPI `docs-cli` release that includes `Lifecycle:` metadata, the bundled `docs` skill, agent-friendly authoring via `docs new --body-from`, and the newer adoption-workflow helpers.
+Use a current PyPI `docs-cli` release that includes `Lifecycle:` metadata,
+agent-friendly authoring via `docs new --body-from`, and the newer
+adoption-workflow helpers. The suite plugin includes the `docs` skill; the
+PyPI package provides the `docs` command that the skills call.
 
 ## What gets created
 
@@ -258,6 +270,6 @@ Budget planning depends on the agent, model, plan, codebase size, test cost, and
 
 ## The short version
 
-Install `docs-cli` from PyPI, materialize its bundled `docs` skill into your agent's skill directory with `docs install-skill`, and place the five workflow skills in the skill location your agent reads. Run `project-foundation` once for the broad project or feature-release effort. Break delivery into small technical milestones. Add new milestones with `create-milestones` as the release evolves. Use `create-milestones` or `ship-milestone` to drive active milestones through the 10 phases. Use `sync-and-commit` to keep code and docs aligned. Use `simplify` at the end.
+Install `docs-cli` from PyPI, then install the Agent Playbook Suite plugin from the Codex or Claude marketplace catalog in this repository. Run `project-foundation` once for the broad project or feature-release effort. Break delivery into small technical milestones. Add new milestones with `create-milestones` as the release evolves. Use `create-milestones` or `ship-milestone` to drive active milestones through the 10 phases. Use `sync-and-commit` to keep code and docs aligned. Use `simplify` at the end.
 
 The result is a project that can be resumed by a fresh agent from artifacts on disk instead of reconstructed from chat history.

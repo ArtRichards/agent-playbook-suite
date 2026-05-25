@@ -1,0 +1,20 @@
+{
+  "name": "agent-playbook-suite",
+  "interface": {
+    "displayName": "Agent Playbook Suite"
+  },
+  "plugins": [
+    {
+      "name": "agent-playbook-suite",
+      "source": {
+        "source": "local",
+        "path": "./plugins/agent-playbook-suite"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

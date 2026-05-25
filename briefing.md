@@ -7,7 +7,14 @@ Updated: 2026-05-25
 
 ## What this is
 
-Five Agent Skills, published 2026-05-25 under [ArtRichards](https://github.com/ArtRichards), that together form an opinionated workflow for running a software project — from blank slate to shipped milestones — with Claude Code as the original target and other compatible agent CLIs as supported install targets. They build on a sixth published tool, [docs-cli](https://github.com/ArtRichards/docs-cli), which provides a controlled-vocabulary convention for prescriptive Markdown documentation trees.
+Five workflow skills plus the `docs` skill, published 2026-05-25 under
+[ArtRichards](https://github.com/ArtRichards), that together form an
+opinionated workflow for running a software project — from blank slate to
+shipped milestones. The suite is distributed as one plugin marketplace package
+for Codex and Claude Code. Gemini CLI and OpenCode can still use the packaged
+skill payload directly where they support skill directories. The suite builds
+on [docs-cli](https://github.com/ArtRichards/docs-cli), which provides a
+controlled-vocabulary convention for prescriptive Markdown documentation trees.
 
 The five skills:
 
@@ -112,13 +119,29 @@ These are not generic skills. They target a specific user: someone running Claud
 
 ## Install pattern
 
+Install the runtime CLI first:
+
 ```sh
-git clone https://github.com/ArtRichards/<skill> ~/.claude/skills/<skill>
+python3 -m pip install --upgrade docs-cli
 ```
 
-Claude Code auto-discovers skills in `~/.claude/skills/`. Updates: `git -C ~/.claude/skills/<skill> pull`. The docs-cli dependency (required for 4 of 5; optional for `simplify`) installs separately from PyPI: `python -m pip install --upgrade docs-cli`.
+Codex and Claude Code install the suite as one plugin from this repository's
+marketplace catalogs:
 
-The canonical public install manifest for Claude Code, Codex, Gemini CLI, and OpenCode is `agent-skill-installation.md`. Codex reads user skills from `$CODEX_HOME/skills`, defaulting to `~/.codex/skills`; Claude Code auto-discovers them from `~/.claude/skills/`; Gemini CLI reads `~/.gemini/skills/` and the `.agents/skills/` aliases; OpenCode reads native `.opencode` paths plus Claude-compatible and `.agents` paths. The five workflow skills should be installed as git checkouts from the public repos in all cases. The `docs` skill should be materialized from the PyPI-installed `docs-cli` package with `docs install-skill`, and the package must also be installed so the `docs` command is available.
+```sh
+codex plugin marketplace add ArtRichards/agent-playbook-suite --ref main
+codex plugin add agent-playbook-suite@agent-playbook-suite
+
+claude plugin marketplace add ArtRichards/agent-playbook-suite
+claude plugin install agent-playbook-suite@agent-playbook-suite
+```
+
+The marketplace plugin packages the six public skills together: `docs`,
+`project-foundation`, `create-milestones`, `ship-milestone`, `sync-and-commit`,
+and `simplify`. Gemini CLI and OpenCode do not consume these marketplace
+manifests directly, but the shared skill payload under
+`plugins/agent-playbook-suite/skills/` remains portable for direct skill
+directory installs.
 
 ## Suggested blog-post angles
 

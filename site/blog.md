@@ -87,7 +87,7 @@ Migration is dry-run by default. That is the right default for an inference-heav
 
 The bundled skill adds the missing behavioral layer. When an agent works in a managed tree, it should use the CLI instead of hand-maintaining the convention.
 
-Packaging matters too. The public PyPI distribution is `docs-cli`, while the executable command remains `docs`. The skill ships with the package, so a user can install the CLI from PyPI and then materialize the bundled skill on the host with `docs install-skill`.
+Packaging matters too. The public PyPI distribution is `docs-cli`, while the executable command remains `docs`. The skill ships inside the Agent Playbook Suite plugin, while the CLI itself still needs to be installed from PyPI so the agent can run `docs`.
 
 A trial across 25 real-world Markdown trees, 501 files total, produced the most useful design correction. `Status:` looked like the obvious name for a controlled lifecycle field, but existing docs often use status as free-form prose. The convention changed to `Lifecycle:` for the controlled value and preserved prose status as migrated metadata.
 
@@ -187,21 +187,29 @@ The other thing I would watch is how often humans have to resolve ambiguity. Som
 Install the CLI:
 
 ```sh
-python -m pip install --upgrade docs-cli
-docs install-skill
+python3 -m pip install --upgrade docs-cli
+docs --version
 ```
 
-Then install the five workflow skills for Claude Code:
+Then install the suite plugin from this repository's marketplace.
+
+For Codex:
 
 ```sh
-for skill in project-foundation create-milestones ship-milestone sync-and-commit simplify; do
-  git clone "https://github.com/ArtRichards/$skill" "$HOME/.claude/skills/$skill"
-done
+codex plugin marketplace add ArtRichards/agent-playbook-suite --ref main
+codex plugin add agent-playbook-suite@agent-playbook-suite
 ```
 
-For Codex, Gemini CLI, and OpenCode, use `agent-skill-installation.md` in this
-suite as the source of truth. It lists each agent's skill directories and keeps
-the workflow skills as updateable public GitHub checkouts.
+For Claude Code:
+
+```sh
+claude plugin marketplace add ArtRichards/agent-playbook-suite
+claude plugin install agent-playbook-suite@agent-playbook-suite
+```
+
+Gemini CLI and OpenCode do not consume the Codex or Claude marketplace
+manifests directly, but the same skill payload is packaged in the repository
+under `plugins/agent-playbook-suite/skills/`.
 
 For an existing repo, the practical first step is not to automate shipping. Start smaller: run migration in dry-run mode against an existing Markdown tree, inspect the ambiguities, then validate the result before applying changes. Decide whether the convention makes the tree easier to reason about. If it does, apply it and then bring in the skills.
 
@@ -213,7 +221,7 @@ If you use Claude Code for serious multi-session development, the chat transcrip
 
 Put the state on disk. Make the files self-describing. Generate the index. Validate the tree. Pair milestone plans with implementation logs. Make every phase leave a trail a fresh agent can read.
 
-Then clone the five repos and install `docs-cli` from PyPI. The point is not more documentation. The point is making agent work restartable.
+Then install the suite plugin and keep `docs-cli` current from PyPI. The point is not more documentation. The point is making agent work restartable.
 
 ## Related Hacker News discussions
 

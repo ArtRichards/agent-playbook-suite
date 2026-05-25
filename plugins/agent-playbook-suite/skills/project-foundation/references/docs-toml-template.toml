@@ -1,0 +1,47 @@
+# Marks this directory as a docs-managed tree.
+# The project-foundation skill copies this file to <docs-root>/.docs.toml
+# at bootstrap and substitutes the project slug into [project] name.
+
+[project]
+# Replace <PROJECT_SLUG> with the kebab-case project slug.
+# Used as the default Project: value when a doc omits it.
+name = "<PROJECT_SLUG>"
+
+[archive]
+# Subdir under the docs root where `docs archive` lands completed work.
+dir = "archive"
+date_format = "%Y-%m-%d"
+
+# Tree-wide exclusion (M8). Applied to migrate + index + check + list.
+# Each verb may extend with --exclude on the command line.
+[exclude]
+dirs = [
+    # Common code-side artefacts that may sit beside specs:
+    # "node_modules",
+    # "build",
+    # "dist",
+    # "generated",
+]
+globs = [
+    # "**/*.draft.md",
+]
+exts = [
+    # "xlsx",
+    # "html",
+]
+
+# Migration-time inference extensions (M7). Only relevant when
+# adopting an existing Markdown directory with `docs migrate`.
+[migrate]
+role_suffixes = {}
+# project_name = "<PROJECT_SLUG>"  # uncomment if migrate's name inference is wrong
+
+# Controlled-vocab extensions. Additions only — built-ins cannot be
+# removed or renamed.
+[vocabulary]
+add_roles = [
+    # "explainer",
+]
+add_lifecycles = [
+    # "experimental",
+]

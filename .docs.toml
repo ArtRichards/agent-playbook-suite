@@ -9,6 +9,9 @@ date_format = "%Y-%m-%d"
 dirs = [
     "site",
     ".github",
+    ".agents",
+    ".claude-plugin",
+    "plugins",
 ]
 globs = []
 exts = []

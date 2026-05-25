@@ -5,9 +5,9 @@ Role: notes
 Project: agent-playbook-suite
 Updated: 2026-05-25
 
-This project produces an **overview document** and a **blog post** about a suite
-of five Agent Skills, originally designed for Claude Code, plus their underlying
-CLI. It has no code.
+This project produces public documentation and marketplace package metadata for
+Agent Playbook Suite: one suite plugin that bundles five workflow skills plus
+the `docs` skill. The runtime CLI is `docs-cli`, published on PyPI.
 
 ## Your input
 
@@ -19,24 +19,29 @@ CLI. It has no code.
 - the conductor + fresh-sub-agent pattern that distinguishes `ship-milestone`;
 - suggested blog-post angles and pointers to read-worthy source files.
 
-Treat the briefing as ground truth for facts (repo URLs, license, install
-pattern, vocabulary, phase ordering) but do not parrot it. The overview and
-blog post should each have their own voice and shape.
+Treat the briefing as historical source material for the workflow model, not as
+the current install source of truth. `README.md` is the public install guide,
+and `marketplace-publishing-guide.md` is the maintainer publishing guide.
 
 ## Your deliverables
 
 1. **`overview.md`** — a neutral, factual overview of the suite. Audience:
    someone deciding whether to adopt it. Should answer: what is it, what
    problem does it solve, how do the pieces fit, what is the cost of adoption,
-   what is the install path. Keep it tight (target ~800-1200 words). Use the
+   what is the marketplace install path. Keep it tight (target ~800-1200 words). Use the
    briefing's repo table as a starting point but feel free to restructure.
 
 2. **`blog-post.md`** — a single blog post (pick one of the four angles in the
    briefing, or propose a fifth). Audience: developers already using
    Claude Code who want to get more leverage out of it. Voice: technical, opinionated,
    concrete, no marketing fluff. Target ~1500-2500 words. Lead with a concrete
-   problem the reader recognizes; end with a clear call to action (clone these
-   five repos, install docs-cli).
+   problem the reader recognizes; end with a clear call to action: install
+   `docs-cli` from PyPI and install the suite plugin from this repository's
+   Codex or Claude marketplace.
+
+3. **Marketplace files** — keep `.agents/plugins/marketplace.json`,
+   `.claude-plugin/marketplace.json`, and `plugins/agent-playbook-suite/`
+   accurate when the install model changes.
 
 ## Source material to consult
 
@@ -63,5 +68,5 @@ or fetch the raw URL.
 
 ## When done
 
-Place `overview.md` and `blog-post.md` in this directory next to `briefing.md`.
-No need to commit — the operator will review and publish from here.
+Update the relevant docs and run `docs index` plus `docs check .`. No need to
+commit unless the operator asks.

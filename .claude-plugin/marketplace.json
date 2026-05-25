@@ -1,0 +1,25 @@
+{
+  "name": "agent-playbook-suite",
+  "description": "Marketplace for the Agent Playbook Suite workflow skills.",
+  "owner": {
+    "name": "Art Richards"
+  },
+  "plugins": [
+    {
+      "name": "agent-playbook-suite",
+      "source": "./plugins/agent-playbook-suite",
+      "description": "A curated suite of agent workflow skills for docs-backed project planning, milestone delivery, verification, and simplification.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Art Richards"
+      },
+      "category": "Productivity",
+      "tags": [
+        "agent-skills",
+        "project-planning",
+        "tdd",
+        "docs-cli"
+      ]
+    }
+  ]
+}
