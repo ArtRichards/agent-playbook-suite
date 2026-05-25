@@ -7,7 +7,7 @@ A marketplace-distributed suite plugin for making agent-led software projects re
 
 Start with the blog post:
 
-- [State lives on disk, not in chat]({{ site.baseurl }}/blog/)
+- [How I run Claude Code on multi-week projects]({{ site.baseurl }}/blog/)
 
 Technical references are available in the source repository:
 

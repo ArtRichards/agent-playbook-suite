@@ -15,7 +15,7 @@ _Generated 2026-05-25. 9 docs active, 0 archived._
 
 - [AGENTS.md](AGENTS.md) — _notes_ — This project produces public documentation and marketplace package metadata for Agent Playbook Suite: one suite plugin…. Updated 2026-05-25.
 - [CLAUDE.md](CLAUDE.md) — _notes_ — This project produces public documentation and marketplace package metadata for Agent Playbook Suite: one suite plugin…. Updated 2026-05-25.
-- [blog-post.md](blog-post.md) — _notes_ — Coding agents are good at producing changes. They are much worse at preserving project state across sessions.. Updated 2026-05-25.
+- [blog-post.md](blog-post.md) — _notes_ — Most failures I have hit running Claude Code as a serious build partner are not about code generation. They are about…. Updated 2026-05-25.
 - [briefing.md](briefing.md) — _notes_ — Five workflow skills plus the `docs` skill, published 2026-05-25 under [ArtRichards](https://github.com/ArtRichards),…. Updated 2026-05-25.
 
 ## Archived

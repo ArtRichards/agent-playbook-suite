@@ -1,202 +1,226 @@
 ---
 layout: page
-title: State lives on disk, not in chat
+title: How I run Claude Code on multi-week projects
 permalink: /blog/
 ---
 
-I keep running into the same problem with coding agents: they can write the code, but they are much worse at remembering the project.
+Most failures I have hit running Claude Code as a serious build partner are not about code generation. They are about continuity.
 
-This is especially obvious after the third or fourth serious session. One session decided the API. Another changed the test strategy. A third got the implementation green but left the docs in a halfway state. A week later, a new agent has to reconstruct the whole thing from chat transcripts and git history.
+A session decides the API. The next session writes tests against a different shape. A third session lands the implementation but forgets to update the milestone doc. Two days later a fresh agent picks up the project, reads `git log`, reads `INDEX.md`, finds them inconsistent, and asks me a question I already answered. Multiply that by a multi-week project and the agent is no longer a build partner — it is a very expensive intern with amnesia.
 
-I do not think the right answer is "use a bigger context window." Bigger context helps, but it does not turn a chat transcript into a reliable project database.
+[Agent Playbook Suite](https://github.com/ArtRichards/agent-playbook-suite) is the workflow I use to push back against that. It is one plugin for Codex and Claude Code that bundles five workflow skills on top of [`docs-cli`](https://github.com/ArtRichards/docs-cli), a small Python CLI that manages a prescriptive Markdown tree. The skills give the agent a process; the CLI gives the process an audit trail.
 
-The answer I like here is much more boring: write the state down as small Markdown records in the repository, validate them with a CLI, and teach the agent to use that CLI instead of treating chat history as memory.
+This post explains what the suite is for, how I actually use it, and three concrete cases where it has earned its keep.
 
-That is the idea behind [docs-cli](https://github.com/ArtRichards/docs-cli) and [Agent Playbook Suite](https://github.com/ArtRichards/agent-playbook-suite): one marketplace-distributed plugin that bundles the `docs` skill plus five workflow skills: [project-foundation](https://github.com/ArtRichards/project-foundation), [create-milestones](https://github.com/ArtRichards/create-milestones), [ship-milestone](https://github.com/ArtRichards/ship-milestone), [sync-and-commit](https://github.com/ArtRichards/sync-and-commit), and [simplify](https://github.com/ArtRichards/simplify).
+## What it is
 
-This is not a replacement for git, tests, or review. It is a way to make agent work resumable.
+Six pieces, in install order:
 
-In this article:
+- [`docs-cli`](https://github.com/ArtRichards/docs-cli) — a small Python CLI (`docs new`, `docs index`, `docs check`, `docs archive --cascade`, `docs migrate`) that manages a Markdown tree as a graph of self-describing records. Published on PyPI as `docs-cli`. Stdlib-only, Python 3.11+.
+- [`project-foundation`](https://github.com/ArtRichards/project-foundation) — bootstraps a new project's front-half: charter, scope, architecture, milestone plan, `CLAUDE.md`. Run once.
+- [`create-milestones`](https://github.com/ArtRichards/create-milestones) — interactive milestone driver. Walks one milestone through ten TDD phases.
+- [`ship-milestone`](https://github.com/ArtRichards/ship-milestone) — autonomous milestone driver. Conductor that spawns fresh sub-agents for planning, implementation, review, and simplification.
+- [`sync-and-commit`](https://github.com/ArtRichards/sync-and-commit) — end-of-step wrap-up. Verifies, syncs docs to reality, commits, pushes when safe.
+- [`simplify`](https://github.com/ArtRichards/simplify) — Phase 10 cleanup. Reduces complexity without changing behavior. Makes no changes if nothing genuinely simplifies.
 
-- why chat is the wrong place for project state
-- how docs-cli turns Markdown into a small record system
-- how the five skills turn that into a delivery workflow
-- why the fresh-agent pattern is the most interesting part
-- how to install the suite from public marketplace sources
-- where I think the costs are
+The five skills are MIT-licensed. The whole bundle installs from one marketplace.
 
-## The real problem is state drift
+## What it is for
 
-LLM coding tools are good enough now that the bottleneck often moves from "can it produce code?" to "can it keep a multi-day project coherent?"
+The suite is for one specific kind of work: **multi-session, multi-milestone software delivery where the project state has to survive a fresh agent picking it up.**
 
-The hard parts are mundane:
+That includes:
 
-- What did we decide yesterday?
-- Which milestone is active?
-- Which tests were supposed to be red?
-- Which docs are authoritative and which are historical?
-- Is this implementation log paired with the right milestone?
-- Did the index update after records moved?
-- Can a new agent resume without reading a 70,000-token chat?
+- greenfield products and libraries
+- internal tools you keep returning to
+- large feature releases that span weeks
+- side projects that pause and resume
+- any codebase where you expect to hand the work to a different agent next week
 
-If the answer lives only in the chat, it is fragile. Chat is a working surface, not a database. It is too long, too linear, too easy to lose, and too hard for a fresh agent to query.
+It is explicitly not for one-shot scripts, single-file fixes, or work where you are happy to keep the rationale in chat.
 
-The more useful pattern is to keep chat disposable and put project state in the repository.
+The bet the workflow makes is simple. Anything that lives only in chat is lost the moment the session ends. So the suite forces every decision, milestone plan, phase result, and open question into a Markdown tree on disk. `docs-cli` keeps that tree internally consistent so the agent does not spend tokens re-deriving the project's shape.
 
-## Markdown as records
+## The workflow in one screen
 
-The smallest useful unit in docs-cli is a Markdown file with a metadata block:
-
-```markdown
-# <Title>
-
-Lifecycle: active
-Role: spec
-Project: <project>
-Updated: YYYY-MM-DD
-
-Related:
-- implements: <charter>
-- pairs-with: <implementation-log>
-
-## <First section>
-
-...
+```
+project-foundation        once, at the start
+  ↓
+create-milestones         interactive milestone loop
+  OR
+ship-milestone            autonomous milestone loop
+  ↓ (called from inside both)
+sync-and-commit           every step boundary
+  ↓ (last phase of each milestone)
+simplify                  behavior-preserving cleanup
 ```
 
-That looks boring, which is the point. It is readable in a terminal, editable in any editor, reviewable in git, and structured enough for a tool to check.
-
-docs-cli treats each managed Markdown file as a record with a lifecycle, a role, a project, an update date, and typed relationships. It derives the index from those records. It can create new records, archive them, move them, rewrite relationships, list them, validate them, and migrate existing Markdown trees into the convention.
-
-The convention is deliberately not a static site generator, a wiki, or a project management system. Git owns history. The CLI owns lifecycle and navigation.
-
-That boundary matters. Agents are very willing to "just edit the index" or "just move this to archive" unless the project gives them a better surface. The better surface is a small set of verbs: create, archive, move, touch, list, check, index, and migrate.
-
-The important part is not the command syntax. It is that the command encodes the invariant: lifecycle, physical location, related records, and the generated index all move together.
-
-## The edge cases are the evidence
-
-The docs-cli project is a useful case study because the tool dogfoods the workflow it is meant to support. Its design did not appear fully formed. It grew by finding small documentation failures and turning them into rules.
-
-The generated index started as a convenience, then became a contract. When index generation hit an edge case around marker handling, the fix was not "be more careful next time." It became a regression test and a stricter parser rule.
-
-The mutating verbs exist because hand-editing metadata is exactly what agents should not be trusted to do repeatedly. Creating a record, archiving a completed record, moving a record, and bumping its update date are all small operations. They are also exactly the operations that create drift if every agent improvises them.
-
-Validation and listing are where the convention becomes enforceable. `docs check` gives CI-usable exit codes. `docs list --json` gives agents a query surface. Malformed records should become reportable findings, not crashes.
-
-Migration is dry-run by default. That is the right default for an inference-heavy operation. A foreign tree gets a complete plan first: one decision per record, inferred metadata, confidence, archive moves, and ambiguities. `--apply` comes later.
-
-The bundled skill adds the missing behavioral layer. When an agent works in a managed tree, it should use the CLI instead of hand-maintaining the convention.
-
-Packaging matters too. The public PyPI distribution is `docs-cli`, while the executable command remains `docs`. The skill ships inside the Agent Playbook Suite plugin, while the CLI itself still needs to be installed from PyPI so the agent can run `docs`.
-
-A trial across 25 real-world Markdown trees, 501 files total, produced the most useful design correction. `Status:` looked like the obvious name for a controlled lifecycle field, but existing docs often use status as free-form prose. The convention changed to `Lifecycle:` for the controlled value and preserved prose status as migrated metadata.
-
-The same trial pushed the migration planner toward medium-confidence inference, broader role detection, project-name normalization, and a wider core role vocabulary. The dogfood result against sanitized real-tree fixtures was 88 percent high-or-medium confidence.
-
-That is the kind of history I want in agent tooling. Not a grand architecture claim. A sequence of small failures, turned into commands, validations, and docs that future agents must read.
-
-## The suite plugin makes it a workflow
-
-On its own, docs-cli gives you the runtime substrate. Agent Playbook Suite packages the skill layer as one installable plugin for Codex and Claude Code, so users do not have to clone five separate skill repositories by hand. The plugin includes the `docs` skill instructions, while the `docs-cli` package still provides the `docs` executable the workflow calls.
-
-The five workflow skills turn that substrate into a coding-agent workflow.
-
-`project-foundation` runs once near the start. It creates the project front-half: charter, scope, architecture, milestone plan, living status, definition of ready, and the project instructions Claude Code will later read.
-
-`create-milestones` is the operator-driven delivery loop. It creates a milestone record and paired implementation log, then walks the work through a fixed ten-phase TDD sequence.
-
-`ship-milestone` is the autonomous version. Its interesting choice is that it acts as a conductor, not as the implementer. It resolves the milestone, keeps the working tree clean, and delegates planning, implementation, review, and simplification to fresh sub-agents.
-
-`sync-and-commit` is the step boundary. It verifies the work, updates the docs tree to match reality, reviews the diff, commits, and pushes when safe. It does not bypass git hooks and it does not push to `main`.
-
-`simplify` is the final cleanup pass. It reduces complexity while preserving behavior. If nothing genuinely simplifies, it should make no changes.
-
-The skills are not independent conveniences. They are one opinionated pipeline:
-
-```text
-project-foundation
-  -> create-milestones or ship-milestone
-  -> sync-and-commit
-  -> simplify
-```
-
-The payoff is that one plugin installs the workflow, and every important project fact gets a durable artifact.
-
-## The ten phases are there for handoff
-
-The milestone loop is a TDD loop with explicit doc touchpoints:
+Every milestone moves through ten phases:
 
 1. Define Contract
-2. Write Tests
+2. Write Tests (RED — must fail)
 3. Create Fixtures
-4. Confirm RED baseline
+4. Run Tests (confirm RED baseline)
 5. Update Interfaces
 6. Implement Core
 7. Update Wrappers
-8. Reach GREEN
+8. Run Tests (GREEN)
 9. Integrate
 10. Quality, Docs, Refactor
 
-There is nothing magic about those phase names. The value is that each phase has an exit condition and a log entry.
+This is not novel TDD. What is novel is that each phase has an explicit log entry, an exit criterion, and a status update. The milestone task plan and its paired implementation log are written first and updated as work progresses. `status.md` reflects the current in-flight phase at all times.
 
-For a human developer, that may look heavy. For an agent workflow, it buys a lot. A fresh session does not have to infer whether tests were supposed to be failing. It can read the milestone record and implementation log. It can see that Phase 2 wrote the tests, Phase 4 captured the red baseline, Phase 8 reached green, and Phase 10 updated the documentation state.
+That sounds heavy. For ten-minute tasks it is. For ten-day tasks it is the difference between resuming and restarting.
 
-That is also why the docs tree is not "documentation after the fact." It is the control plane for the work.
+## How I actually use it
 
-## Fresh context as a feature
+### Day 0: `project-foundation`
 
-The most opinionated piece is `ship-milestone`.
+I run `project-foundation` once and answer a structured set of questions. The agent writes:
 
-Most agent workflows try to preserve one large context as long as possible. `ship-milestone` goes the other way. It uses a lightweight conductor and fresh sub-agents:
+- a charter (`docs/charter.md`)
+- scope and constraints
+- an architecture sketch
+- a milestone plan
+- a definition of ready
+- a living `status.md`
+- a `CLAUDE.md` (or a `CLAUDE-additions.md` diff if one exists)
 
-- one agent sets up the milestone
-- one agent plans the early phases
-- another implements from fresh context
-- a separate agent performs fresh-eyes review
-- the pattern repeats for later phases
-- a final pass simplifies the result
+Every file lands with `docs new`, so the metadata block is correct without me thinking about it:
 
-The reason is simple: a fresh agent cannot rely on the story it told itself while writing the code. It has to reconstruct the project from artifacts on disk. If those artifacts are insufficient, that is a real defect in the workflow.
+```markdown
+# docs — Charter
 
-I think this is the strongest idea in the suite. Fresh context is usually treated as a limitation of LLM systems. Here it becomes a review primitive.
+Lifecycle: active
+Role: charter
+Project: docs
+Updated: 2026-05-24
 
-This also matches how I want to use coding agents in practice. I do not want one agent to hold the entire story in its head forever. I want one agent to produce an artifact, another agent to evaluate it from first principles, and a third pass to simplify the result once the behavior is locked down.
+Related:
+- pairs-with: convention.md
+- pairs-with: cli.md
+- pairs-with: plan.md
+```
 
-That is much closer to how useful human review works.
+`INDEX.md` is generated. I never hand-edit it.
 
-## What this costs
+### Per milestone: `create-milestones` or `ship-milestone`
 
-The cost is real.
+For milestones where I want to stay in the loop, I run `create-milestones`. It creates the milestone doc and the paired implementation log, then walks me through the ten phases. At the end of each phase the log gets an entry and the status doc moves forward.
 
-You have to accept a documentation convention. You have to maintain a useful project instruction file. You have to work in milestone-sized slices. You have to treat status records and implementation logs as part of the build, not as optional housekeeping.
+For milestones where I want the agent to run unattended for a stretch, I run `ship-milestone`. This is the most distinctive part of the suite. `ship-milestone` does not write the code itself. It acts as a conductor and spawns fresh sub-agents per branch:
 
-This is a poor fit for one-off scripts and tiny bug fixes. It is also a poor fit if you want the agent to improvise freely and keep all rationale in chat.
+- `<slug>/milestone-setup` — milestone-creation agent (only if the task plan and log do not exist)
+- `<slug>/phases-1-4` — fresh planning agent, then fresh implementation agent
+- `<slug>/phases-5-10` — fresh planning agent, then fresh implementation agent
+- `<slug>/simplify` — fresh simplify agent
 
-It is a good fit when the restart cost is high: greenfield projects, multi-milestone features, internal tools, paused side projects, and codebases where a different agent may need to resume the work next week.
+Between each step a fresh-eyes review agent reads the diff cold. Each sub-agent runs a same-instance consistency audit before returning. The conductor's job is triage and operator routing, not synthesis.
 
-The tradeoff is structure for resumability.
+The point of fresh contexts is not throughput. It is that a review agent that did not write the code cannot rationalize it. It has to rebuild understanding from the milestone doc, the implementation log, the specs, and the diff. If it cannot, the artifact trail is incomplete and the workflow has told me something useful.
 
-## What I would watch
+### Per step boundary: `sync-and-commit`
 
-The risk with any process like this is ceremony creep. If the docs become a second product to maintain, the workflow has failed.
+`sync-and-commit` is the git-safety layer. It runs the project's quality gate, verifies the implementation against the milestone, updates the docs tree, reviews the diff, and commits. It does not bypass hooks. It does not push to `main`. If the docs tree disagrees with the code, the commit does not happen.
 
-The test I would use is simple: can a fresh agent resume a milestone faster because these artifacts exist? If yes, the ceremony is paying rent. If no, delete or simplify the pieces that are not helping.
+### End of milestone: `simplify`
 
-The other thing I would watch is how often humans have to resolve ambiguity. Some human decision points are good. Product tradeoffs, architecture direction, and release scope should not be silently guessed by an agent. But if the same kind of low-level ambiguity appears again and again, that is probably a missing command, a missing validation rule, or a missing convention.
+`simplify` runs the Phase 10 cleanup pass. It replaces clever code with obvious code, drops abstractions that did not earn their place, and reruns the test suite. If nothing genuinely simplifies, it returns without changes. That refusal is part of the contract — the skill is not allowed to invent work.
 
-## How to try it
+## Three use cases, with examples
 
-Install the CLI:
+### 1. Greenfield: building a new tool
+
+This is the case the suite was designed for. The clearest worked example is `docs-cli` itself: I used the suite to build the CLI that the suite depends on. The full artifact trail is in the public repo at [github.com/ArtRichards/docs-cli](https://github.com/ArtRichards/docs-cli).
+
+Ten milestones, all visible:
+
+- M1 — parser and `docs index`
+- M2 — mutating verbs (`new`, `archive`, `mv`, `touch`)
+- M3 — validation and query (`check`, `list`)
+- M4 — migration helper (`docs migrate`)
+- M5 — Claude Code skill bundle
+- M6 — PyPI packaging preparation
+- M7 — migration plan accuracy
+- M8 — adoption workflow (agent-driveable)
+- M9 — PyPI publish 1.3.0
+- M10 — adoption-flow polish
+
+Each milestone is a `docs/mN-*.md` task plan paired with a `docs/mN-*-log.md` implementation log. Every TDD phase has an entry. The milestone-completion summaries record what shipped, what was deferred, and what changed mid-flight. The mid-M6 "scope reframe" — where M6 was reframed from "publish to PyPI" to "preparation only," with the actual publish deferred to M9 — is a single-paragraph callout at the top of the milestone doc, written when the decision was made.
+
+That callout is the thing I would have lost in chat. It is the kind of mid-project rescope that no agent could reconstruct from `git log` alone, because the commit messages describe what shipped, not what was decided not to ship.
+
+When I pick the project back up after a week, the first three files I read are `status.md`, the current milestone doc, and the impl log. That is faster than scrolling chat for any project longer than a day.
+
+### 2. Adoption: a non-conforming Markdown tree
+
+The second use case is bringing an existing Markdown directory under the convention. `docs migrate` does inference — for each file it guesses a lifecycle, a role, related edges, and a confidence score — and emits a dry-run plan with a per-file table and a footer summary.
+
+A typical adoption looks like this:
+
+```sh
+# 1. Inspect what would change
+docs migrate ./notes/
+
+# 2. Triage the ambiguous entries
+docs migrate ./notes/ --summary --only ambiguous
+
+# 3. Exclude data subdirs and re-run
+echo 'fixtures/' >> ./notes/.docsignore
+docs migrate ./notes/
+
+# 4. Apply when the plan looks right
+docs migrate ./notes/ --apply
+
+# 5. Verify
+docs check ./notes/
+```
+
+The migration is dry-run by default because inference on real-world Markdown is messy. The first version of the convention used `Status:` for the controlled lifecycle field. Dogfooding against existing trees made it obvious that "status" in the wild is usually free-form prose, so the convention switched to `Lifecycle:` for the controlled value and preserved any existing `Status:` content as migrated metadata. That kind of correction only comes from running the tool on inputs it did not expect.
+
+I use this flow whenever I inherit a repo with a `docs/` or `notes/` folder and want the agent to maintain it instead of fighting it. The agent calls `docs new --body-from -` whenever it authors a new doc, so the metadata stays correct without the agent needing to remember the convention.
+
+### 3. Multi-session handoff
+
+The third case is the one that motivated the whole suite. A real feature release spans days. Sessions get interrupted. The agent fills its context and gets compacted. I switch machines. Sometimes I switch agents entirely — Claude Code for the planning, Codex for the implementation, whichever works that day.
+
+Without the suite, every handoff costs something. With the suite, the handoff is reading three files:
+
+- `status.md` — what milestone is active, what phase, what was last completed
+- the current milestone doc — the contract, the deliverables, the exit criteria, open questions
+- the current implementation log — every phase entry, every deviation, every decision recorded as it happened
+
+A fresh agent can resume from those three files. I have done it. The suite is at the point where a session can hand off mid-milestone — say, between phases 4 and 5 — and the next session reconstructs intent without me typing a paragraph of context.
+
+The test I apply: can a fresh agent resume faster because these artifacts exist? If yes, the workflow is paying rent. If no, simplify it.
+
+## What it costs
+
+The cost is real and I would rather state it than hide it:
+
+- You have to learn the docs-cli convention. It is small (one metadata block per file, a typed `Related:` graph, a generated `INDEX.md`) but it is opinionated.
+- You have to maintain a useful `CLAUDE.md`. The sub-agents read it to bootstrap. If it lies, they will too.
+- You have to work in milestone-sized slices. Drive-by edits do not fit.
+- You have to treat the docs tree as part of the build. `sync-and-commit` will block a commit that diverges from the milestone.
+
+If any of those sound like overhead with no return, the suite is not the right tool. For a one-file bug fix it is wildly over-engineered.
+
+## When it pays back
+
+The workflow earns its place when restart cost is high. Greenfield projects, multi-milestone features, internal tools you keep returning to, any codebase where you expect a different agent to resume the work. The more sessions a project spans, the more the artifact trail is worth.
+
+It also pays back when you want independent review. The conductor pattern in `ship-milestone` is the cleanest version of "fresh eyes on the diff" I have used. The review agent has nothing but the artifacts on disk and the diff. If it cannot reconstruct the change, that is a real finding — not a model issue.
+
+## Try it
+
+Install the runtime CLI:
 
 ```sh
 python3 -m pip install --upgrade docs-cli
 docs --version
 ```
 
-Then install the suite plugin from this repository's public marketplace. This is now the primary install path for Codex and Claude Code.
-
-For Codex:
+Install the suite plugin. For Codex:
 
 ```sh
 codex plugin marketplace add ArtRichards/agent-playbook-suite --ref main
@@ -210,31 +234,18 @@ claude plugin marketplace add ArtRichards/agent-playbook-suite
 claude plugin install agent-playbook-suite@agent-playbook-suite
 ```
 
-Gemini CLI and OpenCode do not consume the Codex or Claude marketplace
-manifests directly, but the same skill payload is packaged in the repository
-under `plugins/agent-playbook-suite/skills/`.
+Gemini CLI and OpenCode do not consume these marketplace manifests directly, but the shared skill payload lives in `plugins/agent-playbook-suite/skills/` and is portable for direct skill-directory installs.
 
-For an existing repo, the practical first step is not to automate shipping. Start smaller: run migration in dry-run mode against an existing Markdown tree, inspect the ambiguities, then validate the result before applying changes. Decide whether the convention makes the tree easier to reason about. If it does, apply it and then bring in the skills.
+For an existing repo, start small: run `docs migrate <dir>` against an existing Markdown tree, read the dry-run plan, exclude what does not belong, apply, and verify. If the convention makes the tree easier to reason about, bring in the skills.
 
-For a new project, start with `project-foundation`, then choose whether you want the interactive loop (`create-milestones`) or the autonomous conductor (`ship-milestone`).
+For a new project, start with `project-foundation`, then pick `create-milestones` for an interactive loop or `ship-milestone` for an autonomous one. Look at `docs-cli`'s own [`docs/`](https://github.com/ArtRichards/docs-cli/tree/main/docs) directory while you are at it — that is what the artifact trail looks like when the workflow has been running for ten milestones.
 
 ## Summary
 
-If you use Claude Code for serious multi-session development, the chat transcript is the wrong place for project state.
+- The suite is for multi-session, multi-milestone software work where state has to survive between sessions.
+- Project state lives in a Markdown tree managed by `docs-cli`, not in chat history.
+- `project-foundation` sets up the front-half. `create-milestones` or `ship-milestone` runs each milestone through ten TDD phases. `sync-and-commit` is the git-safety layer. `simplify` is the closing pass.
+- `ship-milestone` uses fresh sub-agents on purpose — independent review is the point.
+- The cost is the convention and the milestone discipline. The payoff is that any fresh agent can resume the project from the docs tree.
 
-Put the state on disk. Make the files self-describing. Generate the index. Validate the tree. Pair milestone plans with implementation logs. Make every phase leave a trail a fresh agent can read.
-
-Then install the suite plugin and keep `docs-cli` current from PyPI. The point is not more documentation. The point is making agent work restartable.
-
-## Related Hacker News discussions
-
-These are useful adjacent discussions, not source citations for the claims above:
-
-- [How I program with LLMs](https://news.ycombinator.com/item?id=42617645) - a practical thread on where LLMs help experienced programmers and where review discipline still matters.
-- [Embracing the parallel coding agent lifestyle](https://news.ycombinator.com/item?id=45489884) - directly relevant to the conductor / fresh-agent pattern and the cost of reviewing multiple agent outputs.
-- [Ask HN: Senior software engineers, how do you use Claude Code?](https://news.ycombinator.com/item?id=46573860) - a broad sample of real Claude Code workflows and tradeoffs.
-- [Ask HN: Do you have any evidence that agentic coding works?](https://news.ycombinator.com/item?id=46691243) - useful skepticism around what counts as evidence for agentic coding.
-- [Launch HN: Nia (YC S25) - Give better context to coding agents](https://news.ycombinator.com/item?id=46194828) - related to the idea that coding agents need explicit project context, not just more tokens.
-- [Show HN: Project management system for Claude Code](https://news.ycombinator.com/item?id=44960594) - adjacent to the missing project-management layer that this workflow is trying to make file-backed and auditable.
-- [The 70% problem: Hard truths about AI-assisted coding](https://news.ycombinator.com/item?id=42336553) - a skeptical counterweight on why generated code often needs substantial human review.
-- [AI-Assisted Coding Killed My Joy of Programming](https://news.ycombinator.com/item?id=46108704) - useful as a reminder that not every developer wants the same relationship with agentic tools.
+Install `docs-cli` from PyPI, install the suite plugin from the marketplace, and run `project-foundation` on your next greenfield project. Then judge it on whether a fresh session can pick up the work without you explaining it.
