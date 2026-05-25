@@ -153,9 +153,11 @@ That callout is the thing I would have lost in chat. It is the kind of mid-proje
 
 When I pick the project back up after a week, the first three files I read are `status.md`, the current milestone doc, and the impl log. That is faster than scrolling chat for any project longer than a day.
 
-### 2. Adoption: a non-conforming Markdown tree
+### 2. Adoption: an existing repo you did not start with this
 
-The second use case is bringing an existing Markdown directory under the convention. `docs migrate` does inference — for each file it guesses a lifecycle, a role, related edges, and a confidence score — and emits a dry-run plan with a per-file table and a footer summary.
+This is the entry point if you have a repo you did not build with the suite in mind. You do not have to rewrite history or carve out a greenfield branch. `docs migrate` adopts an existing Markdown directory in place, and the agent can do most of the work.
+
+`docs migrate` does inference — for each file it guesses a lifecycle, a role, related edges, and a confidence score — and emits a dry-run plan with a per-file table and a footer summary.
 
 A typical adoption looks like this:
 
@@ -181,6 +183,8 @@ The migration is dry-run by default because inference on real-world Markdown is 
 
 I use this flow whenever I inherit a repo with a `docs/` or `notes/` folder and want the agent to maintain it instead of fighting it. The agent calls `docs new --body-from -` whenever it authors a new doc, so the metadata stays correct without the agent needing to remember the convention.
 
+You do not have to layer on the milestone skills the same day. Many existing repos benefit just from a managed docs tree, a generated `INDEX.md`, and a `docs check` gate. The milestone discipline is a separate, optional layer on top.
+
 ### 3. Multi-session handoff
 
 The third case is the one that motivated the whole suite. A real feature release spans days. Sessions get interrupted. The agent fills its context and gets compacted. I switch machines. Sometimes I switch agents entirely — Claude Code for the planning, Codex for the implementation, whichever works that day.
@@ -194,6 +198,26 @@ Without the suite, every handoff costs something. With the suite, the handoff is
 A fresh agent can resume from those three files. I have done it. The suite is at the point where a session can hand off mid-milestone — say, between phases 4 and 5 — and the next session reconstructs intent without me typing a paragraph of context.
 
 The test I apply: can a fresh agent resume faster because these artifacts exist? If yes, the workflow is paying rent. If no, simplify it.
+
+## Where it sits next to tickets
+
+The suite is a process the agent runs inside, not a replacement for your issue tracker. Keep whatever you already use — GitHub Issues, Linear, Jira — and map milestones to tickets however the work shapes up:
+
+- **One milestone per ticket.** Fine for small tickets. The milestone doc carries the contract, deliverables, and exit criteria. The ticket links to the milestone doc.
+- **Multiple milestones per ticket.** When a ticket is large enough to warrant subdivision, the ticket becomes the project and each milestone is a delivery slice inside it.
+- **One ticket per phase.** Rare, but if your tracker is where standups happen, you can file one ticket per phase boundary and close it when the phase exits.
+
+The suite does not assume ownership of any of that. It assumes the agent will produce a milestone doc and an implementation log; how those map to your tracker is your call.
+
+If you do not want the milestone discipline at all, install `docs-cli` from PyPI by itself. It ships its own bundled `docs` skill — install it with `docs install-skill` and you get the convention, the generated `INDEX.md`, and the validation gate without any of the suite. The suite is the opinionated workflow layer on top; the convention works fine alone.
+
+## What happens to old milestones
+
+Milestone docs and impl logs are not meant to live in the active tree forever. When a milestone ships, `docs archive --cascade <milestone>.md` atomically moves the milestone doc and its paired implementation log into `archive/YYYY-MM-DD/`, flips their lifecycle, and regenerates `INDEX.md`. The active tree stays scoped to what is in flight.
+
+The archived tree is still in the repo, still grep-able, still readable. A future agent can reconstruct any past decision by walking it. But it is not in the way when you open `status.md` to see what is happening right now.
+
+The artifact trail is a working record, not an institutional memory project. Archive aggressively. The decisions that mattered will be visible in the archive; the ones that did not will be quiet.
 
 ## What it costs
 
