@@ -12,7 +12,7 @@ I do not think the right answer is "use a bigger context window." Bigger context
 
 The answer I like here is much more boring: write the state down as small Markdown records in the repository, validate them with a CLI, and teach the agent to use that CLI instead of treating chat history as memory.
 
-That is the idea behind [docs-cli](https://github.com/ArtRichards/docs-cli) and the five Agent Skills built on top of it: [project-foundation](https://github.com/ArtRichards/project-foundation), [create-milestones](https://github.com/ArtRichards/create-milestones), [ship-milestone](https://github.com/ArtRichards/ship-milestone), [sync-and-commit](https://github.com/ArtRichards/sync-and-commit), and [simplify](https://github.com/ArtRichards/simplify).
+That is the idea behind [docs-cli](https://github.com/ArtRichards/docs-cli) and [Agent Playbook Suite](https://github.com/ArtRichards/agent-playbook-suite): one marketplace-distributed plugin that bundles the `docs` skill plus five workflow skills: [project-foundation](https://github.com/ArtRichards/project-foundation), [create-milestones](https://github.com/ArtRichards/create-milestones), [ship-milestone](https://github.com/ArtRichards/ship-milestone), [sync-and-commit](https://github.com/ArtRichards/sync-and-commit), and [simplify](https://github.com/ArtRichards/simplify).
 
 This is not a replacement for git, tests, or review. It is a way to make agent work resumable.
 
@@ -22,6 +22,7 @@ In this article:
 - how docs-cli turns Markdown into a small record system
 - how the five skills turn that into a delivery workflow
 - why the fresh-agent pattern is the most interesting part
+- how to install the suite from public marketplace sources
 - where I think the costs are
 
 ## The real problem is state drift
@@ -95,9 +96,11 @@ The same trial pushed the migration planner toward medium-confidence inference, 
 
 That is the kind of history I want in agent tooling. Not a grand architecture claim. A sequence of small failures, turned into commands, validations, and docs that future agents must read.
 
-## The five skills make it a workflow
+## The suite plugin makes it a workflow
 
-On its own, docs-cli gives you the substrate. The five skills turn that substrate into a coding-agent workflow, with Claude Code as the original target.
+On its own, docs-cli gives you the runtime substrate. Agent Playbook Suite packages the skill layer as one installable plugin for Codex and Claude Code, so users do not have to clone five separate skill repositories by hand. The plugin includes the `docs` skill instructions, while the `docs-cli` package still provides the `docs` executable the workflow calls.
+
+The five workflow skills turn that substrate into a coding-agent workflow.
 
 `project-foundation` runs once near the start. It creates the project front-half: charter, scope, architecture, milestone plan, living status, definition of ready, and the project instructions Claude Code will later read.
 
@@ -109,7 +112,7 @@ On its own, docs-cli gives you the substrate. The five skills turn that substrat
 
 `simplify` is the final cleanup pass. It reduces complexity while preserving behavior. If nothing genuinely simplifies, it should make no changes.
 
-The skills are not five independent conveniences. They are one opinionated pipeline:
+The skills are not independent conveniences. They are one opinionated pipeline:
 
 ```text
 project-foundation
@@ -118,7 +121,7 @@ project-foundation
   -> simplify
 ```
 
-The payoff is that every important project fact has a durable artifact.
+The payoff is that one plugin installs the workflow, and every important project fact gets a durable artifact.
 
 ## The ten phases are there for handoff
 
@@ -191,7 +194,7 @@ python3 -m pip install --upgrade docs-cli
 docs --version
 ```
 
-Then install the suite plugin from this repository's marketplace.
+Then install the suite plugin from this repository's public marketplace. This is now the primary install path for Codex and Claude Code.
 
 For Codex:
 

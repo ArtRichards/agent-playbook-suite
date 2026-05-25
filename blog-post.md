@@ -9,7 +9,7 @@ Coding agents are good at producing changes. They are much worse at preserving p
 
 **BLUF:** if you want Claude Code or another coding agent to work on serious multi-session projects, put the project state in the repository, not in the transcript. Keep decisions, milestones, status, implementation logs, and handoff notes as structured Markdown records. Validate and mutate those records with a CLI. Then teach the agent to use that CLI whenever it plans, ships, reviews, or closes work.
 
-That is the idea behind [docs-cli](https://github.com/ArtRichards/docs-cli) and five Agent Skills built on top of it: [project-foundation](https://github.com/ArtRichards/project-foundation), [create-milestones](https://github.com/ArtRichards/create-milestones), [ship-milestone](https://github.com/ArtRichards/ship-milestone), [sync-and-commit](https://github.com/ArtRichards/sync-and-commit), and [simplify](https://github.com/ArtRichards/simplify).
+That is the idea behind [docs-cli](https://github.com/ArtRichards/docs-cli) and [Agent Playbook Suite](https://github.com/ArtRichards/agent-playbook-suite): one marketplace-distributed plugin that bundles the `docs` skill plus five workflow skills: [project-foundation](https://github.com/ArtRichards/project-foundation), [create-milestones](https://github.com/ArtRichards/create-milestones), [ship-milestone](https://github.com/ArtRichards/ship-milestone), [sync-and-commit](https://github.com/ArtRichards/sync-and-commit), and [simplify](https://github.com/ArtRichards/simplify).
 
 This is not a replacement for git, tests, or review. It is a way to make agent work resumable.
 
@@ -64,9 +64,11 @@ The most useful correction came from trying it on real documentation trees. `Sta
 
 The lesson is simple: if agents will rely on a convention, the convention needs commands and checks. Otherwise it is just prose the agent may or may not follow.
 
-## The five skills
+## The suite plugin
 
-docs-cli is the substrate. The five skills turn it into a workflow.
+docs-cli is the runtime substrate. Agent Playbook Suite packages the skill layer as one installable plugin for Codex and Claude Code, so users do not have to clone five separate skill repositories by hand. The plugin includes the `docs` skill instructions, while the `docs-cli` package still provides the `docs` executable the workflow calls.
+
+The five workflow skills turn the substrate into a delivery process.
 
 `project-foundation` runs near the start. It creates the project front-half: charter, scope, architecture, milestone plan, living status, definition of ready, and the project instructions the agent will later read.
 
@@ -78,7 +80,7 @@ docs-cli is the substrate. The five skills turn it into a workflow.
 
 `simplify` is the final cleanup pass. It reduces complexity while preserving behavior, and should make no changes if nothing genuinely simplifies.
 
-The point is not five separate conveniences. The point is that every important project fact gets a durable artifact.
+The point is not six separate conveniences. The point is one opinionated plugin where every important project fact gets a durable artifact.
 
 ## The ten phases
 
@@ -134,7 +136,7 @@ python3 -m pip install --upgrade docs-cli
 docs --version
 ```
 
-Then install the suite plugin from this repository's marketplace.
+Then install the suite plugin from this repository's public marketplace. This is now the primary install path for Codex and Claude Code.
 
 For Codex:
 
