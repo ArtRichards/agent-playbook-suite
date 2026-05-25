@@ -1,0 +1,9 @@
+title: Agent Playbook Suite
+description: A file-backed workflow for resumable agent-led software projects.
+url: "https://artrichards.github.io"
+baseurl: "/agent-playbook-suite"
+theme: minima
+
+header_pages:
+  - blog.md
+  - references.md
