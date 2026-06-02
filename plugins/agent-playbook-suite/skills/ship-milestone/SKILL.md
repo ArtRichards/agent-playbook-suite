@@ -1,6 +1,6 @@
 ---
 name: ship-milestone
-description: Autonomously run a milestone through all ten TDD phases to completion. A lightweight conductor spawns fresh Opus sub-agents — milestone creation (if needed), then per-step planning, implementation, and fresh-eyes review — commits each step to its own branch, runs the same-instance consistency audit and /simplify. Use when the operator wants a milestone built end-to-end. Invoke as `/ship-milestone <milestone-id>` or `/ship-milestone next milestone`.
+description: Autonomously run a milestone through all ten TDD phases to completion. A lightweight conductor spawns fresh high-capability sub-agents — milestone creation (if needed), then per-step planning, implementation, and fresh-eyes review — commits each step to its own branch, runs the same-instance consistency audit and /simplify. Use when the operator wants a milestone built end-to-end. Invoke as `/ship-milestone <milestone-id>` or `/ship-milestone next milestone`.
 ---
 
 # ship-milestone
@@ -12,22 +12,25 @@ and finish with the work committed on a reviewable branch stack.
 
 Assumes a project set up with the docs-cli + skills ecosystem
 (see `project-foundation` / `create-milestones`). If the target
-milestone's task plan and log do not exist yet, **Step 0** creates
-them following the `create-milestones` conventions before the TDD
-steps begin.
+milestone's task plan, implementation log, or test matrix do not
+exist yet, **Step 0** creates the missing milestone artifacts
+following the `create-milestones` conventions before the TDD steps
+begin.
 
 ## Requirements
 
 Required tooling:
 
-- [`docs-cli`](https://github.com/ArtRichards/docs-cli) **v1.2.0
-  (M7+)** for the `Lifecycle:` controlled-vocab field and expanded
-  role vocab; **v1.3.0 (M8+)** for `docs new --body-from -|<path>`.
+- [`docs-cli`](https://github.com/ArtRichards/docs-cli) **v1.4.0
+  (M10+)** or later for the `Lifecycle:` metadata convention,
+  `docs new --body-from -|<path>`, and atomic multi-file
+  `docs touch <file>...`.
 
 Companion skills (sub-agents invoke them by name):
 
 - `create-milestones` — read by Step 0's milestone-creation agent
-  for conventions when scaffolding a missing task plan.
+  for conventions when scaffolding a missing task plan, implementation
+  log, and test matrix.
 - `docs` (the docs-cli skill) — used by every sub-agent for doc
   lifecycle and validation.
 - `sync-and-commit` — called by each implementation agent at the
@@ -50,6 +53,9 @@ This SKILL.md is intentionally short. The substance lives in:
 - [`references/consistency-check.md`](references/consistency-check.md)
   — the same-instance audit each implementation agent runs after
   the last phase of its step.
+- [`../_shared/references/agentic-quality-model.md`](../_shared/references/agentic-quality-model.md)
+  — the shared risk-aware quality model used by planning,
+  implementation, review, and consistency checks.
 
 ## When this applies
 
@@ -83,13 +89,16 @@ code or docs. It only:
 
 Every heavyweight unit of work — creating the milestone,
 planning, implementing, reviewing, simplifying — is a **fresh
-Opus sub-agent**. This keeps the conductor's context small and
+high-capability sub-agent**. In Codex, prefer the strongest
+available coding model with high or xhigh reasoning (for example
+`gpt-5.5` with `xhigh` when available). In Claude Code, use Opus
+with deep thinking. This keeps the conductor's context small and
 bounded across the entire run, and means each step's agents are
 automatically free of any prior step's context: they rebuild
 understanding from the specs, logs, and code on the branch.
 
-Run the conductor session on the largest available model with
-high thinking — its triage decisions need it.
+Run the conductor session on the strongest available model with
+high reasoning — its triage decisions need it.
 
 ## The steps
 
@@ -121,9 +130,11 @@ one **simplify** agent.
    - No argument → `AskUserQuestion` for which milestone. Do
      not proceed without an explicit answer.
 2. **Check whether it was created.** Look for the milestone's
-   task-plan doc and log (e.g. `m4-*.md` and `m4-*-impl.md`).
-   If they exist, Step 0 is skipped. If they don't, **Step 0**
-   will create them.
+   task-plan doc, implementation log, and test matrix (e.g.
+   `m4-*.md`, `m4-*-impl.md`, and `m4-*-test-matrix.md`). If all
+   three exist and are linked by `Related: pairs-with`, Step 0 is
+   skipped. If any artifact is missing or unlinked, **Step 0** will
+   create or repair the missing milestone artifact set.
 3. **Working tree must be clean** (`git status`). If dirty,
    **stop** — do not stash, do not commit. Ask the operator
    to clean up.
@@ -134,8 +145,9 @@ one **simplify** agent.
 
 A run can be interrupted. Before starting:
 
-- Step 0 is complete iff the milestone's task plan and log
-  already exist.
+- Step 0 is complete iff the milestone's task plan, implementation
+  log, and test matrix already exist and are linked by
+  `Related: pairs-with`.
 - Check which step branches exist (`<slug>/milestone-setup`,
   `<slug>/phases-1-4`, `<slug>/phases-5-10`, `<slug>/simplify`).
 - Read the milestone log's phase table for which phases are
@@ -148,22 +160,28 @@ A run can be interrupted. Before starting:
 
 ### Step 0 — Create the milestone (only if missing)
 
-Run this **only** when the milestone's task plan and log do not
-exist. Otherwise skip to Step 1.
+Run this **only** when the milestone's task plan, implementation
+log, or test matrix is missing or unlinked. Otherwise skip to Step
+1.
+
+The Step 0 artifact set is the task plan, implementation log, and test matrix.
+All three must be linked with `Related: pairs-with`.
 
 1. Create + check out `<slug>/milestone-setup` off the start
    commit (or check out the existing branch if resuming).
-2. **Spawn the milestone-creation agent** (Agent tool:
-   `subagent_type: general-purpose`, `model: opus`) with the
+2. **Spawn the milestone-creation agent** using the host's
+   worker/general-purpose sub-agent on the strongest available
+   model (Codex: `gpt-5.5` + `xhigh` when available; Claude:
+   Opus + deep thinking) with the
    [Milestone-creation agent prompt](references/agent-prompts.md#milestone-creation-agent).
    Keep its agent id/name.
-3. It returns a draft milestone task plan + log and an `OPEN
-   QUESTIONS` list. **Triage** the questions (see *Triage
-   rules*); `AskUserQuestion` for genuine scope or contract
-   forks.
+3. It returns a draft milestone task plan, implementation log, test
+   matrix, and an `OPEN QUESTIONS` list. **Triage** the questions
+   (see *Triage rules*); `AskUserQuestion` for genuine scope or
+   contract forks.
 4. **Resume the agent** (SendMessage) with the operator's
-   answers: it finalizes the milestone doc + log, updates
-   `status.md`, regenerates the docs INDEX in lockstep,
+   answers: it finalizes the milestone doc, implementation log, test
+   matrix, updates `status.md`, regenerates the docs INDEX in lockstep,
    confirms `docs check` is clean, and runs the
    `sync-and-commit` skill.
 5. Step 1 now branches off `<slug>/milestone-setup` instead of
@@ -178,8 +196,9 @@ agent pressure-tests the milestone spec as part of its job.
    `<slug>/milestone-setup` if Step 0 ran, otherwise off the
    start commit (or check out the existing branch if
    resuming).
-2. **Spawn the planning agent** (`subagent_type: Plan`,
-   `model: opus`) with the
+2. **Spawn the planning agent** using the host's planning-capable
+   sub-agent on the strongest available model with high reasoning
+   with the
    [Planning agent prompt](references/agent-prompts.md#planning-agent),
    `phase_range` = phases 1–4.
 3. The planning agent returns a plan and an `OPEN QUESTIONS`
@@ -187,16 +206,18 @@ agent pressure-tests the milestone spec as part of its job.
    auto-resolve doc/spec/conventional ones and record the
    decision; for genuine requirement or scope forks, call
    `AskUserQuestion`.
-4. **Spawn the implementation agent** (`subagent_type:
-   general-purpose`, `model: opus`) with the
+4. **Spawn the implementation agent** using the host's
+   worker/general-purpose sub-agent on the strongest available
+   model with high reasoning with the
    [Implementation agent prompt](references/agent-prompts.md#implementation-agent),
    the finalized plan, and the resolved answers. Keep its
    agent id/name. It implements phases 1–4, commits per phase,
    runs the
    [same-instance consistency audit](references/consistency-check.md),
    and returns a summary **without** running sync-and-commit.
-5. **Spawn the fresh-eyes review agent** (`subagent_type:
-   general-purpose`, `model: opus`) with the
+5. **Spawn the fresh-eyes review agent** using a fresh
+   worker/general-purpose sub-agent on the strongest available
+   model with high reasoning with the
    [Fresh-eyes review agent prompt](references/agent-prompts.md#fresh-eyes-review-agent),
    reviewing `<slug>/phases-1-4` against its base. For Step 1
    it must specifically judge whether the phase-2 tests
@@ -210,11 +231,27 @@ agent pressure-tests the milestone spec as part of its job.
    sync-and-commit.
 7. The implementation agent is on its own milestone branch, so
    `sync-and-commit` may push if a remote exists.
+8. Apply the **risk-aware RED-baseline checkpoint** from the
+   planning agent's `QUALITY PLAN`, the milestone doc, and the
+   fresh-eyes review's Risk-gate decision:
+   - **Lite:** continue automatically after fresh-eyes review
+     only if the tests genuinely pin the contract and all
+     accepted blockers/should-fixes are resolved.
+   - **Standard:** continue only if the review agent returns no
+     blockers on contract/test adequacy and all accepted
+     should-fixes are resolved.
+   - **High:** stop after Step 1. Ask the operator to approve
+     the contract, visible tests, hidden/generalization plan
+     (categories only, no private cases), mock policy, and risk
+     gates before Step 2 implementation starts. Resume only
+     after explicit approval or after the requested Step 1 fixes
+     are completed.
 
 ### Step 2 — Implement & ship (phases 5–10)
 
 1. Create + check out `<slug>/phases-5-10` off
-   `<slug>/phases-1-4`.
+   `<slug>/phases-1-4` only after the Step 1
+   risk-aware RED-baseline checkpoint allows continuation.
 2. Run the **same three-agent sequence** as Step 1, with
    `phase_range` = phases 5–10. The planning agent is freshly
    spawned — it has none of Step 1's context and rebuilds it
@@ -229,8 +266,9 @@ agent pressure-tests the milestone spec as part of its job.
 
 1. Create + check out `<slug>/simplify` off
    `<slug>/phases-5-10`.
-2. **Spawn the simplify agent** (`subagent_type:
-   general-purpose`, `model: opus`) with the
+2. **Spawn the simplify agent** using a fresh worker/general-purpose
+   sub-agent on the strongest available model with high reasoning
+   with the
    [Simplify agent prompt](references/agent-prompts.md#simplify-agent).
    No planning agent, no review agent — `/simplify` is
    behavior-preserving and self-tests.
@@ -282,22 +320,29 @@ test — when:
 - the working tree is dirty at pre-flight;
 - an implementation agent cannot reach the required test state
   (e.g. GREEN at phase 8);
+- a High-risk milestone has completed Step 1 and needs operator
+  approval for the contract, visible tests, hidden/generalization
+  plan, mock policy, and risk gates before Step 2;
 - a review finding needs an operator decision (use
   `AskUserQuestion`);
 - an agent reports a blocker it cannot resolve.
 
 ## Notes
 
-- Sub-agents are always spawned `model: opus` with an explicit
-  deep-thinking directive in the prompt (built into each
-  template).
+- Sub-agents are always spawned on the strongest available model
+  with an explicit deep-reasoning directive in the prompt (built
+  into each template). Prefer Codex `gpt-5.5` with `xhigh` where
+  available, or Claude Opus with deep thinking on Claude Code.
 - The conductor owns all `AskUserQuestion` interaction;
   sub-agents surface questions by returning them, then are
   resumed (SendMessage) with the answers.
-- Steps run straight through (0 → 1 → 2 → 3) — there is no
-  pause at the RED baseline. The consistency audit and the
-  fresh-eyes review are the quality gates;
-  `AskUserQuestion` is the only thing that pauses the run.
+- Steps run straight through only when the Step 1 risk-aware
+  RED-baseline checkpoint allows it. Lite and Standard milestones
+  may continue under the review criteria above; High-risk
+  milestones pause after Step 1 for operator approval before
+  Step 2 starts. The consistency audit and the fresh-eyes review
+  are quality gates, and `AskUserQuestion` handles required
+  operator approvals.
 - Push happens only via `sync-and-commit`, only when a remote
   exists, and only on the milestone branches — never on
   `main` or any shared branch.

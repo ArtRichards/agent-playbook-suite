@@ -1,6 +1,6 @@
 ---
 name: sync-and-commit
-description: Verify the work is consistent, complete, and accurate; sync the docs tree; commit and push. Use at the end of a TDD phase or step (especially when called from ship-milestone), or whenever the operator wants to wrap up in-flight work. Reads CLAUDE.md for project conventions; runs `docs check` against the docs tree; never bypasses git hooks; never pushes to `main`.
+description: Verify the work is consistent, complete, and accurate; sync the docs tree; commit and push. Use at the end of a TDD phase or step (especially when called from ship-milestone), or whenever the operator wants to wrap up in-flight work. Reads CLAUDE.md, AGENTS.md, or equivalent project context for conventions; runs `docs check` against the docs tree; never bypasses git hooks; never pushes to `main`.
 ---
 
 # sync-and-commit
@@ -10,15 +10,17 @@ reality, and commit (and push, when on a feature branch with a
 remote).
 
 Optionally pairs with [`docs-cli`](https://github.com/ArtRichards/docs-cli)
-**v1.2.0 (M7+)** for the `Lifecycle:` / `Role:` / `Updated:`
-metadata convention used by `project-foundation`,
-`create-milestones`, and `ship-milestone`. If the project does
-not use docs-cli, the docs-side checks are skipped and only the
+**v1.4.0 (M10+)** or later for the `Lifecycle:` / `Role:` /
+`Updated:` metadata convention and atomic multi-file
+`docs touch <file>...` used by `project-foundation`,
+`create-milestones`, and `ship-milestone`. If the project does not
+use docs-cli, the docs-side checks are skipped and only the
 project's own verification commands run.
 
 ## Step 1 — Read project context
 
-Read `CLAUDE.md` at the repo root for:
+Read the project-root agent context (`CLAUDE.md`, `AGENTS.md`, or
+equivalent) for:
 
 - The docs-tree location (if any) and which artifacts live in it.
 - Build/test/quality commands.
@@ -27,7 +29,7 @@ Read `CLAUDE.md` at the repo root for:
   push to vs. which require operator review).
 - Any project-specific rules.
 
-If CLAUDE.md is missing, fall back to inspecting recent
+If no project context file exists, fall back to inspecting recent
 `git log --oneline` for commit style and `package.json` /
 `pyproject.toml` / `Makefile` for commands.
 
@@ -59,7 +61,7 @@ For the phase/step just completed, verify:
 
 ### 2c. Type safety and linting
 
-Run the project's quality gate (from CLAUDE.md, or
+Run the project's quality gate (from project context, or
 `make format && make lint && make typecheck && make test`):
 
 - Typecheck clean.
@@ -98,18 +100,135 @@ If the project uses docs-cli, sync the docs tree:
 3. `docs touch <slug>.md <slug>-impl.md status.md` (and any other
    docs whose body content changed this step).
 4. `docs index <root>` to regenerate the marker block.
-5. `docs check <root> --stale 14` — must exit 0 or 1. Exit 2 →
-   stop and fix the lifecycle drift / broken refs before
-   committing.
+5. `docs check <root> --stale 14`. Treat a docs-check failure as
+   blocking. Exit 2 always means stop and fix the lifecycle drift /
+   broken refs before committing. If the project treats stale docs or
+   warnings as failures, fail closed on those too.
 
 If the project does NOT use docs-cli, update whatever status /
 implementation log / changelog the project's conventions require
-(per CLAUDE.md).
+(per project context).
 
 Also update — if applicable — the README, architecture doc, API
 reference, and operator runbook.
 
-## Step 4 — Review changes
+## Step 4 — Risk-aware quality gate
+
+After ordinary verification and docs sync, but before commit, run the
+risk-aware gate for the current milestone or change slice. Use the
+project's shared quality model or test matrix when present.
+
+Read the risk level from the milestone doc, contract/test matrix,
+quality log, or project policy:
+
+- If the risk level is missing, fail closed unless it can be safely
+  inferred from the change type and logged in the verification report.
+- For Standard or High risk, a contract/test matrix is required. Stop
+  if it is missing or stale.
+- For High-risk work in or after Phase 5, require recorded operator
+  approval from the Phase 4 RED-baseline checkpoint before committing.
+  Acceptable evidence is a milestone-doc, test-matrix,
+  implementation-log, or quality-log entry approving the contract,
+  visible tests, hidden/generalization plan, mock policy, and risk
+  gates. If project policy allows automatic continuation, require an
+  explicit recorded operator-approved exception before committing
+  phases 5-10 or final sync.
+- Record skipped deep gates as `not configured`, `deferred with reason`,
+  or `operator-approved skip`; never silently mark them green.
+
+### Risk-aware quality gate
+
+Lite:
+
+- format/lint/type/build where configured;
+- visible tests;
+- docs check.
+
+Standard:
+
+- Lite plus coverage report;
+- property/stateful smoke where configured;
+- hidden/generalization smoke where configured;
+- security/schema smoke where configured;
+- mock audit.
+
+High:
+
+- Standard plus benchmark/security/migration/rollback checks where
+  applicable;
+- mutation smoke or recorded mutation baseline where configured;
+- recorded operator approval after the Phase 4 RED baseline before
+  phases 5-10 or final sync, unless an explicit operator-approved
+  exception is logged;
+- explicit approval for any skipped High-risk deep gate.
+
+### Test adequacy and mock audit
+
+Check:
+
+- Contract file or contract section exists.
+- Tests trace to contract clauses where practical.
+- No visible test was weakened, skipped, or deleted without a logged
+  contract change.
+- No code appears to branch on test literals, fixture names, or visible
+  examples.
+- New mocks are listed and justified.
+- At least one real-path test exists for mocked behavior where
+  relevant.
+- Hidden/generalization categories were updated.
+- `hidden_generalization_gap` is recorded if hidden-pass data is
+  available.
+
+### Verification report
+
+Before committing, prepare a verification report in the operator
+response and, when the project has one, the implementation log or
+quality log:
+
+```markdown
+## Verification report
+
+- Risk level:
+- Fast gate commands run:
+- Deep gate commands run:
+- Deferred/not configured gates:
+- Visible test result:
+- Hidden/generalization result:
+- Coverage:
+- Mutation:
+- Property/stateful:
+- Fuzz:
+- Benchmark/security/schema/migration:
+- Mock audit:
+- Contract/test matrix status:
+- Docs check:
+- Diff scope:
+- Commit:
+- Push:
+- Operator approvals:
+- High-risk RED-baseline approval:
+- Remaining risks:
+```
+
+### Fail-closed behavior
+
+Stop before commit and fix or escalate on:
+
+- docs-check failure;
+- visible test failure;
+- configured build, lint, type, format, or package gate failure;
+- missing risk level unless it can be safely inferred and logged;
+- missing contract/test matrix for Standard or High-risk work;
+- unapproved skipped High-risk deep gates;
+- unauthorized visible-test weakening, deletion, or skip;
+- unexplained new or expanded mocks in Standard or High-risk work.
+
+Do not proceed by weakening tests, removing hooks, or relabeling a
+required gate as optional. If a configured gate cannot run, record
+whether it is `not configured`, `deferred with reason`, or
+`operator-approved skip`.
+
+## Step 5 — Review changes
 
 ```sh
 git status
@@ -122,12 +241,12 @@ Review every file that will be committed:
 - Changes look correct and complete.
 - Diff scope matches this phase/step — no unrelated changes.
 
-## Step 5 — Commit and push
+## Step 6 — Commit and push
 
 1. `cd` to the right repository (multi-repo projects commit to
    each separately).
 2. `git add` the relevant files explicitly — never blanket-add
-   with `git add -A` unless CLAUDE.md says otherwise.
+   with `git add -A` unless project context says otherwise.
 3. Write a commit message following the project's convention
    (concise, imperative, scoped per phase when working under
    `ship-milestone`).
@@ -135,7 +254,7 @@ Review every file that will be committed:
    - The current branch is a feature/milestone branch (never
      `main`, never a shared branch).
    - A remote exists.
-   - CLAUDE.md's branch conventions allow it.
+   - The project context's branch conventions allow it.
 
 Never use `--no-verify` or otherwise bypass git hooks unless
 the operator explicitly asks.

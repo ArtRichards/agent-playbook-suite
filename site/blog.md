@@ -17,7 +17,7 @@ This post explains what the suite is for, how I actually use it, and three concr
 Six pieces, in install order:
 
 - [`docs-cli`](https://github.com/ArtRichards/docs-cli) — a small Python CLI (`docs new`, `docs index`, `docs check`, `docs archive --cascade`, `docs migrate`) that manages a Markdown tree as a graph of self-describing records. Published on PyPI as `docs-cli`. Stdlib-only, Python 3.11+.
-- [`project-foundation`](https://github.com/ArtRichards/project-foundation) — bootstraps a new project's front-half: charter, scope, architecture, milestone plan, `CLAUDE.md`. Run once.
+- [`project-foundation`](https://github.com/ArtRichards/project-foundation) — bootstraps a new project's front-half: charter, scope, architecture, milestone plan, and agent context (`CLAUDE.md`, `AGENTS.md`, or equivalent). Run once.
 - [`create-milestones`](https://github.com/ArtRichards/create-milestones) — interactive milestone driver. Walks one milestone through ten TDD phases.
 - [`ship-milestone`](https://github.com/ArtRichards/ship-milestone) — autonomous milestone driver. Conductor that spawns fresh sub-agents for planning, implementation, review, and simplification.
 - [`sync-and-commit`](https://github.com/ArtRichards/sync-and-commit) — end-of-step wrap-up. Verifies, syncs docs to reality, commits, pushes when safe.
@@ -59,18 +59,38 @@ Every milestone moves through ten phases:
 
 1. Define Contract
 2. Write Tests (RED — must fail)
-3. Create Fixtures
-4. Run Tests (confirm RED baseline)
-5. Update Interfaces
-6. Implement Core
-7. Update Wrappers
+3. Create Data/Fixtures
+4. Run Tests (RED Baseline)
+5. Update Base Interfaces
+6. Implement Offline/Core Path
+7. Update Tool/Wrapper Layer
 8. Run Tests (GREEN)
-9. Integrate
+9. Integrate / Accept / Dogfood
 10. Quality, Docs, Refactor
 
-This is not novel TDD. What is novel is that each phase has an explicit log entry, an exit criterion, and a status update. The milestone task plan and its paired implementation log are written first and updated as work progresses. `status.md` reflects the current in-flight phase at all times.
+This is not novel TDD. What is novel is that each phase has an explicit log entry, an exit criterion, and a status update. The milestone task plan, paired implementation log, and test matrix are written first and updated as work progresses. `status.md` reflects the current in-flight phase at all times.
 
 That sounds heavy. For ten-minute tasks it is. For ten-day tasks it is the difference between resuming and restarting.
+
+## The quality model
+
+The current suite also makes the quality record explicit. A milestone should
+not stop at "visible tests are green." It records the behavior contract,
+visible red tests, hidden/generalization strategy, adequacy checks, risk level,
+and mock audit notes.
+
+The shared reference is
+[`agentic-quality-model.md`](https://github.com/ArtRichards/agent-playbook-suite/blob/main/plugins/agent-playbook-suite/skills/_shared/references/agentic-quality-model.md).
+In short: Lite work gets the basic contract, visible tests, configured
+technical gates, docs validation, and review. Standard work adds
+hidden/generalization smoke, property or stateful checks where useful, and mock
+review. High-risk work adds stronger gates such as mutation, fuzzing,
+security/schema/migration checks, benchmarks, rollback rehearsal, fresh-eyes
+review, and operator approval after the RED baseline.
+
+That distinction matters for agent-written code. A visible test suite can
+become a proxy the agent optimizes against. The hidden/generalization and
+adequacy layers are there to test intent, not just artifact conformance.
 
 ## How I actually use it
 
@@ -84,7 +104,7 @@ I run `project-foundation` once and answer a structured set of questions. The ag
 - a milestone plan
 - a definition of ready
 - a living `status.md`
-- a `CLAUDE.md` (or a `CLAUDE-additions.md` diff if one exists)
+- a `CLAUDE.md`, `AGENTS.md`, or matching additions file for the agent host
 
 Every file lands with `docs new`, so the metadata block is correct without me thinking about it:
 
@@ -106,11 +126,11 @@ Related:
 
 ### Per milestone: `create-milestones` or `ship-milestone`
 
-For milestones where I want to stay in the loop, I run `create-milestones`. It creates the milestone doc and the paired implementation log, then walks me through the ten phases. At the end of each phase the log gets an entry and the status doc moves forward.
+For milestones where I want to stay in the loop, I run `create-milestones`. It creates the milestone doc, paired implementation log, and test matrix, then walks me through the ten phases. At the end of each phase the log gets an entry, the matrix gets updated, and the status doc moves forward.
 
 For milestones where I want the agent to run unattended for a stretch, I run `ship-milestone`. This is the most distinctive part of the suite. `ship-milestone` does not write the code itself. It acts as a conductor and spawns fresh sub-agents per branch:
 
-- `<slug>/milestone-setup` — milestone-creation agent (only if the task plan and log do not exist)
+- `<slug>/milestone-setup` — milestone-creation agent (only if the task plan, implementation log, or test matrix does not exist)
 - `<slug>/phases-1-4` — fresh planning agent, then fresh implementation agent
 - `<slug>/phases-5-10` — fresh planning agent, then fresh implementation agent
 - `<slug>/simplify` — fresh simplify agent
@@ -212,7 +232,7 @@ If you do not want the milestone discipline at all, install `docs-cli` from PyPI
 
 ## What happens to old milestones
 
-Milestone docs and impl logs are not meant to live in the active tree forever. When a milestone ships, `docs archive --cascade <milestone>.md` atomically moves the milestone doc and its paired implementation log into `archive/YYYY-MM-DD/`, flips their lifecycle, and regenerates `INDEX.md`. The active tree stays scoped to what is in flight.
+Milestone docs, implementation logs, and test matrices are not meant to live in the active tree forever. When a milestone ships, `docs archive --cascade <milestone>.md` atomically moves the milestone artifact set into `archive/YYYY-MM-DD/`, flips their lifecycle, and regenerates `INDEX.md`. The active tree stays scoped to what is in flight.
 
 The archived tree is still in the repo, still grep-able, still readable. A future agent can reconstruct any past decision by walking it. But it is not in the way when you open `status.md` to see what is happening right now.
 
@@ -223,7 +243,7 @@ The artifact trail is a working record, not an institutional memory project. Arc
 The cost is real and I would rather state it than hide it:
 
 - You have to learn the docs-cli convention. It is small (one metadata block per file, a typed `Related:` graph, a generated `INDEX.md`) but it is opinionated.
-- You have to maintain a useful `CLAUDE.md`. The sub-agents read it to bootstrap. If it lies, they will too.
+- You have to maintain useful project context (`CLAUDE.md`, `AGENTS.md`, or equivalent). The sub-agents read it to bootstrap. If it lies, they will too.
 - You have to work in milestone-sized slices. Drive-by edits do not fit.
 - You have to treat the docs tree as part of the build. `sync-and-commit` will block a commit that diverges from the milestone.
 

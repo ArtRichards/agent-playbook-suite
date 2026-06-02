@@ -1,20 +1,21 @@
 ---
 name: create-milestones
-description: Create, advance, and complete milestones for a project whose foundation work is done. Drives the 10-phase TDD methodology (Define Contract, Write Tests RED, Create Fixtures, Run Tests RED, Update Interfaces, Implement Core, Update Wrappers, Run Tests GREEN, Integrate, Quality/Docs). Authors milestone + impl-log pairs via `docs new` and atomically archives them via `docs archive --cascade` on completion. Triggers on "create a milestone", "start M1", "next milestone", "begin implementation", "advance the project". Use after `project-foundation` has set up the docs tree.
+description: Create, advance, and complete milestones for a project whose foundation work is done. Drives the risk-aware, adequacy-checked 10-phase TDD methodology (Define Contract, Write Tests RED, Create Data/Fixtures, Run Tests RED Baseline, Update Base Interfaces, Implement Offline/Core Path, Update Tool/Wrapper Layer, Run Tests GREEN, Integrate/Accept/Dogfood, Quality/Docs). Authors milestone, impl-log, and test-matrix docs via `docs new` and atomically archives them via `docs archive --cascade` on completion. Triggers on "create a milestone", "start M1", "next milestone", "begin implementation", "advance the project". Use after `project-foundation` has set up the docs tree.
 ---
 
 # create-milestones
 
 Drive milestone-level TDD work on a project whose foundation
 artifacts already exist as docs-managed Markdown files. Each
-milestone is a pair of docs (`<slug>.md` + `<slug>-impl.md`)
-progressing through ten TDD phases, archived together with
-`docs archive --cascade` on completion.
+milestone is a task plan, implementation log, and test-matrix
+companion progressing through ten TDD phases, archived together
+with `docs archive --cascade` on completion.
 
 Requires [`docs-cli`](https://github.com/ArtRichards/docs-cli)
-**v1.2.0 (M7+)** for the `Lifecycle:` field rename and
-**v1.3.0 (M8+)** for `docs new --body-from -|<path>`. Ask the
-user to upgrade if the host's `docs` binary is older.
+**v1.4.0 (M10+)** or later. The workflow relies on the
+`Lifecycle:` metadata convention, `docs new --body-from -|<path>`,
+and atomic multi-file `docs touch <file>...`. Ask the user to
+upgrade if the host's `docs` binary is older.
 
 ## When this applies
 
@@ -39,8 +40,12 @@ This SKILL.md is intentionally short. The full procedure lives in:
   example).
 - [`references/tdd-phases.md`](references/tdd-phases.md) — the
   10-phase reference with per-phase docs-CLI touchpoints.
+- [`../_shared/references/agentic-quality-model.md`](../_shared/references/agentic-quality-model.md)
+  — risk levels, visible/hidden test layers, adequacy checks,
+  hidden-test policy, and mock policy.
 
-**Read both before driving any milestone.**
+**Read the milestone playbook, phase guide, and shared quality
+model before driving any milestone.**
 
 ## Invariants
 
@@ -58,20 +63,30 @@ This SKILL.md is intentionally short. The full procedure lives in:
 3. **Controlled-vocab field is `Lifecycle:`** (M7+). A
    controlled-vocab `Status:` line is wrong; `docs check`
    exits 2.
-4. **`Related: pairs-with`** is what bidirectionally links the
-   milestone doc to its impl log — it's what makes
-   `docs archive --cascade` find both at completion.
+4. **`Related:` edges link the milestone artifacts.** The
+   milestone doc carries `pairs-with` links to its impl log and
+   test matrix. Optional `parent-of` links can express hierarchy,
+   but `docs archive --cascade` follows `pairs-with` and
+   `child-of`, so do not rely on `parent-of` alone for cascade.
 5. **One phase at a time.** Drive a single phase per exchange
    with the user; never batch. After each phase: append to the
    impl log, tick the checklist, `docs touch`, `docs check`,
    confirm before proceeding.
-6. **`docs check <root> --stale 14`** runs at every phase
+6. **Risk and adequacy are first-class.** Every milestone doc
+   records `Risk Level`, a behavior `Contract`, `Test Strategy
+   For This Milestone`, and a linked `Test Matrix`. Use the
+   shared quality model to decide Lite / Standard / High gates.
+7. **High-risk RED checkpoint.** For High-risk milestones,
+   stop after Phase 4's RED baseline and ask for operator
+   approval before implementation continues, unless a project
+   policy explicitly allows automatic continuation.
+8. **`docs check <root> --stale 14`** runs at every phase
    boundary. Exit 2 blocks progression; exit 1 reviewed;
    exit 0 passes.
-7. **Milestone completion uses `docs archive <slug>.md --cascade
+9. **Milestone completion uses `docs archive <slug>.md --cascade
    --reason "<reason>"`** — one atomic call that lands both
-   task plan and impl log under `archive/<today>/` with
-   `Lifecycle: archived` and a regenerated INDEX. Never
+   task plan, impl log, and test matrix under `archive/<today>/`
+   with `Lifecycle: archived` and a regenerated INDEX. Never
    hand-move files into `archive/` or hand-flip `Lifecycle:` to
    `archived`.
 
@@ -91,16 +106,17 @@ have:
 
 If any of these is missing, redirect to `project-foundation`.
 
-## Project context: CLAUDE.md
+## Project context: CLAUDE.md, AGENTS.md, or equivalent
 
-If the repo root has a `CLAUDE.md`, read it before driving any
-phase. It documents the project's commit conventions, build/
-test/quality commands, branch conventions, and any
-project-specific rules — all things the phase work needs to
+Before driving any phase, read the project-root agent context that
+exists for the host: `CLAUDE.md`, `AGENTS.md`, or an equivalent
+project instruction file. It documents the project's commit
+conventions, build/test/quality commands, branch conventions, and
+any project-specific rules — all things the phase work needs to
 respect. The `project-foundation` skill scaffolds or extends
-CLAUDE.md at its Phase 8; if it's missing, suggest the user
-run `project-foundation`'s Phase 8 step (or scaffold from its
-template) before starting milestone work.
+`CLAUDE.md` and/or `AGENTS.md` at its Phase 8; if no agent context
+exists, suggest the user run `project-foundation`'s Phase 8 step
+(or scaffold from its template) before starting milestone work.
 
 ## Per-phase output format
 
@@ -110,12 +126,15 @@ template) before starting milestone work.
    section is sparse.
 4. Do the work — write code, run tests.
 5. Append a phase section to the impl log via body edit.
-6. Tick the milestone doc's checklist; flip the impl log's
+6. Record risk-gate, adequacy, hidden/generalization, and mock
+   evidence required by the phase.
+7. Tick the milestone doc's checklist; flip the impl log's
    progress-table cell.
-7. `docs touch <slug>.md <slug>-impl.md status.md`.
-8. `docs index <root>`.
-9. `docs check <root> --stale 14`.
-10. Confirm with the user before proceeding to the next phase.
+8. `docs touch <slug>.md <slug>-impl.md <slug>-test-matrix.md
+   status.md`.
+9. `docs index <root>`.
+10. `docs check <root> --stale 14`.
+11. Confirm with the user before proceeding to the next phase.
 
 ## Completion checklist
 
@@ -123,11 +142,17 @@ When Phase 10 is done:
 
 - [ ] Milestone-completion summary appended to both
       `<slug>.md` and `<slug>-impl.md`.
+- [ ] Test matrix updated with visible, hidden/generalization,
+      property/stateful, mutation, fuzz/benchmark/security/schema,
+      and mock-audit status.
+- [ ] Adequacy results summarized, including hidden-generalization
+      gap when available and explicit follow-ups for skipped deep
+      gates.
 - [ ] Full quality gate green: project commands + `docs check`.
 - [ ] `docs archive <slug>.md --reason "Milestone <M<N>>
       complete" --cascade` — accept the cascade prompt for the
-      impl log; decline for long-lived parents like
-      `milestone-plan.md` and `charter.md`.
+      impl log and test matrix; decline for long-lived parents
+      like `milestone-plan.md` and `charter.md`.
 - [ ] `status.md` updated: "Current milestone" advances; the
       milestone-progress row marked complete with the archive
       date.

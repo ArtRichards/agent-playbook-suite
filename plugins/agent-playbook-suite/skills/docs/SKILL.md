@@ -27,6 +27,9 @@ this skill when:
   convention — run `docs migrate <dir>` (dry-run first).
 - The user is about to hand-edit `INDEX.md`, a metadata block, or move
   a file into `archive/`.
+- The user needs to create or maintain quality artifacts such as
+  contract-to-test matrices, quality logs, or generated coverage/mutation/
+  benchmark report summaries in a docs-managed tree.
 
 Do **not** apply when:
 
@@ -51,6 +54,7 @@ but easy to misuse — confirm with the user before any verb that writes.
 | Bump a doc's `Updated:` | `docs touch <file>` | reindexes |
 | Validate the tree | `docs check` | exit `0` clean / `1` warnings / `2` errors |
 | Adopt a foreign tree | `docs migrate <dir>` | dry-run by default; `--apply` to write |
+| Rename the project | `docs project rename <new-name>` | rewrites `.docs.toml` + every `Project:` line; `--dry-run` |
 | Install this skill on a host | `docs install-skill` | `--dest`, `--copy` (default), `--symlink`, `--force` |
 
 `docs` walks up from the current directory to find `.docs.toml`. Use
@@ -63,6 +67,26 @@ full flag and exit-code detail, read
 first — it walks the dry-run → triage → exclude → iterate → apply →
 verify loop end-to-end and points at the starter
 [`references/docs-toml-template.toml`](references/docs-toml-template.toml).
+
+## Quality artifacts
+
+For test matrices, quality logs, and generated reports, use Markdown companion
+docs for the indexed summary and keep tool output in generated files. Prefer
+`docs new spec <milestone>-test-matrix` for contract-to-test matrices and
+`docs new log quality/<milestone>-quality-log` for ongoing quality results,
+then `docs touch`, `docs index`, and `docs check` as usual.
+
+Generated reports such as `coverage.xml`, `mutation.json`, and
+`benchmark.json` remain canonical tool output. Link them from the companion
+doc with `Related:` when the local convention accepts non-Markdown artifact
+targets; otherwise link their paths in the body.
+
+Read [`references/quality-artifacts.md`](references/quality-artifacts.md)
+before creating a quality log or report companion.
+
+Important: `docs check` proves the docs tree is mechanically clean. It does
+not prove behavior is correct, visible tests are adequate, hidden/
+generalization coverage exists, or risk gates passed.
 
 ## Three things never to hand-edit
 
@@ -78,12 +102,16 @@ verify loop end-to-end and points at the starter
 
 ## Reference
 
-The on-disk format and vocabulary (Role / Status values, metadata-block
+The on-disk format and vocabulary (`Lifecycle:` / `Role:` values, metadata-block
 grammar, archive layout):
 [`references/convention.md`](references/convention.md).
 
 The full flag and exit-code reference of every verb:
 [`references/cli.md`](references/cli.md).
+
+Quality artifacts, test matrices, generated reports, and the limits of
+`docs check`:
+[`references/quality-artifacts.md`](references/quality-artifacts.md).
 
 When a task needs a convention or flag detail this skill does not give,
 open the reference rather than guessing.

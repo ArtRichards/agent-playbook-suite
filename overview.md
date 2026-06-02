@@ -3,7 +3,7 @@
 Lifecycle: active
 Role: guide
 Project: agent-playbook-suite
-Updated: 2026-05-25
+Updated: 2026-06-02
 
 This guide explains a public workflow built from five workflow skills and the
 supporting `docs` skill, distributed as one suite plugin for Codex and Claude
@@ -42,7 +42,7 @@ The convention is portable without the CLI, but the workflow assumes you use the
 
 The five skills sit on top of that:
 
-- `project-foundation` sets up the project front-half: charter, scope, architecture, milestone plan, definition of ready, status docs, and `CLAUDE.md`
+- `project-foundation` sets up the project front-half: charter, scope, architecture, milestone plan, definition of ready, status docs, and agent context (`CLAUDE.md`, `AGENTS.md`, or equivalent)
 - `create-milestones` creates and advances a milestone interactively through a fixed 10-phase TDD workflow
 - `ship-milestone` runs a milestone more autonomously by spawning fresh agents for planning, implementation, review, and simplification
 - `sync-and-commit` verifies the work, syncs the docs tree, reviews the diff, and commits safely
@@ -138,9 +138,14 @@ When you start a project with `project-foundation`, the system creates the worki
 - test strategy
 - documentation plan
 - definition of ready
-- `CLAUDE.md` or a companion addition file such as `CLAUDE-additions.md`
+- `CLAUDE.md`, `AGENTS.md`, or a matching companion additions file
 
-When you start delivery work, each milestone gets its own milestone doc and paired implementation log, and the status docs are updated as phases move forward. New milestones can be added later as the project evolves. They are expected to inherit the overall project goals, constraints, and architecture context rather than starting from scratch each time.
+When you start delivery work, each milestone gets its own milestone doc,
+implementation log, and test matrix; quality logs or generated report companions
+are added where the risk level calls for them. Status docs are updated as phases
+move forward. New milestones can be added later as the project evolves. They are
+expected to inherit the overall project goals, constraints, and architecture
+context rather than starting from scratch each time.
 
 ## How the workflow works
 
@@ -148,7 +153,7 @@ When you start delivery work, each milestone gets its own milestone doc and pair
 
 Run `project-foundation` once at the start of a project. In practice, that project is often a broad feature release, delivery effort, or sub-project inside a larger repo, not necessarily the entire lifetime of the product. The agent asks structured questions and writes the answers into the docs tree as it goes.
 
-This is not just planning paperwork. It creates the durable operating context for future sessions and future agents, and it also prepares the `CLAUDE.md` context that the later skills expect.
+This is not just planning paperwork. It creates the durable operating context for future sessions and future agents, and it also prepares the agent context file that the later skills expect.
 
 ### 2. Break work into technical milestones
 
@@ -164,22 +169,43 @@ Use `create-milestones` for interactive operator-driven work, or `ship-milestone
 
 `create-milestones` is not just for the first pass. It is also the normal way to introduce new units of work as the release continues.
 
-For each milestone, `create-milestones` creates a milestone task-plan doc and a paired implementation log. The milestone moves through the TDD phases in those two artifacts, then the pair is archived together with `docs archive --cascade` when the work is complete.
+For each milestone, `create-milestones` creates a milestone task-plan doc, a
+paired implementation log, and a paired test matrix. The milestone moves through
+the TDD phases in those artifacts, then the artifact set is archived together
+with `docs archive --cascade` when the work is complete.
 
 Every milestone follows the same TDD-shaped phases:
 
 1. Define Contract
-2. Write Tests
-3. Create Fixtures
-4. Confirm RED baseline
-5. Update Interfaces
-6. Implement Core
-7. Update Wrappers
-8. Reach GREEN
-9. Integrate
+2. Write Tests (RED)
+3. Create Data/Fixtures
+4. Run Tests (RED Baseline)
+5. Update Base Interfaces
+6. Implement Offline/Core Path
+7. Update Tool/Wrapper Layer
+8. Run Tests (GREEN)
+9. Integrate / Accept / Dogfood
 10. Quality, Docs, Refactor
 
 Each phase has an explicit exit condition and a log entry. The status file reflects the active milestone and current phase at all times.
+
+### Quality model
+
+The suite uses a risk-aware quality model around those phases. A milestone
+records the behavior contract, visible red tests, hidden/generalization
+strategy, adequacy checks, risk level, and mock audit notes before the work is
+treated as complete.
+
+Risk gates scale by impact. Lite work can rely on the contract, visible tests,
+configured lint/type/build checks, docs validation, and ordinary review.
+Standard work adds hidden/generalization smoke, property or stateful checks
+where applicable, and explicit mock review. High-risk work adds stronger gates
+such as mutation, security/schema/migration, benchmark, rollback, and
+fresh-eyes review checks, with operator approval after the RED baseline.
+
+The point is not more process for its own sake. The artifact trail should show
+what was tested, what was intentionally not tested, and why the selected gate
+matches the risk.
 
 ### 4. Use fresh agents when autonomy matters
 
@@ -242,7 +268,7 @@ This is not "press one button and disappear." It is a structured human-plus-agen
 There is some adoption cost:
 
 - you need to accept the docs-cli document convention
-- you need to maintain a useful `CLAUDE.md` (or `AGENTS.md`)
+- you need to maintain useful project context (`CLAUDE.md`, `AGENTS.md`, or equivalent)
 - you need to work in milestone-sized slices
 - you need to treat docs as part of the build system
 
@@ -264,7 +290,7 @@ It is a poor fit for one-off scripts, tiny fixes, or teams that do not want proc
 
 ## Model And Budget Note
 
-The workflow is built for Claude Code first, but the general pattern works in other agent environments when the model can follow multi-step plans, run tools, inspect diffs, and keep docs synchronized with implementation.
+The workflow is built for terminal-first coding agents, including Codex and Claude Code, when the model can follow multi-step plans, run tools, inspect diffs, and keep docs synchronized with implementation.
 
 Budget planning depends on the agent, model, plan, codebase size, test cost, and how much autonomy you allow. The practical planning unit is the milestone: keep milestones small enough that a fresh agent can understand the docs, make the change, run the quality gate, and leave a reviewable diff.
 

@@ -1,0 +1,241 @@
+name: Validate suite
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate JSON manifests
+        run: |
+          python3 -m json.tool .agents/plugins/marketplace.json >/dev/null
+          python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
+          python3 -m json.tool plugins/agent-playbook-suite/.codex-plugin/plugin.json >/dev/null
+          python3 -m json.tool plugins/agent-playbook-suite/.claude-plugin/plugin.json >/dev/null
+
+      - name: Validate skill payload shape
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          expected = {
+              "create-milestones",
+              "docs",
+              "project-foundation",
+              "ship-milestone",
+              "simplify",
+              "sync-and-commit",
+          }
+          skills = Path("plugins/agent-playbook-suite/skills")
+          actual = {p.name for p in skills.iterdir() if p.is_dir()}
+          missing = expected - actual
+          unexpected = actual - expected - {"_shared"}
+          if missing or unexpected:
+              raise SystemExit(
+                  f"Unexpected skill dirs: missing={sorted(missing)} "
+                  f"unexpected={sorted(unexpected)}"
+              )
+
+          for skill in expected:
+              skill_file = skills / skill / "SKILL.md"
+              if not skill_file.exists():
+                  raise SystemExit(f"Missing {skill_file}")
+
+          shared_skill = skills / "_shared" / "SKILL.md"
+          if shared_skill.exists():
+              raise SystemExit("_shared must not contain SKILL.md")
+
+          nested_git = list(skills.rglob(".git"))
+          if nested_git:
+              raise SystemExit(f"Nested .git dirs are not allowed: {nested_git}")
+          PY
+
+      - name: Validate quality-model coverage
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          skills = Path("plugins/agent-playbook-suite/skills")
+          shared = skills / "_shared" / "references" / "agentic-quality-model.md"
+          if not shared.exists():
+              raise SystemExit(f"Missing shared quality model: {shared}")
+
+          shared_text = shared.read_text(encoding="utf-8").lower()
+          for term in (
+              "contract layer",
+              "visible red tests",
+              "hidden/generalization",
+              "adequacy tests",
+              "risk levels",
+              "mock policy",
+              "forbidden shortcuts",
+          ):
+              if term not in shared_text:
+                  raise SystemExit(f"Shared quality model missing term: {term}")
+
+          required = {
+              "project-foundation": ("hidden/generalization", "risk level", "mock"),
+              "create-milestones": ("hidden/generalization", "mock", "mutation"),
+              "ship-milestone": ("hidden/generalization", "mock", "mutation"),
+              "sync-and-commit": ("hidden/generalization", "mock", "mutation", "risk level"),
+              "simplify": ("hidden/generalization", "mock", "mutation", "risk level"),
+              "docs": ("quality artifacts", "docs check", "generated reports", "mutation"),
+          }
+          for skill, terms in required.items():
+              text = "\n".join(
+                  p.read_text(encoding="utf-8")
+                  for p in (skills / skill).rglob("*.md")
+              ).lower()
+              missing = [term for term in terms if term not in text]
+              if missing:
+                  raise SystemExit(f"{skill} missing quality-model terms: {missing}")
+          PY
+
+      - name: Install docs-cli
+        run: python3 -m pip install --upgrade docs-cli
+
+      - name: Validate docs-cli runtime contract
+        run: |
+          python3 - <<'PY'
+          import re
+          import subprocess
+          from pathlib import Path
+          import tempfile
+
+          version_output = subprocess.check_output(["docs", "--version"], text=True).strip()
+          match = re.search(r"(\d+)\.(\d+)\.(\d+)", version_output)
+          if not match:
+              raise SystemExit(f"Could not parse docs-cli version from: {version_output!r}")
+          version = tuple(int(part) for part in match.groups())
+          if version < (1, 4, 0):
+              raise SystemExit(f"docs-cli >= 1.4.0 required; got {version_output}")
+
+          with tempfile.TemporaryDirectory() as tmp:
+              root = Path(tmp)
+              (root / ".docs.toml").write_text(
+                  '[project]\nname = "ci"\n',
+                  encoding="utf-8",
+              )
+              for name in ("a.md", "b.md"):
+                  (root / name).write_text(
+                      "# Doc\n\n"
+                      "Lifecycle: active\n"
+                      "Role: spec\n"
+                      "Project: ci\n"
+                      "Updated: 2000-01-01\n\n",
+                      encoding="utf-8",
+                  )
+              subprocess.check_call(["docs", "touch", "a.md", "b.md"], cwd=root)
+          PY
+
+      - name: Validate workflow consistency
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          root = Path(".")
+          skills = root / "plugins" / "agent-playbook-suite" / "skills"
+
+          checks = [
+              (
+                  skills / "ship-milestone" / "SKILL.md",
+                  [
+                      "m4-*-test-matrix.md",
+                      "task plan, implementation log, and test matrix",
+                      "Related: pairs-with",
+                  ],
+              ),
+              (
+                  skills / "ship-milestone" / "references" / "agent-prompts.md",
+                  [
+                      "milestone test matrix",
+                      "<slug>-test-matrix.md",
+                      "hidden/generalization categories",
+                  ],
+              ),
+              (
+                  skills / "sync-and-commit" / "SKILL.md",
+                  [
+                      "High-risk work in or after Phase 5",
+                      "Phase 4 RED-baseline checkpoint",
+                      "High-risk RED-baseline approval",
+                  ],
+              ),
+              (
+                  skills / "project-foundation" / "references" / "role-mapping.md",
+                  ["m<N>-test-matrix", "quality/m<N>-quality-log"],
+              ),
+              (
+                  root / "overview.md",
+                  ["implementation log, and test matrix", "quality logs"],
+              ),
+              (
+                  root / "blog-post.md",
+                  ["implementation log, and test matrix", "test matrices"],
+              ),
+              (
+                  root / "site" / "blog.md",
+                  ["implementation log, and test matrix", "test matrices"],
+              ),
+          ]
+
+          for path, required in checks:
+              text = path.read_text(encoding="utf-8")
+              missing = [needle for needle in required if needle not in text]
+              if missing:
+                  raise SystemExit(f"{path} missing workflow consistency terms: {missing}")
+          PY
+
+      - name: Validate docs tree
+        run: |
+          cp INDEX.md /tmp/INDEX.before
+          docs index .
+          python3 - <<'PY'
+          from pathlib import Path
+          import difflib
+          import re
+          import sys
+
+          date_line = re.compile(r"_Generated \d{4}-\d{2}-\d{2}\.")
+          before = date_line.sub(
+              "_Generated <date>.",
+              Path("/tmp/INDEX.before").read_text(encoding="utf-8"),
+          )
+          after = date_line.sub(
+              "_Generated <date>.",
+              Path("INDEX.md").read_text(encoding="utf-8"),
+          )
+          if before != after:
+              sys.stdout.writelines(
+                  difflib.unified_diff(
+                      before.splitlines(keepends=True),
+                      after.splitlines(keepends=True),
+                      fromfile="committed INDEX.md",
+                      tofile="docs index .",
+                  )
+              )
+              raise SystemExit("INDEX.md is not in sync with docs index output")
+          PY
+          docs check . --stale 14
+
+      - uses: ruby/setup-ruby@v1
+        if: ${{ hashFiles('site/Gemfile') != '' }}
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: site
+
+      - name: Build site if present
+        if: ${{ hashFiles('site/Gemfile') != '' }}
+        run: bundle exec jekyll build
+        working-directory: site

@@ -1,8 +1,9 @@
 # CLAUDE.md template
 
-Drop this content at the repo root as `CLAUDE.md` (alongside
-`README.md`). The wizard substitutes `<placeholder>` slots from
-artifacts already authored in Phases 0-7.
+Drop this content at the repo root as `CLAUDE.md` or adapt the same
+sections for `AGENTS.md` (alongside `README.md`). The wizard
+substitutes `<placeholder>` slots from artifacts already authored in
+Phases 0-7.
 
 Anything between `<...>` in the template body is a **derived
 slot** — the wizard substitutes it from foundation artifacts at
@@ -69,7 +70,7 @@ This project is set up to use:
 
 ## TDD methodology
 
-Milestones follow a 10-phase TDD cycle:
+Milestones follow a risk-aware 10-phase TDD cycle:
 
 1. Define Contract
 2. Write Tests (RED)
@@ -79,11 +80,46 @@ Milestones follow a 10-phase TDD cycle:
 6. Implement Offline/Core Path
 7. Update Tool/Wrapper Layer
 8. Run Tests (GREEN)
-9. Implement Online/Integration
+9. Integrate / Accept / Dogfood
 10. Quality, Docs, Refactor
 
 Canonical reference: the `create-milestones` skill's
 `tdd-phases.md`.
+
+## Quality gates and test adequacy
+
+This project uses risk-aware agentic TDD. Visible tests drive
+implementation, but visible tests are not sufficient evidence of
+intent.
+
+Risk levels:
+- Lite:
+- Standard:
+- High:
+
+Fast PR gate:
+```sh
+<derived from test-strategy.md fast PR gate commands>
+```
+
+Deep/nightly/release gate:
+```sh
+<derived from test-strategy.md deep/nightly/release gate commands or "not configured">
+```
+
+Hidden/generalization tests:
+- The implementation agent must not inspect hidden cases.
+- Visible tests drive implementation.
+- Hidden tests, mutation, property/stateful, fuzzing, and benchmarks test adequacy and generalization.
+
+Mock policy:
+- Do not add or expand mocks without justification.
+- Prefer at least one real-path test for each mocked boundary.
+
+When in doubt:
+- Stop on unresolved behavior intent.
+- Do not weaken tests to pass.
+- Do not special-case visible fixtures, literals, or test-only branches.
 
 ## Branch conventions
 
@@ -138,6 +174,7 @@ content match:
 | Documentation tree | substring match on `.docs.toml` or "docs root" or "docs-managed" |
 | Skill ecosystem | substring match on at least two of `project-foundation`, `create-milestones`, `ship-milestone`, `docs-cli` |
 | TDD methodology | substring match on "10-phase" or "Define Contract" + "Implement Online" |
+| Quality gates and test adequacy | substring match on "risk-aware" or "hidden/generalization" or "mock policy" |
 | Branch conventions | substring match on `phases-1-4` or `<slug>/phases` |
 
 **If all four sections are already present**, skip writing
@@ -179,4 +216,5 @@ The user reviews `CLAUDE-additions.md` and merges into
 | `<docs-root-path>` | The path resolved at Bootstrap Step 1, relative to the repo root (e.g. `docs/specs` or `specs`). |
 | `<project-slug>` | The kebab-case slug from `[project] name` in `.docs.toml`. |
 | Build/test/quality commands | The `Build commands`, `Test commands`, and any quality-gate command sections from `env-and-tooling.md`. |
+| Quality gate sections | The risk levels, fast PR gate, deep/nightly/release gate, hidden-test policy, mock policy, and human approval triggers from `test-strategy.md`. |
 | Commit conventions | If recent `git log --oneline -20` shows a consistent style, summarise it in one line. Otherwise default to: "concise, imperative, present-tense; one commit per TDD phase when working under `ship-milestone`." |

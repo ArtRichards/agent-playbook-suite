@@ -3,7 +3,7 @@
 Lifecycle: active
 Role: guide
 Project: agent-playbook-suite
-Updated: 2026-05-25
+Updated: 2026-06-01
 
 This guide is the maintainer checklist for publishing Agent Playbook Suite as
 one plugin marketplace package for Codex and Claude Code.
@@ -23,6 +23,10 @@ The suite contains exactly these skills:
 - `ship-milestone`
 - `sync-and-commit`
 - `simplify`
+
+The payload may also include `skills/_shared/` for shared references such as
+the agentic quality model. `_shared` is not a skill and must not contain a
+`SKILL.md`.
 
 Do not add `next-task` to the suite.
 
@@ -54,14 +58,17 @@ rsync -a --delete --exclude .git "$WORKFLOW_SKILLS_DIR/sync-and-commit/" plugins
 rsync -a --delete --exclude .git "$WORKFLOW_SKILLS_DIR/simplify/" plugins/agent-playbook-suite/skills/simplify/
 ```
 
-After refresh, confirm the payload contains only the intended skill set:
+After refresh, confirm the payload contains only the intended skill set plus
+optional shared references:
 
 ```bash
 find plugins/agent-playbook-suite/skills -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort
 find plugins/agent-playbook-suite/skills -name .git -print
 ```
 
-The second command should print nothing.
+The first command should print the six skill directories and, if present,
+`_shared`. The second command should print nothing. Each skill directory must
+contain `SKILL.md`; `_shared` must only contain reusable references.
 
 ## Update Marketplace Metadata
 
@@ -80,6 +87,9 @@ uses the plugin manifest for version and package metadata.
 
 ## Validate Locally
 
+The `Validate suite` workflow in `.github/workflows/validate.yml` is the
+release gate. Run the same checks locally when possible before publishing.
+
 Validate JSON syntax:
 
 ```bash
@@ -87,6 +97,64 @@ python3 -m json.tool .agents/plugins/marketplace.json >/dev/null
 python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
 python3 -m json.tool plugins/agent-playbook-suite/.codex-plugin/plugin.json >/dev/null
 python3 -m json.tool plugins/agent-playbook-suite/.claude-plugin/plugin.json >/dev/null
+```
+
+Validate the skill payload shape:
+
+```bash
+python3 - <<'PY'
+from pathlib import Path
+
+expected = {
+    "create-milestones",
+    "docs",
+    "project-foundation",
+    "ship-milestone",
+    "simplify",
+    "sync-and-commit",
+}
+skills = Path("plugins/agent-playbook-suite/skills")
+actual = {p.name for p in skills.iterdir() if p.is_dir()}
+unexpected = actual - expected - {"_shared"}
+missing = expected - actual
+if missing or unexpected:
+    raise SystemExit(f"Skill payload mismatch: missing={sorted(missing)} unexpected={sorted(unexpected)}")
+for skill in expected:
+    skill_file = skills / skill / "SKILL.md"
+    if not skill_file.exists():
+        raise SystemExit(f"Missing {skill_file}")
+if (skills / "_shared" / "SKILL.md").exists():
+    raise SystemExit("_shared must not be exposed as a skill")
+nested_git = list(skills.rglob(".git"))
+if nested_git:
+    raise SystemExit(f"Nested .git dirs are not allowed: {nested_git}")
+PY
+```
+
+Validate quality-model coverage:
+
+```bash
+python3 - <<'PY'
+from pathlib import Path
+
+skills = Path("plugins/agent-playbook-suite/skills")
+required = {
+    "project-foundation": ("hidden/generalization", "risk level", "mock"),
+    "create-milestones": ("hidden/generalization", "mock", "mutation"),
+    "ship-milestone": ("hidden/generalization", "mock", "mutation"),
+    "sync-and-commit": ("hidden/generalization", "mock", "mutation", "risk level"),
+    "simplify": ("hidden/generalization", "mock", "mutation", "risk level"),
+    "docs": ("quality artifacts", "docs check", "generated reports", "mutation"),
+}
+shared = skills / "_shared" / "references" / "agentic-quality-model.md"
+if not shared.exists():
+    raise SystemExit(f"Missing {shared}")
+for skill, terms in required.items():
+    text = "\n".join(p.read_text(encoding="utf-8") for p in (skills / skill).rglob("*.md")).lower()
+    missing = [term for term in terms if term not in text]
+    if missing:
+        raise SystemExit(f"{skill} missing quality-model terms: {missing}")
+PY
 ```
 
 Validate the Claude marketplace and plugin:
@@ -100,6 +168,13 @@ Refresh this docs tree:
 ```bash
 docs index
 docs check .
+```
+
+Build the GitHub Pages site when Ruby dependencies are available:
+
+```bash
+cd site
+bundle exec jekyll build
 ```
 
 ## Smoke Test Marketplace Installs
@@ -126,7 +201,27 @@ claude plugin install agent-playbook-suite@agent-playbook-suite
 
 Restart the relevant agent and confirm the six skills are discoverable.
 
+For both smoke tests, also confirm:
+
+- `docs`, `project-foundation`, `create-milestones`, `ship-milestone`,
+  `sync-and-commit`, and `simplify` are installed;
+- `_shared` is present only as a reference directory if installed;
+- the shared quality model is readable from installed workflow skills;
+- the bundled `docs` skill exposes quality-artifact guidance.
+
 ## Publish
+
+Before publishing, require:
+
+- `Validate suite` workflow green;
+- GitHub Pages/site build green where applicable;
+- `docs index` and `docs check` green;
+- marketplace JSON and both plugin manifests parse;
+- skill payload contains exactly the intended skill directories plus optional
+  `_shared`;
+- quality-model coverage checks pass;
+- install smoke test complete for Codex and Claude Code when both are
+  supported.
 
 Commit the marketplace files, plugin manifests, skill payload, README, and docs
 updates together:

@@ -5,10 +5,11 @@ a starting `Lifecycle:` value. Pass these to `docs new` on every
 authoring call. Lifecycle transitions happen by editing the
 `Lifecycle:` value in the metadata block, then `docs touch`.
 
-Assumes docs-cli **v1.2.0 (M7)** or later — `Lifecycle:` is the
-controlled-vocab field name, and the role vocab includes
-`sketch`, `outline`, `implementation`, `template`, `example`,
-`memo`, `brief` (added in M7).
+Assumes docs-cli **v1.4.0 (M10)** or later — `Lifecycle:` is the
+controlled-vocab field name, `docs new --body-from` is available,
+multi-file `docs touch <file>...` is atomic, and the role vocab
+includes `sketch`, `outline`, `implementation`, `template`,
+`example`, `memo`, `brief` (added in M7).
 
 ## Foundation artifacts
 
@@ -39,6 +40,7 @@ appear in `INDEX.md`, and aren't validated by `docs check`:
 | Path | Owner | Notes |
 |---|---|---|
 | `<repo-root>/CLAUDE.md` | scaffolded or extended at Phase 8 | Project context for Claude Code agents. Renders [`claude-md-template.md`](claude-md-template.md) with derived slots. If pre-existing, the skill writes `CLAUDE-additions.md` next to it for operator review rather than overwriting. |
+| `<repo-root>/AGENTS.md` | scaffolded or extended at Phase 8 when Codex or a compatible host is used | Project context for Codex-style agents. Uses the same substantive sections as `CLAUDE.md`; if pre-existing, the skill writes `AGENTS-additions.md` next to it for operator review rather than overwriting. |
 
 ## Per-milestone artifacts (owned by create-milestones)
 
@@ -50,6 +52,8 @@ can hand off cleanly.
 |---|---|---|---|---|
 | `m<N>` (or `m<N>-<topic>`) | `milestone` | `draft` | `active` while in flight; `archived` via `docs archive --cascade` when complete | One per milestone in the milestone-plan. |
 | `m<N>-impl` | `log` | `active` | `archived` (cascaded with its milestone) | Phase-by-phase TDD log. Paired via `Related: pairs-with`. |
+| `m<N>-test-matrix` | `spec` | `active` | `archived` (cascaded with its milestone) | Contract-to-test matrix covering risk level, visible tests, hidden/generalization categories, adequacy checks, mock audit, gate commands, and result summaries. Paired via `Related: pairs-with`. |
+| `quality/m<N>-quality-log` | `log` | `active` | project-specific | Optional companion for generated quality reports, benchmark/mutation/security summaries, and deferred deep-gate follow-ups. Link generated reports with `Related:` when they live inside the docs tree. |
 
 ## Lifecycle vocabulary (built-in)
 

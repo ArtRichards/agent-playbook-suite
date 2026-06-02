@@ -3,7 +3,7 @@
 Lifecycle: active
 Role: guide
 Project: agent-playbook-suite
-Updated: 2026-05-25
+Updated: 2026-06-02
 
 Agent Playbook Suite is a single marketplace-distributed plugin for agent
 workflow skills. It packages the project-planning, milestone-delivery,
@@ -20,6 +20,23 @@ The suite plugin includes:
 - `simplify`
 
 It intentionally does not include `next-task`.
+
+## Quality model
+
+The suite treats tests as more than RED/GREEN examples. Each milestone records:
+
+- the behavior contract;
+- visible red tests;
+- hidden/generalization strategy;
+- adequacy checks such as property/stateful tests, mutation, fuzzing,
+  benchmarks, and security or schema checks;
+- a risk level that determines how much validation runs before commit or merge;
+- mock audit notes and real-path coverage expectations.
+
+This keeps the resumable artifact trail while reducing the chance that an
+implementation agent optimizes for visible tests instead of intended behavior.
+The shared reference lives at
+`plugins/agent-playbook-suite/skills/_shared/references/agentic-quality-model.md`.
 
 ## Install The Runtime CLI
 
@@ -102,6 +119,7 @@ plugins/agent-playbook-suite/
   .codex-plugin/plugin.json
   .claude-plugin/plugin.json
   skills/
+    _shared/
     docs/
     project-foundation/
     create-milestones/

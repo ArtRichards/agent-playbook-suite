@@ -4,6 +4,9 @@ The implementation agent runs this against **its own step's work**, after the
 last phase of the step and before returning to the conductor. This is the
 "same instance checks its own work" gate.
 
+Use the shared risk-aware quality model at
+`../../_shared/references/agentic-quality-model.md` where it exists.
+
 Work through every item. **Fix** what you find and commit the fixes. **Surface**
 (do not auto-decide) anything that would change milestone scope or behavior
 intent — list those in your return message for the operator.
@@ -60,10 +63,44 @@ intent — list those in your return message for the operator.
   trivial passes and do not under-constrain the implementation. This is the
   highest-leverage check; every later step trusts these tests.
 
+## Test adequacy
+
+- Contract clauses are mapped to visible tests.
+- Hidden/generalization categories are recorded without exposing private cases.
+- Risk-level gates were run or explicitly marked not configured.
+- Property/stateful, mutation, fuzz, benchmark, security, schema, migration, or
+  rollback checks required by the milestone risk level are run or explicitly
+  marked not configured.
+- No code path appears keyed to visible test literals, fixture names, or narrow
+  examples.
+- No tests were weakened, skipped, deleted, or rewritten without a logged
+  contract change.
+
+## Mock audit
+
+- New or expanded mocks are justified by an external boundary, slow/paid
+  service, nondeterminism, or failure-injection need.
+- Each new or expanded mock records what real behavior it substitutes.
+- At least one real-path test covers mocked behavior where relevant, or the
+  exception is logged for operator/reviewer approval.
+- Mock-heavy tests do not replace the visible contract tests for domain
+  behavior.
+
+## Hidden/generalization metrics
+
+- `visible_pass_rate` is recorded when available.
+- `hidden_pass_rate` is recorded when hidden/generalization results are
+  available.
+- `hidden_generalization_gap = visible_pass_rate - hidden_pass_rate` is
+  recorded when both pass-rate values are available.
+- Changed-lines coverage, changed-files branch coverage, mutation score on
+  touched modules, property/stateful result, fuzz result, benchmark delta, and
+  security/schema/migration result are recorded when available.
+
 ## Commits
 
 - One commit per phase on the step branch; messages follow the project's
-  convention (see `CLAUDE.md` and recent `git log`); no secrets staged.
+  convention (see project context and recent `git log`); no secrets staged.
 
 ## Return
 

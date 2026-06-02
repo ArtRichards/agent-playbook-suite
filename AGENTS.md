@@ -1,9 +1,9 @@
-# CLAUDE.md — playbook-suite-overview
+# AGENTS.md — playbook-suite-overview
 
 Lifecycle: active
 Role: notes
 Project: agent-playbook-suite
-Updated: 2026-05-25
+Updated: 2026-06-02
 
 This project produces public documentation and marketplace package metadata for
 Agent Playbook Suite: one suite plugin that bundles five workflow skills plus

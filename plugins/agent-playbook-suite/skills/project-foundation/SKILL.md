@@ -10,11 +10,11 @@ of Ready — across ten phases, producing a docs-managed Markdown
 tree the `create-milestones` skill can pick up.
 
 Requires [`docs-cli`](https://github.com/ArtRichards/docs-cli)
-**v1.2.0 (M7+)** for the `Lifecycle:` controlled-vocab field and
-expanded role vocab, and **v1.3.0 (M8+)** for `docs new
---body-from -|<path>` (single-call atomic authoring) and the
-tree-wide `[exclude]` section in `.docs.toml`. Ask the user to
-upgrade if the host's `docs` binary is older.
+**v1.4.0 (M10+)** or later. The workflow relies on the
+`Lifecycle:` metadata convention, `docs new --body-from -|<path>`,
+tree-wide `[exclude]` rules in `.docs.toml`, and atomic
+multi-file `docs touch <file>...`. Ask the user to upgrade if the
+host's `docs` binary is older.
 
 ## When this applies
 
@@ -46,7 +46,11 @@ This SKILL.md is intentionally short. The full procedure lives in:
   — opinionated `.docs.toml` to drop at the bootstrapped docs root.
 - [`references/claude-md-template.md`](references/claude-md-template.md)
   — the project-root `CLAUDE.md` template the wizard scaffolds
-  (or proposes additions to) at Phase 8.
+  (or proposes additions to) at Phase 8, with matching guidance
+  for Codex `AGENTS.md`.
+- [`../_shared/references/agentic-quality-model.md`](../_shared/references/agentic-quality-model.md)
+  — shared risk levels, hidden/generalization policy, adequacy
+  checks, and mock policy used by the full suite.
 
 **Read the playbook before authoring any artifact.**
 
@@ -112,10 +116,10 @@ When DoR flips to `active`:
 1. `docs check <root> --stale 14` exit 0.
 2. `docs list --lifecycle active --project <p>` shows every
    foundation artifact in the expected state.
-3. CLAUDE.md handled in Phase 8 — one of: scaffolded fresh
-   from the template, `CLAUDE-additions.md` written next to an
-   existing CLAUDE.md for operator review, or confirmed
-   already-complete (all four ecosystem sections present).
+3. Agent context handled in Phase 8 — `CLAUDE.md` and/or
+   `AGENTS.md` scaffolded fresh from the template, companion
+   additions written next to existing files for operator review,
+   or confirmed already-complete.
 4. Update `status.md`'s "Current milestone" to point at M1;
    `docs touch status.md`.
 5. Suggest the user invoke `create-milestones` to begin M1 setup.

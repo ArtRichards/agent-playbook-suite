@@ -214,20 +214,91 @@ Author `docs new plan data-plan` with body sections:
 **Data sources**, **Synthetic vs. real approach**, **Quality
 expectations**, **Privacy/security/compliance**.
 
-## Phase 7 — Test Strategy Outline
+## Phase 7 — Risk-Aware Validation Strategy
 
 Ask:
 
-- What types of tests will you write?
-- What are the critical paths that must be tested?
-- How will test data/fixtures be managed?
-- What is the target coverage?
+- What product, functional, technical, and cross-cutting adequacy
+  tests will you write?
+- Which project areas or milestone families are Lite, Standard, or
+  High risk, and why?
+- What commands make up the fast PR gate?
+- What commands make up the deep/nightly/release gate, or are they
+  explicitly not configured yet?
+- Where will hidden/generalization checks live, who owns them, and
+  what must not be exposed to implementation agents?
+- What mocks are acceptable, which require justification, and where
+  is real-path coverage required?
+- What human/operator approval triggers should stop implementation?
 
 Author `docs new outline test-strategy` with body sections:
-**Test types**, **Critical paths**, **Fixture/data approach**,
-**Coverage targets**. `outline` (not `spec`) because the detail
-fills in as implementation proceeds; graduates to `spec` later
-if it becomes the canonical test contract.
+**Validation taxonomy**, **Risk levels**, **Fast PR gate**,
+**Deep/nightly/release gate**, **Hidden-test policy**,
+**Mock policy**, **Human approval triggers**, and **Coverage /
+adequacy metrics**. `outline` (not `spec`) because the detail fills
+in as implementation proceeds; graduates to `spec` later if it
+becomes the canonical test contract.
+
+Use this starter shape:
+
+```markdown
+## Validation taxonomy
+
+- Product tests:
+- Functional tests:
+- Technical tests:
+- Cross-cutting adequacy tests:
+
+## Risk levels
+
+| Area | Risk level | Reason | Required gates |
+|---|---|---|---|
+|  | Lite / Standard / High |  |  |
+
+## Fast PR gate
+
+- Format:
+- Lint:
+- Typecheck:
+- Build:
+- Visible tests:
+- Coverage:
+- Property/stateful smoke:
+- Security/schema smoke:
+- Docs check:
+
+## Deep/nightly/release gate
+
+- Hidden/generalization:
+- Mutation:
+- Full property/stateful:
+- Fuzz:
+- Benchmarks:
+- Security/dependency scan:
+- Migration/rollback rehearsal:
+
+## Hidden-test policy
+
+- Where hidden tests live:
+- Who owns them:
+- What the implementation agent may see:
+- What must never be pasted into implementation prompts:
+
+## Mock policy
+
+- Acceptable mocks:
+- Mocks requiring justification:
+- Required real-path coverage:
+
+## Human approval triggers
+
+- High-risk areas:
+- Unresolved ambiguities:
+- Public API/schema changes:
+- Auth/security/privacy/billing/data integrity:
+- Performance budget changes:
+- New or expanded mocks:
+```
 
 ## Phase 8 — Documentation Plan
 
@@ -245,57 +316,60 @@ Most of this is auto-handled by the docs tree itself — the
 foundation artifacts are already documented, indexed, and
 lifecycle-tracked. The plan only needs to cover docs outside
 the docs tree (code-side READMEs, API references, operator
-runbooks, **and CLAUDE.md** — see below).
+runbooks, **and agent context files** — see below).
 
-### CLAUDE.md (detect or scaffold)
+### Agent context files: CLAUDE.md and AGENTS.md
 
-CLAUDE.md is a project-root file (not a docs-tree artifact) that
-gives Claude — and the skills in this ecosystem — enough context
-to rebuild understanding from scratch. The `ship-milestone`
-skill's sub-agents explicitly read it as their first action, so
-this is load-bearing for autonomous milestone work.
+`CLAUDE.md` and `AGENTS.md` are project-root files (not docs-tree
+artifacts) that give agent sessions enough context to rebuild
+understanding from scratch. The `ship-milestone` skill's sub-agents
+explicitly read project context as their first action, so this is
+load-bearing for autonomous milestone work across Claude Code, Codex,
+and compatible hosts.
 
 Run this **after** authoring `documentation-plan.md`:
 
-1. **Check for an existing CLAUDE.md** at the repo root:
+1. **Check for existing host context files** at the repo root:
    ```sh
-   ls <repo-root>/CLAUDE.md 2>/dev/null
+   ls <repo-root>/CLAUDE.md <repo-root>/AGENTS.md 2>/dev/null
    ```
 
-2. **If absent — scaffold it.** Read
-   [`claude-md-template.md`](claude-md-template.md), fill the
-   derived slots from the artifacts created in Phases 0-7, and
-   write the rendered file directly to `<repo-root>/CLAUDE.md`.
-   Confirm with the user before writing if any slot is
-   ambiguous (e.g. multiple plausible docs-root paths).
+2. **If both are absent — scaffold at least one host context file.**
+   Read [`claude-md-template.md`](claude-md-template.md), fill the
+   derived slots from the artifacts created in Phases 0-7, and write
+   the rendered file directly to `<repo-root>/CLAUDE.md` and/or
+   `<repo-root>/AGENTS.md` depending on the operator's agent host.
+   Use the same substantive sections for both files. Confirm with the
+   user before writing if any slot is ambiguous (e.g. multiple
+   plausible docs-root paths).
 
-3. **If present — propose additions, never overwrite.** Read
-   the existing CLAUDE.md. Use the detection heuristics in
-   [`claude-md-template.md`](claude-md-template.md) to identify
-   which of the four fixed sections (Documentation tree, Skill
-   ecosystem, TDD methodology, Branch conventions) are missing.
-   - **All four present** → CLAUDE.md is good as-is. Note
-     "CLAUDE.md already covers the skill ecosystem" in
-     `foundation-log.md`. Do not write `CLAUDE-additions.md`.
-   - **One or more missing** → write a `CLAUDE-additions.md`
-     file next to `CLAUDE.md` with the proposed additions
-     (rendered, with derived slots filled). Show the user the
-     path and a short summary of what's proposed; let them
-     review and merge by hand.
+3. **If either exists — propose additions, never overwrite.** Read
+   each existing context file. Use the detection heuristics in
+   [`claude-md-template.md`](claude-md-template.md) to identify which
+   fixed sections are missing: Documentation tree, Skill ecosystem,
+   TDD methodology, Quality gates and test adequacy, Branch
+   conventions.
+   - **All fixed sections present** -> the file is good as-is. Note
+     that in `foundation-log.md`; do not write an additions file.
+   - **One or more missing** -> write `CLAUDE-additions.md` and/or
+     `AGENTS-additions.md` next to the existing file with the proposed
+     additions (rendered, with derived slots filled). Show the user the
+     path and a short summary of what's proposed; let them review and
+     merge by hand.
 
-4. **Add CLAUDE.md to `documentation-plan.md`'s Required docs
-   table** — name `CLAUDE.md`, role "project context for Claude
-   Code agents", owner the project owner, cadence "updated when
-   skill ecosystem or tooling changes."
+4. **Add context files to `documentation-plan.md`'s Required docs
+   table** — name `CLAUDE.md` and/or `AGENTS.md`, role "project
+   context for coding agents", owner the project owner, cadence
+   "updated when skill ecosystem, quality gates, or tooling changes."
 
 5. **Note the action in `foundation-log.md`** — one of:
-   "scaffolded CLAUDE.md from template", "wrote
-   CLAUDE-additions.md for operator review", or "CLAUDE.md
-   already covers the skill ecosystem (no changes needed)."
+   "scaffolded CLAUDE.md/AGENTS.md from template", "wrote
+   context additions for operator review", or "agent context already
+   covers the skill ecosystem and quality gates (no changes needed)."
 
-CLAUDE.md is not in the docs tree, so it has no `Lifecycle:`
-metadata block, doesn't appear in `INDEX.md`, and isn't
-validated by `docs check`. It's plain prose, hand-edited
+These context files are not in the docs tree, so they have no
+`Lifecycle:` metadata block, do not appear in `INDEX.md`, and are not
+validated by `docs check`. They are plain prose, hand-edited
 thereafter.
 
 ## Phase 9 — Definition of Ready (the gate)
@@ -316,6 +390,14 @@ Gate-check before implementation begins. Implementation does not start until eve
 - [ ] **Environment/tooling validated; access unblocked.** → [env-and-tooling.md](env-and-tooling.md)
 - [ ] **Data plan set; compliance/privacy constraints clear.** → [data-plan.md](data-plan.md)
 - [ ] **Test strategy outline covers critical paths and fixtures.** → [test-strategy.md](test-strategy.md)
+- [ ] **Risk level is assigned for each milestone or project area.** → [test-strategy.md](test-strategy.md)
+- [ ] **Fast PR gate commands are documented.** → [test-strategy.md](test-strategy.md)
+- [ ] **Deep/nightly/release gate commands are documented or explicitly marked not applicable.** → [test-strategy.md](test-strategy.md)
+- [ ] **Hidden/generalization strategy is documented without exposing private cases.** → [test-strategy.md](test-strategy.md)
+- [ ] **Contract-to-test matrix template exists.** → [test-strategy.md](test-strategy.md)
+- [ ] **Mock policy exists.** → [test-strategy.md](test-strategy.md)
+- [ ] **Human approval triggers are listed.** → [test-strategy.md](test-strategy.md), [risks.md](risks.md)
+- [ ] **Codex/Claude agent context is generated or proposed.** → [documentation-plan.md](documentation-plan.md)
 - [ ] **Documentation plan set.** → [documentation-plan.md](documentation-plan.md)
 - [ ] **Risks logged with owners; go/no-go recorded.** → [risks.md](risks.md)
 

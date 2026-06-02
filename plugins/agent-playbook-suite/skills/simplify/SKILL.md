@@ -31,6 +31,49 @@ Before changing anything, anchor to the most recent commit:
 Simplify the code for the current milestone/task — unless the user points to specific
 files. Do not touch unrelated code, and do not undo good code from earlier TDD steps.
 
+## Preserve quality, not only behavior
+
+The quality baseline is part of the behavior baseline. Simplification must preserve the
+contract, visible tests, hidden/generalization hooks, adequacy metrics, and realistic
+coverage expected for the milestone's risk level.
+
+Before simplifying:
+
+- Record the visible test baseline.
+- Record property/stateful, hidden smoke, mutation, fuzz, benchmark, and security
+  baselines if configured for the milestone risk level.
+- Record coverage and test counts if the project already reports them.
+- Record new/expanded mocks and real-path coverage for mocked boundaries.
+- Identify the risk level and the gate set that must still pass after simplification.
+
+During simplification:
+
+- Do not delete edge-case tests, property strategies, fuzz corpora, fixtures, schemas,
+  or hidden-test hooks unless replacing them with clearer equivalent coverage.
+- Do not collapse validation logic in a way that removes meaningful branch coverage.
+- Do not replace real-path tests with mocks.
+- Do not weaken contracts, reduce error handling, or remove security/schema/migration
+  safeguards to make code smaller.
+- Do not introduce clever abstractions merely to reduce line count.
+- Do not make speculative rewrites; if the simplification cannot be explained against
+  the existing contract and diff, leave the code as-is.
+
+After simplifying:
+
+- Run the same risk-level gate as before.
+- Compare test count, coverage, mutation score, hidden/generalization result, property
+  result, fuzz result, and benchmark deltas when available.
+- If a metric drops, restore the stronger version or log an explicit operator-approved
+  reason.
+- Update the test matrix and quality log if simplification affects test or quality
+  posture.
+
+For High-risk milestones, simplification must be reviewed by a fresh-eyes reviewer or
+operator before final `sync-and-commit`.
+
+If simplification would reduce adequacy, remove realistic coverage, weaken hidden hooks,
+or require speculative rewrites, return with no changes and explain why.
+
 ## Focus on
 
 - Replacing clever code with obvious code.
@@ -46,6 +89,9 @@ files. Do not touch unrelated code, and do not undo good code from earlier TDD s
 - Do not create reusable abstractions unless they remove more complexity than they add.
 - Do not optimize prematurely.
 - Do not rewrite working code just to make it look different.
+- Do not reduce visible, property, fixture, integration, hidden-hook, mutation, fuzz,
+  benchmark, security, schema, or real-path coverage without explicit logged approval.
+- Do not replace real-path tests with mocks or preserve a green suite by weakening tests.
 
 ## Success criteria
 
@@ -77,7 +123,7 @@ simplified.
 - Record the simplification in whatever implementation log the project uses. The format
   varies — a `<slug>-impl.md` milestone implementation log (the docs-cli convention used
   by `create-milestones` / `ship-milestone`), a `CHANGELOG`, a phase log, commit messages,
-  or task-tracker notes. Look for the project's existing convention (CLAUDE.md is the
-  fastest way to find out) and follow it; if none exists, skip the log rather than
+  or task-tracker notes. Look for the project's existing convention (project context is
+  the fastest way to find out) and follow it; if none exists, skip the log rather than
   inventing one.
 - Return the simplest readable version of the code.

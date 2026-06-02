@@ -1,16 +1,26 @@
 # project-foundation
 
-A Claude Code skill that bootstraps a new project's foundation — charter, scope, architecture, milestones, definition-of-ready — as a docs-managed Markdown tree.
+An agent workflow skill that bootstraps a new project's foundation — charter,
+scope, architecture, milestones, risk-aware validation strategy,
+definition-of-ready, and agent context — as a docs-managed Markdown tree.
 
-Use it when starting a project (or a sub-project) that needs front-half planning before any implementation. The skill walks through a ten-phase interactive wizard, authoring every artifact via [`docs new`](https://github.com/ArtRichards/docs-cli) so the metadata, lifecycle, and inter-doc graph are correct by construction. At the end you have a foundation log, charter, scope, architecture sketch, milestone plan, risk register, decision log, definition-of-ready, and (if missing) a `CLAUDE.md` that ties the docs tree to the skill ecosystem that will drive the project.
+Use it when starting a project (or a sub-project) that needs front-half
+planning before any implementation. The skill walks through a ten-phase
+interactive wizard, authoring every artifact via
+[`docs new`](https://github.com/ArtRichards/docs-cli) so the metadata,
+lifecycle, and inter-doc graph are correct by construction. At the end you have
+a foundation log, charter, scope, architecture sketch, milestone plan,
+risk-aware test strategy, risk register, decision log, definition-of-ready, and
+agent context files (`CLAUDE.md`, `AGENTS.md`, or additions) that tie the docs
+tree to the skill ecosystem that will drive the project.
 
 ## What it produces
 
 - A `docs/specs/` (or `./specs/`) tree, each file with `Lifecycle:` / `Role:` / `Related:` metadata.
 - A foundation log capturing the history of decisions made during bootstrap.
-- A charter (`Role: reference`), scope (`Role: spec`), architecture sketch (`Role: sketch`), milestone plan (`Role: spec`), risk register (`Role: reference`), decision log (`Role: log`), and a definition-of-ready (`Role: reference`).
+- A charter, scope, architecture sketch, milestone plan, risk-aware test strategy, risk register, decision log, and definition-of-ready.
 - A `.docs.toml` configured with the project's name, vocabulary extensions, and `[exclude]` rules.
-- A `CLAUDE.md` (scaffolded fresh, or extended via `CLAUDE-additions.md`) describing the docs tree, the skill ecosystem, the 10-phase TDD methodology, and the branch-stack convention used by [`ship-milestone`](https://github.com/ArtRichards/ship-milestone).
+- A `CLAUDE.md` / `AGENTS.md` context file (scaffolded fresh, or extended via additions files) describing the docs tree, the skill ecosystem, the risk-aware 10-phase TDD methodology, quality gates, and the branch-stack convention used by [`ship-milestone`](https://github.com/ArtRichards/ship-milestone).
 
 ## When to invoke
 
@@ -20,16 +30,14 @@ After this skill completes, hand off to [`create-milestones`](https://github.com
 
 ## Install
 
-```sh
-git clone https://github.com/ArtRichards/project-foundation \
-  ~/.claude/skills/project-foundation
-```
-
-Claude Code auto-discovers skills in `~/.claude/skills/`. Restart Claude Code (or open a new session) and the skill is available.
+Install this skill through the Agent Playbook Suite marketplace plugin. The
+repository root `README.md` carries the Codex and Claude Code marketplace
+commands. This directory is the portable skill payload for hosts that support
+direct skill-directory installs.
 
 ## Dependencies
 
-- [`docs-cli`](https://github.com/ArtRichards/docs-cli) **v1.2.0 (M7+)** — required. The skill calls `docs new`, `docs index`, `docs touch`, and `docs check` throughout. Install with `pip install docs-cli`.
+- [`docs-cli`](https://github.com/ArtRichards/docs-cli) **v1.4.0 (M10+)** — required for `Lifecycle:`, `docs new --body-from`, tree-wide `[exclude]` rules, and atomic multi-file `docs touch <file>...`. The skill calls `docs new`, `docs index`, `docs touch`, and `docs check` throughout. Install with `pip install docs-cli`.
 - Companion skills (recommended): [`create-milestones`](https://github.com/ArtRichards/create-milestones), [`ship-milestone`](https://github.com/ArtRichards/ship-milestone), [`sync-and-commit`](https://github.com/ArtRichards/sync-and-commit), [`simplify`](https://github.com/ArtRichards/simplify).
 
 ## Convention

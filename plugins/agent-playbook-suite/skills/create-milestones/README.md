@@ -1,15 +1,23 @@
 # create-milestones
 
-A Claude Code skill that creates, advances, and completes milestones for a project whose foundation work is done.
+An agent workflow skill that creates, advances, and completes milestones for a
+project whose foundation work is done.
 
-Drives the 10-phase TDD methodology (Define Contract → Write Tests RED → Create Fixtures → Run Tests RED → Update Interfaces → Implement Core → Update Wrappers → Run Tests GREEN → Integrate → Quality/Docs/Refactor). Authors a `<slug>.md` task plan + `<slug>-impl.md` implementation log pair per milestone via [`docs new`](https://github.com/ArtRichards/docs-cli), and atomically archives the pair with `docs archive --cascade` on completion.
+Drives the risk-aware 10-phase TDD methodology (Define Contract → Write Tests
+RED → Create Data/Fixtures → Run Tests RED Baseline → Update Base Interfaces →
+Implement Offline/Core Path → Update Tool/Wrapper Layer → Run Tests GREEN →
+Integrate / Accept / Dogfood → Quality/Docs/Refactor). Authors a `<slug>.md` task plan, `<slug>-impl.md`
+implementation log, and `<slug>-test-matrix.md` companion per milestone via
+[`docs new`](https://github.com/ArtRichards/docs-cli), and atomically archives
+the set with `docs archive --cascade` on completion.
 
 ## What it produces
 
-- A milestone task-plan doc (`Role: spec`) capturing the 10-phase plan, decisions, deliverables, success criteria, and per-phase checklist.
+- A milestone task-plan doc (`Role: milestone`) capturing the risk level, behavior contract, test strategy, 10-phase plan, decisions, deliverables, success criteria, and per-phase checklist.
 - A milestone implementation log (`Role: log`, paired via `Related: pairs-with`) updated phase by phase as work progresses.
+- A test matrix (`Role: spec`) mapping contract clauses to visible tests, hidden/generalization categories, adequacy checks, and mock-audit notes.
 - A `status.md` updated to reflect the current in-flight milestone and phase.
-- An archived milestone pair on completion — both files moved together under `archive/YYYY-MM-DD/` via `docs archive --cascade`.
+- An archived milestone set on completion — task plan, log, and test matrix moved together under `archive/YYYY-MM-DD/` via `docs archive --cascade`.
 
 ## When to invoke
 
@@ -19,21 +27,19 @@ For end-to-end autonomous milestone execution (planning + implementation + revie
 
 ## Install
 
-```sh
-git clone https://github.com/ArtRichards/create-milestones \
-  ~/.claude/skills/create-milestones
-```
-
-Claude Code auto-discovers skills in `~/.claude/skills/`. Restart Claude Code (or open a new session) and the skill is available.
+Install this skill through the Agent Playbook Suite marketplace plugin. The
+repository root `README.md` carries the Codex and Claude Code marketplace
+commands. This directory is the portable skill payload for hosts that support
+direct skill-directory installs.
 
 ## Dependencies
 
-- [`docs-cli`](https://github.com/ArtRichards/docs-cli) **v1.2.0 (M7+)** — required. The skill calls `docs new`, `docs touch`, `docs index`, `docs check`, and `docs archive --cascade` throughout. Install with `pip install docs-cli`.
+- [`docs-cli`](https://github.com/ArtRichards/docs-cli) **v1.4.0 (M10+)** — required for `Lifecycle:`, `docs new --body-from`, and atomic multi-file `docs touch <file>...`. The skill calls `docs new`, `docs touch`, `docs index`, `docs check`, and `docs archive --cascade` throughout. Install with `pip install docs-cli`.
 - Companion skills (recommended): [`project-foundation`](https://github.com/ArtRichards/project-foundation) (run first), [`ship-milestone`](https://github.com/ArtRichards/ship-milestone), [`sync-and-commit`](https://github.com/ArtRichards/sync-and-commit) (called at phase/step boundaries), [`simplify`](https://github.com/ArtRichards/simplify) (Phase 10).
 
 ## Convention
 
-Follows the docs-cli convention: each Markdown file is self-describing via a metadata block under the H1; milestone task plan and impl log are linked with `Related: pairs-with`. See [`docs-cli`'s convention spec](https://github.com/ArtRichards/docs-cli/blob/main/docs/convention.md).
+Follows the docs-cli convention: each Markdown file is self-describing via a metadata block under the H1; milestone task plan, impl log, and test matrix are linked with `Related: pairs-with` so cascade archive can move them together. See [`docs-cli`'s convention spec](https://github.com/ArtRichards/docs-cli/blob/main/docs/convention.md).
 
 ## License
 

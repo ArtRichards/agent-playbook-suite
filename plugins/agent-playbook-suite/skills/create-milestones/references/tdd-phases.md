@@ -8,58 +8,123 @@ Each phase below lists: objective, activities, deliverables, exit
 criteria, and the docs-CLI touchpoints (every phase ends with at
 least a `docs touch` on the impl log).
 
+Use the shared quality model at
+[`../../_shared/references/agentic-quality-model.md`](../../_shared/references/agentic-quality-model.md)
+for risk levels, hidden/generalization policy, adequacy checks,
+and mock policy.
+
+## Cross-phase quality policies
+
+- Visible tests drive implementation, but green visible tests are
+  not sufficient evidence of intent for Standard or High-risk work.
+- Actual hidden/private cases must not be pasted into milestone
+  docs, visible tests, implementation prompts, or implementation
+  context. Record categories, owners, command names, and summaries
+  instead.
+- If the repository is fully visible to the implementation agent,
+  assume hidden cases are not truly hidden and compensate with
+  property/stateful, mutation, fuzz, metamorphic, benchmark, and
+  review-agent checks.
+- Do not add or expand mocks without justification. Prefer
+  real-path tests for domain behavior, and record whether a
+  real-path test covers each mocked boundary.
+- Do not weaken, skip, delete, or narrow tests unless the contract
+  changes and the decision is logged.
+- Do not special-case visible examples, fixture names, literals, or
+  test-only branches.
+
 ## Phase 1 — Define Contract
 
-- **Objective:** Specify the interface — schemas, function
-  signatures, type hints, docstrings. No business logic yet.
-- **Activities:** Define models/enums; document parameters and
-  return types; enumerate use cases.
-- **Deliverables:** Contract file(s) created; docstrings with
-  examples; no implementation.
-- **Exit:** Types compile; no reliance on implementation; ready
-  for tests.
+- **Objective:** Specify the behavior contract before tests or
+  implementation: intended behavior, scope, facts, assumptions,
+  ambiguities, inputs, outputs, invariants, error cases,
+  non-functional constraints, acceptance examples, forbidden
+  shortcuts, test hooks, and risk level.
+- **Activities:** Fill the milestone doc's `Contract`, `Risk
+  Level`, `Test Strategy For This Milestone`, and initial `Test
+  Matrix` sections; separate facts from assumptions; resolve or
+  mark ambiguities for operator decision; identify visible test
+  hooks, hidden/generalization categories, adequacy checks, and
+  mock policy.
+- **Deliverables:** Behavior contract recorded; risk level assigned;
+  test matrix created or linked; public inputs, outputs,
+  invariants, error cases, and non-functional constraints made
+  testable; no business logic yet.
+- **Exit:**
+  - [ ] Behavior contract exists.
+  - [ ] Facts and assumptions are separated.
+  - [ ] Ambiguities are resolved or marked for operator decision.
+  - [ ] Public inputs, outputs, invariants, and error cases are testable.
+  - [ ] Non-functional constraints are recorded or explicitly marked not applicable.
+  - [ ] Risk level is assigned.
+  - [ ] Test matrix has been created or linked.
 - **Docs touchpoints:**
   - Append a Phase 1 section to `<slug>-impl.md` body.
+  - Update `<slug>-test-matrix.md` with initial contract clauses
+    and planned validation layers.
   - Tick `[x] Phase 1` in `<slug>.md`'s checklist; flip the
     progress-table cell from `Pending` to `Complete`.
-  - `docs touch <slug>.md <slug>-impl.md status.md`.
+  - `docs touch <slug>.md <slug>-impl.md <slug>-test-matrix.md
+    status.md`.
   - `docs check <root> --stale 14` exit 0 or 1.
 
 ## Phase 2 — Write Tests (RED)
 
 - **Objective:** Express desired behaviour as failing tests
   before any implementation.
-- **Activities:** Write happy-path and edge-case tests; include
-  fixture stubs; consider pagination, filtering, error paths.
+- **Activities:** Write visible tests that trace to contract
+  clauses where practical; prefer behavior tests over
+  implementation-detail tests; add at least one negative and one
+  boundary case per public behavior where applicable; propose
+  hidden/generalization categories separately; justify any new
+  mocks.
 - **Deliverables:** Test module(s) with clear names and
-  docstrings; minimum coverage targets noted.
-- **Exit:** Tests import cleanly; expected to fail due to
-  missing implementation.
+  docstrings; minimum coverage targets noted; test matrix updated
+  with visible tests and hidden/generalization categories.
+- **Exit:**
+  - [ ] Each public behavior has at least one visible test.
+  - [ ] Negative and boundary cases exist where applicable.
+  - [ ] Tests are expected to fail for missing behavior, not import/setup mistakes.
+  - [ ] Hidden/generalization categories are recorded without leaking private cases.
+  - [ ] New mocks are listed and justified.
 - **Docs touchpoints:** standard per-phase set above.
 
 ## Phase 3 — Create Data/Fixtures
 
 - **Objective:** Provide synthetic data/builders to exercise the
   tests.
-- **Activities:** Add diverse fixtures; cover all enums /
-  statuses / variants; ensure correctness for money,
-  date-handling, edge sizes.
+- **Activities:** Add representative, boundary, malformed,
+  adversarial, and realistic fixtures where applicable; cover all
+  enums / statuses / variants; ensure correctness for money,
+  date-handling, edge sizes; add at least one real-path fixture
+  where mocks are used.
 - **Deliverables:** Fixture files or factory helpers; integrity
   checked.
-- **Exit:** Data loads cleanly; represents every required variant.
+- **Exit:** Data loads cleanly; represents every required variant;
+  hidden cases are not encoded into visible fixtures; no fixture
+  exists only to satisfy a narrow visible assertion.
 - **Docs touchpoints:** standard per-phase set above.
 
 ## Phase 4 — Run Tests (RED Baseline)
 
 - **Objective:** Confirm tests fail for the right reasons.
 - **Activities:** Run the test suite; capture failure summary
-  verbatim.
+  verbatim; inspect already-green visible tests; check that the
+  test matrix is complete enough to proceed.
 - **Deliverables:** Test output with failure reasons noted in
-  the impl log.
+  the impl log; RED status summarized in the test matrix when
+  useful.
 - **Exit:** Failing tests trace to missing implementation, not
-  misconfiguration.
+  misconfiguration; the test matrix is complete enough to proceed.
+  Trivial, under-constrained, already-green, or setup-only tests
+  block progression until fixed.
 - **Docs touchpoints:** standard per-phase set above. Paste the
   RED baseline output into the Phase 4 log section verbatim.
+- **High-risk checkpoint:** For High-risk milestones, stop after
+  the RED baseline and ask the operator to approve the contract,
+  visible tests, hidden/generalization plan, mock policy, and risk
+  gates before Phase 5 starts, unless project policy explicitly
+  allows automatic continuation.
 
 ## Phase 5 — Update Base Interfaces
 
@@ -105,26 +170,43 @@ least a `docs touch` on the impl log).
 ## Phase 8 — Run Tests (GREEN)
 
 - **Objective:** Achieve a passing state for the implemented
-  path(s).
+  path(s) and satisfy the risk-appropriate gate.
 - **Activities:** Run focused suites; iterate fixes; keep a
-  changelog in the impl log.
-- **Deliverables:** Passing test output; notes on any flaky cases.
-- **Exit:** All targeted tests green; quality checks (format,
-  lint, typecheck) clean.
+  changelog in the impl log; run the required gates for the
+  milestone's Risk Level.
+- **Deliverables:** Passing test output; notes on any flaky cases;
+  coverage / property / hidden smoke / mock audit / security /
+  schema / benchmark / mutation summaries where required.
+- **Exit:** Required gates for the Risk Level are green or
+  explicitly approved as skipped:
+  - **Lite:** visible tests green; lint/type/build green where
+    configured; docs check green.
+  - **Standard:** Lite plus coverage report if configured;
+    property/stateful smoke where applicable; hidden/generalization
+    smoke where configured; mock audit complete.
+  - **High:** Standard plus security/schema/benchmark/migration
+    checks where applicable; mutation smoke or baseline where
+    configured; reviewer/operator signoff where required.
 - **Docs touchpoints:** standard per-phase set above. Paste
   GREEN test output verbatim into the Phase 8 log section. If
   anything is RED, STOP — fix the root cause; do not relax a
   test.
 
-## Phase 9 — Implement Online/Integration
+## Phase 9 — Integrate / Accept / Dogfood
 
-- **Objective:** Add the online / remote / integration path.
-- **Activities:** Add HTTP/OAuth/retry behaviour; reuse
-  decorators/utilities; mirror offline validation.
-- **Deliverables:** Online provider/path; integration tests or
-  stubs; retry/backoff configuration.
-- **Exit:** Integration tests prepared or passing; clear TODOs
-  for any blocked items.
+- **Objective:** Validate the change in realistic product,
+  integration, or operator context.
+- **Activities:** Depending on project type, run API integration,
+  UI browser checks, CLI dogfooding, benchmark validation,
+  migration rehearsal, realistic fixture runs, or manual
+  exploratory acceptance. Add online / remote paths only when the
+  milestone actually owns them.
+- **Deliverables:** Integration or acceptance results; realistic
+  fixture metrics; benchmark or migration evidence where relevant;
+  clear TODOs for blocked external dependencies.
+- **Exit:** The milestone's user-visible or integration behavior
+  is accepted for its Risk Level, or blocked items are documented
+  with owner, risk, and follow-up.
 - **Docs touchpoints:** standard per-phase set above. Many
   milestones have no online surface; in that case repurpose
   Phase 9 for dogfooding against realistic fixtures and
@@ -137,20 +219,33 @@ least a `docs touch` on the impl log).
 - **Activities:**
   - Run the full quality gate (`make format && make lint &&
     make typecheck && make test` or project equivalent).
+  - Update the test matrix.
+  - Summarize adequacy results.
+  - Record hidden-generalization gap if visible and hidden pass
+    rates are available.
+  - Log mutation/property/fuzz/benchmark gaps as follow-up work if
+    not run.
+  - Complete the mock audit.
   - Refactor for clarity (the `simplify` skill may help here).
+  - Confirm simplification did not reduce test adequacy without
+    explicit approval.
   - Update user-facing docs.
   - Append a milestone-completion summary to both the milestone
     doc and the impl log.
 - **Deliverables:** Updated documentation set; implementation
-  checklist completed; open questions noted; release notes if
+  checklist completed; test matrix current; adequacy results and
+  follow-up gaps recorded; open questions noted; release notes if
   applicable.
-- **Exit:** Quality gate green; documentation current; handoff
-  notes written. Ready for `docs archive <slug>.md --cascade
-  --reason "<reason>"`.
+- **Exit:** Quality gate green; documentation current; adequacy
+  results summarized; mock audit complete; skipped deep gates have
+  explicit approval or follow-up; handoff notes written. Ready for
+  `docs archive <slug>.md --cascade --reason "<reason>"`.
 - **Docs touchpoints:**
   - Append "Milestone-completion summary" sections to both
     `<slug>.md` and `<slug>-impl.md`.
-  - `docs touch` both.
+  - Update `<slug>-test-matrix.md` with final matrix and adequacy
+    results.
+  - `docs touch` all milestone docs.
   - `docs check <root> --stale 14` must exit 0 or 1.
   - **Do not archive yet** — the playbook's Step 4 owns the
     archive call so the project-level status update happens in
@@ -162,11 +257,15 @@ After every phase, regardless of which one:
 
 - [ ] Phase section appended to `<slug>-impl.md` body (objective,
       files, actions, results, decisions).
+- [ ] `<slug>-test-matrix.md` updated when contract clauses,
+      visible tests, hidden/generalization categories, adequacy
+      checks, or mock policy changed.
 - [ ] Progress-table cell in `<slug>-impl.md` flipped to
       `Complete`.
 - [ ] `[x]` ticked in `<slug>.md`'s Phase Checklist.
 - [ ] `status.md`'s "Current Phase" line updated.
-- [ ] `docs touch <slug>.md <slug>-impl.md status.md`.
+- [ ] `docs touch <slug>.md <slug>-impl.md
+      <slug>-test-matrix.md status.md`.
 - [ ] `docs index <root>` regenerated.
 - [ ] `docs check <root> --stale 14` exit 0 or 1.
 - [ ] User confirmation before starting the next phase.
@@ -177,12 +276,19 @@ After every phase, regardless of which one:
 - **Phase 4 must reveal RED for the right reasons** — a Phase 4
   that already shows GREEN means Phase 2 didn't test what was
   intended; go back.
+- **High-risk milestones pause after Phase 4** for operator
+  approval of the contract, visible tests, hidden/generalization
+  plan, mock policy, and risk gates unless project policy
+  explicitly allows automatic continuation.
 - **Phase 8 must be fully GREEN before Phase 9.** A flaky test
   is not GREEN; either fix the flake or scope it out with a
   documented TODO before proceeding.
+- **Risk gates are cumulative.** Lite gates are required for
+  Standard; Standard gates are required for High unless explicitly
+  marked not applicable or approved as skipped.
 - **Phase 10 always runs**, even for milestones that feel small.
-  The completion summary + docs touch is what makes archive
-  meaningful.
+  The completion summary, test matrix, adequacy results, and docs
+  touch are what make archive meaningful.
 
 ## When a phase reveals the plan was wrong
 
@@ -194,8 +300,12 @@ substantial revision:
    what needs to change.
 3. Edit the milestone doc's relevant Phase section and Phase
    Checklist to reflect the new shape.
-4. `docs touch <slug>.md` and the decision log.
-5. Resume the (now corrected) phase.
+4. Update `<slug>-test-matrix.md` if contract clauses, visible
+   tests, hidden/generalization categories, adequacy checks, or
+   mock policy changed.
+5. `docs touch <slug>.md <slug>-test-matrix.md` and the decision
+   log.
+6. Resume the (now corrected) phase.
 
 Plan revision is normal — every long-running milestone has at
 least one. The audit trail is what makes it safe.
