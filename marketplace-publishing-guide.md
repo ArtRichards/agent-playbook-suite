@@ -3,7 +3,7 @@
 Lifecycle: active
 Role: guide
 Project: agent-playbook-suite
-Updated: 2026-06-01
+Updated: 2026-06-03
 
 This guide is the maintainer checklist for publishing Agent Playbook Suite as
 one plugin marketplace package for Codex and Claude Code.
@@ -246,6 +246,21 @@ git add .
 git commit -m "Publish agent playbook suite marketplace"
 git push origin main
 ```
+
+After the release commit is on `main` (whether by direct push or a merged PR),
+tag it to match the manifest version, and push the tag:
+
+```bash
+VERSION=0.3.0   # must match the plugin manifests and the marketplace entry
+git checkout main && git pull --ff-only
+git tag -a "v$VERSION" -m "Agent Playbook Suite v$VERSION"
+git push origin "v$VERSION"
+```
+
+Use an annotated tag (`-a`); the tag name (`vX.Y.Z`) must equal the version in
+both plugin manifests and `.claude-plugin/marketplace.json`. The marketplace
+installs from `main`, so the tag is a release marker for history and rollback,
+not the install source.
 
 The repository is the marketplace source. After the push, users can install
 from GitHub with:
