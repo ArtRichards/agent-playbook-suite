@@ -35,7 +35,7 @@ direct skill-directory installs.
 
 ## Dependencies
 
-- [`docs-cli`](https://github.com/ArtRichards/docs-cli) **v1.4.0 (M10+)** — required for `Lifecycle:`, `docs new --body-from`, and atomic multi-file `docs touch <file>...`. Install with `pip install docs-cli`.
+- [`docs-cli`](https://github.com/ArtRichards/docs-cli) — always use the newest release; required for `Lifecycle:`, `docs new --body-from`, and atomic multi-file `docs touch <file>...`. Install with `pip install --upgrade docs-cli`.
 - Companion skills — required:
   - [`create-milestones`](https://github.com/ArtRichards/create-milestones) (process + 10-phase TDD structure).
   - [`sync-and-commit`](https://github.com/ArtRichards/sync-and-commit) (called at every step boundary).

@@ -11,11 +11,10 @@ milestone is a task plan, implementation log, and test-matrix
 companion progressing through ten TDD phases, archived together
 with `docs archive --cascade` on completion.
 
-Requires [`docs-cli`](https://github.com/ArtRichards/docs-cli)
-**v1.4.0 (M10+)** or later. The workflow relies on the
+Requires [`docs-cli`](https://github.com/ArtRichards/docs-cli) — always
+run the newest release. The workflow relies on the
 `Lifecycle:` metadata convention, `docs new --body-from -|<path>`,
-and atomic multi-file `docs touch <file>...`. Ask the user to
-upgrade if the host's `docs` binary is older.
+and atomic multi-file `docs touch <file>...`.
 
 ## When this applies
 

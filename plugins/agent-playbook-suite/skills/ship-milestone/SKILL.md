@@ -21,8 +21,8 @@ begin.
 
 Required tooling:
 
-- [`docs-cli`](https://github.com/ArtRichards/docs-cli) **v1.4.0
-  (M10+)** or later for the `Lifecycle:` metadata convention,
+- [`docs-cli`](https://github.com/ArtRichards/docs-cli) — always run the
+  newest release — for the `Lifecycle:` metadata convention,
   `docs new --body-from -|<path>`, and atomic multi-file
   `docs touch <file>...`.
 

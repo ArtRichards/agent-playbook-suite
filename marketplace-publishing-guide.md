@@ -32,6 +32,12 @@ Do not add `next-task` to the suite.
 
 ## Refresh The Skill Payload
 
+Policy: the suite always tracks the newest `docs-cli` release and keeps its
+bundled `docs` skill in lockstep with that release. Each published suite release
+records the exact `docs-cli` version it was vendored from and tested against —
+the pin — so a version bump is a visible, reviewable diff rather than an implicit
+"whatever PyPI served at CI time".
+
 Install or upgrade the runtime CLI from PyPI first:
 
 ```bash
@@ -39,24 +45,32 @@ python3 -m pip install --upgrade docs-cli
 docs --version
 ```
 
-Refresh the bundled `docs` skill from the installed PyPI package:
+Refresh the bundled `docs` skill from the installed PyPI package so it matches
+the version you just installed:
 
 ```bash
 docs install-skill --dest plugins/agent-playbook-suite/skills/docs --force
 ```
 
-Refresh each workflow skill from a clean checkout of its public source repo.
-Set `WORKFLOW_SKILLS_DIR` to the parent directory that contains those checkouts.
+Then move the tested-version pin forward to the version you just vendored. The
+single source of truth is the `DOCS_CLI_VERSION` value in
+[`.github/workflows/validate.yml`](.github/workflows/validate.yml); update it to
+match `docs --version`. CI installs that exact version and fails if the installed
+binary drifts from the pin, so the pin and the vendored `docs` skill can never
+silently fall out of sync. Always bump the pin to the newest release rather than
+holding it back.
 
-```bash
-export WORKFLOW_SKILLS_DIR="$HOME/src"
+The five workflow skills — `project-foundation`, `create-milestones`,
+`ship-milestone`, `sync-and-commit`, and `simplify` — are maintained directly in
+this repository under `plugins/agent-playbook-suite/skills/`. This repository is
+their source of truth: edit them in place. The standalone
+`ArtRichards/<skill>` repositories are archived and read-only; they exist only as
+historical pointers back here. Do not rsync or copy from them — their content
+predates the risk-aware upgrade, so pulling it in would silently revert the
+skills.
 
-rsync -a --delete --exclude .git "$WORKFLOW_SKILLS_DIR/project-foundation/" plugins/agent-playbook-suite/skills/project-foundation/
-rsync -a --delete --exclude .git "$WORKFLOW_SKILLS_DIR/create-milestones/" plugins/agent-playbook-suite/skills/create-milestones/
-rsync -a --delete --exclude .git "$WORKFLOW_SKILLS_DIR/ship-milestone/" plugins/agent-playbook-suite/skills/ship-milestone/
-rsync -a --delete --exclude .git "$WORKFLOW_SKILLS_DIR/sync-and-commit/" plugins/agent-playbook-suite/skills/sync-and-commit/
-rsync -a --delete --exclude .git "$WORKFLOW_SKILLS_DIR/simplify/" plugins/agent-playbook-suite/skills/simplify/
-```
+Only the `docs` skill is vendored from an external source: the `docs-cli` PyPI
+package, via `docs install-skill` above.
 
 After refresh, confirm the payload contains only the intended skill set plus
 optional shared references:

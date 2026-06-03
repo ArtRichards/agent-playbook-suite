@@ -1,5 +1,5 @@
 <!-- docs:generated start -->
-_Generated 2026-06-02. 9 docs active, 0 archived._
+_Generated 2026-06-03. 9 docs active, 0 archived._
 
 ## Project — agent-playbook-suite
 

@@ -10,7 +10,7 @@ reality, and commit (and push, when on a feature branch with a
 remote).
 
 Optionally pairs with [`docs-cli`](https://github.com/ArtRichards/docs-cli)
-**v1.4.0 (M10+)** or later for the `Lifecycle:` / `Role:` /
+(use the newest release) for the `Lifecycle:` / `Role:` /
 `Updated:` metadata convention and atomic multi-file
 `docs touch <file>...` used by `project-foundation`,
 `create-milestones`, and `ship-milestone`. If the project does not

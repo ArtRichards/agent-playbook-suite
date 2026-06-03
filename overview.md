@@ -113,10 +113,13 @@ OpenCode, and similar agent shells, the marketplace support and auto-discovery
 behavior differ, but the operating model still works if the agent can read the
 same repo, project instruction file, docs tree, and commands.
 
-Use a current PyPI `docs-cli` release that includes `Lifecycle:` metadata,
-agent-friendly authoring via `docs new --body-from`, and the newer
-adoption-workflow helpers. The suite plugin includes the `docs` skill; the
-PyPI package provides the `docs` command that the skills call.
+Always use the newest PyPI `docs-cli` release; recent releases add `Lifecycle:`
+metadata, agent-friendly authoring via `docs new --body-from`, and the newer
+adoption-workflow helpers. The suite plugin includes the `docs` skill, and that
+bundled skill is generated from `docs-cli` itself and kept in lockstep with the
+newest release, so the skill instructions always match the `docs` command they
+call. There is no separate older version floor to track. Run
+`python3 -m pip install --upgrade docs-cli` to stay current.
 
 ## What gets created
 
