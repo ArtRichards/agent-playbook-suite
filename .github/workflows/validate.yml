@@ -14,7 +14,7 @@ jobs:
       # `docs` skill from. The policy is to track the newest docs-cli: when a
       # newer release ships, re-vendor the skill (docs install-skill --force)
       # and bump this pin in the same change. See marketplace-publishing-guide.md.
-      DOCS_CLI_VERSION: "1.5.0"
+      DOCS_CLI_VERSION: "1.6.0"
     steps:
       - uses: actions/checkout@v4
 

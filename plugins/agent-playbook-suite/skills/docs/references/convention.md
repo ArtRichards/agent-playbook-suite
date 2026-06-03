@@ -3,7 +3,7 @@
 Lifecycle: active
 Role: spec
 Project: docs
-Updated: 2026-06-02
+Updated: 2026-06-03
 
 Related:
 - pairs-with: cli.md
@@ -237,6 +237,8 @@ Lifecycle/location consistency rules:
 
 `done` vs `archived`: `done` stays in the active tree (evergreen reference); `archived` is moved to the archive subtree. Use `done` when the doc is finished but still referenced day-to-day.
 
+**Archive-subtree edge integrity (M18).** Archive-subtree `Related:` edges are maintained across moves. When a doc moves into the archive, both its OWN intra-archive edges (bullets pointing at another doc moving in the same operation) and any already-archived referrers' edges to it are repointed to the new `archive/YYYY-MM-DD/` paths, so they keep resolving. The M3 "archive is read-only" stance is preserved for everything else — only these move-driven edge rewrites touch archived docs; prose, other metadata, and edges to docs that did not move are left byte-identical.
+
 ## Subdirectories
 
 A docs root is not required to be flat. Beyond the machine-managed archive subtree, authors may organize docs into free-form subdirectories — grouping a body of work, a set of brainstorms, or a sub-project under its own folder. The tool is directory-agnostic:
@@ -251,9 +253,18 @@ Whether to keep a tree flat or nest it is the author's call. The metadata block 
 
 M8 introduces a single layered exclusion surface every walker
 consults — `docs migrate`, `docs index`, `docs check`,
-`docs list`. The four sources combine **additively** (no
-source replaces another); see [`cli.md`'s "Common: exclusion"
-section](cli.md#common-exclusion) for the per-verb shape.
+`docs list`. M14 (A6) extends it to the **end-of-batch INDEX
+reindex** the four mutating verbs run — `docs touch`,
+`docs archive`, `docs mv`, and `docs project rename` — so a
+malformed *excluded* file (e.g. a bundled plugin `README.md`
+under an `[exclude]` dir) cannot fail the post-mutation reindex
+after the verb has already stamped/moved on disk. The four
+sources combine **additively** (no source replaces another);
+see [`cli.md`'s "Common: exclusion"
+section](cli.md#common-exclusion) for the per-verb shape. The
+mutating verbs consult only the **persistent** sources
+(`[exclude]` + `.docsignore`) — they expose no `--exclude` flag
+of their own.
 
 - **`[exclude]` table in `.docs.toml`** (persistent, per-tree).
   Three keys — `dirs = [...]` for directory-name matches at

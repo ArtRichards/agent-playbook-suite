@@ -251,7 +251,7 @@ After the release commit is on `main` (whether by direct push or a merged PR),
 tag it to match the manifest version, and push the tag:
 
 ```bash
-VERSION=0.3.1   # must match the plugin manifests and the marketplace entry
+VERSION=0.3.2   # must match the plugin manifests and the marketplace entry
 git checkout main && git pull --ff-only
 git tag -a "v$VERSION" -m "Agent Playbook Suite v$VERSION"
 git push origin "v$VERSION"

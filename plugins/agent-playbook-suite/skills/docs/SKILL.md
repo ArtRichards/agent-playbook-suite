@@ -1,6 +1,6 @@
 ---
 name: docs
-description: Use whenever the user asks to create a spec, archive or rename a doc, list docs, regenerate INDEX.md, or check a docs tree (a directory with a .docs.toml file at its root), or to adopt a foreign Markdown directory into the convention (e.g. "adopt this directory", "migrate this folder", "bring this into docs convention", "import existing markdown specs"). Always run the docs CLI verb (docs new / index / archive / mv / list / touch / check / migrate) — never hand-edit INDEX.md, metadata blocks, or files into archive/. Not for ordinary Markdown outside a .docs.toml-marked tree.
+description: Use whenever the user asks to create a spec, archive or rename a doc, list docs, regenerate INDEX.md, stamp a metadata block onto a file already written, reassign a doc's project, or check a docs tree (a directory with a .docs.toml file at its root), or to adopt a foreign Markdown directory into the convention (e.g. "adopt this directory", "migrate this folder", "bring this into docs convention", "import existing markdown specs"). Always run the docs CLI verb (docs new / index / archive / mv / list / touch / stamp / check / migrate / project rename / project set / install-skill) — never hand-edit INDEX.md, metadata blocks, or files into archive/. Not for ordinary Markdown outside a .docs.toml-marked tree.
 ---
 
 # docs — run the verb, never hand-edit
@@ -46,7 +46,8 @@ but easy to misuse — confirm with the user before any verb that writes.
 
 | Task | Verb | Key flags / behaviour |
 |---|---|---|
-| Create a doc | `docs new <role> <slug>` | `--project`, `--title`; scaffolds metadata |
+| Create a doc | `docs new <role> <slug>` | `--project`, `--title`, `--body-from`; scaffolds metadata |
+| Stamp a metadata block onto a file you already wrote | `docs stamp <file>...` | `--role` (default `notes`), `--project`, `--title`; write-then-stamp, idempotent re-stamp refreshes `Updated:` |
 | Regenerate the index | `docs index` | idempotent; rewrites only the marker block |
 | Archive a finished doc | `docs archive <file>` | `--reason`, `--date`, `--cascade` |
 | Rename or move a doc | `docs mv <old> <new>` | rewrites `Related:` tree-wide |
@@ -55,6 +56,7 @@ but easy to misuse — confirm with the user before any verb that writes.
 | Validate the tree | `docs check` | exit `0` clean / `1` warnings / `2` errors |
 | Adopt a foreign tree | `docs migrate <dir>` | dry-run by default; `--apply` to write |
 | Rename the project | `docs project rename <new-name>` | rewrites `.docs.toml` + every `Project:` line; `--dry-run` |
+| Reassign one or more docs' project | `docs project set <doc>... <new-project>` | rewrites only the named docs' `Project:` line; `--new-project` to create a new group; `--dry-run` |
 | Install this skill on a host | `docs install-skill` | `--dest`, `--copy` (default), `--symlink`, `--force` |
 
 `docs` walks up from the current directory to find `.docs.toml`. Use

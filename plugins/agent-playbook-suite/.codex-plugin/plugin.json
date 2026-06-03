@@ -1,6 +1,6 @@
 {
   "name": "agent-playbook-suite",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "A curated suite of agent workflow skills for docs-backed project planning, milestone delivery, verification, and simplification.",
   "author": {
     "name": "Art Richards"
