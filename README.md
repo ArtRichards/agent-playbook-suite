@@ -49,6 +49,13 @@ python3 -m pip install --upgrade docs-cli
 docs --version
 ```
 
+Always run the newest `docs-cli`. The suite ships its bundled `docs` skill
+vendored from a specific release, and that skill is generated from the same
+`docs-cli` it is paired with, so the skill instructions always match the `docs`
+command they call. There is no separate older floor to track: keeping the CLI
+current (re-run the `--upgrade` command above) is the only supported
+configuration.
+
 Use Python 3.11 or newer. A virtual environment or `pipx` is fine as long as
 the resulting `docs` command is on `PATH` for the agent session.
 
@@ -104,8 +111,10 @@ reloaded.
 Gemini CLI and OpenCode do not consume the Codex or Claude plugin marketplace
 manifests directly. The portable skill payload lives at
 `plugins/agent-playbook-suite/skills/` for agents that support direct skill
-directories, and the individual workflow skill repositories remain public for
-manual git-checkout installs.
+directories. For a manual install, check out this repository and point the agent
+at the relevant skill subdirectory. The five workflow skills are maintained here;
+the former standalone `ArtRichards/<skill>` repositories are archived and read
+only.
 
 Use the marketplace flow above for Codex and Claude Code. Use direct skill
 directories only when an agent does not support these marketplace formats.

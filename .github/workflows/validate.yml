@@ -9,6 +9,12 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    env:
+      # Pinned docs-cli release this suite is tested against and vendors the
+      # `docs` skill from. The policy is to track the newest docs-cli: when a
+      # newer release ships, re-vendor the skill (docs install-skill --force)
+      # and bump this pin in the same change. See marketplace-publishing-guide.md.
+      DOCS_CLI_VERSION: "1.5.0"
     steps:
       - uses: actions/checkout@v4
 
@@ -101,12 +107,13 @@ jobs:
                   raise SystemExit(f"{skill} missing quality-model terms: {missing}")
           PY
 
-      - name: Install docs-cli
-        run: python3 -m pip install --upgrade docs-cli
+      - name: Install docs-cli (pinned tested version)
+        run: python3 -m pip install "docs-cli==${DOCS_CLI_VERSION}"
 
       - name: Validate docs-cli runtime contract
         run: |
           python3 - <<'PY'
+          import os
           import re
           import subprocess
           from pathlib import Path
@@ -117,8 +124,17 @@ jobs:
           if not match:
               raise SystemExit(f"Could not parse docs-cli version from: {version_output!r}")
           version = tuple(int(part) for part in match.groups())
-          if version < (1, 4, 0):
-              raise SystemExit(f"docs-cli >= 1.4.0 required; got {version_output}")
+
+          # DOCS_CLI_VERSION is the single source of truth for the docs-cli
+          # release this suite is tested against and vendors the `docs` skill
+          # from. The bundled `docs` skill is generated from this same release,
+          # so the pin is the only version that matters: CI fails if the
+          # installed binary drifts from it.
+          pinned = tuple(int(part) for part in os.environ["DOCS_CLI_VERSION"].split("."))
+          if version != pinned:
+              raise SystemExit(
+                  f"Expected pinned docs-cli {os.environ['DOCS_CLI_VERSION']}; got {version_output}"
+              )
 
           with tempfile.TemporaryDirectory() as tmp:
               root = Path(tmp)

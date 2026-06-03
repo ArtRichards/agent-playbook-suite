@@ -9,12 +9,11 @@ Drive the front-half foundation flow — charter through Definition
 of Ready — across ten phases, producing a docs-managed Markdown
 tree the `create-milestones` skill can pick up.
 
-Requires [`docs-cli`](https://github.com/ArtRichards/docs-cli)
-**v1.4.0 (M10+)** or later. The workflow relies on the
+Requires [`docs-cli`](https://github.com/ArtRichards/docs-cli) — always
+run the newest release. The workflow relies on the
 `Lifecycle:` metadata convention, `docs new --body-from -|<path>`,
 tree-wide `[exclude]` rules in `.docs.toml`, and atomic
-multi-file `docs touch <file>...`. Ask the user to upgrade if the
-host's `docs` binary is older.
+multi-file `docs touch <file>...`.
 
 ## When this applies
 

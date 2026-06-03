@@ -24,7 +24,7 @@ direct skill-directory installs.
 ## Dependencies
 
 - A `CLAUDE.md`, `AGENTS.md`, or equivalent project context at the project root (recommended) describing the docs-tree location, build/test/quality commands, risk gates, commit convention, and branch convention. Fallback: the skill inspects `git log --oneline`, `package.json` / `pyproject.toml` / `Makefile`.
-- [`docs-cli`](https://github.com/ArtRichards/docs-cli) **v1.4.0 (M10+)** — optional. If the project uses docs-cli, the skill runs `docs touch`, `docs index`, and `docs check --stale 14` to keep the docs tree in lockstep. If not, the docs-side checks are skipped.
+- [`docs-cli`](https://github.com/ArtRichards/docs-cli) — optional, but use the newest release when present. If the project uses docs-cli, the skill runs `docs touch`, `docs index`, and `docs check --stale 14` to keep the docs tree in lockstep. If not, the docs-side checks are skipped.
 
 ## Guarantees
 

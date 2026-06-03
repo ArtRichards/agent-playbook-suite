@@ -5,7 +5,7 @@ a starting `Lifecycle:` value. Pass these to `docs new` on every
 authoring call. Lifecycle transitions happen by editing the
 `Lifecycle:` value in the metadata block, then `docs touch`.
 
-Assumes docs-cli **v1.4.0 (M10)** or later — `Lifecycle:` is the
+Assumes a current docs-cli release — `Lifecycle:` is the
 controlled-vocab field name, `docs new --body-from` is available,
 multi-file `docs touch <file>...` is atomic, and the role vocab
 includes `sketch`, `outline`, `implementation`, `template`,
