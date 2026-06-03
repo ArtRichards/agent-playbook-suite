@@ -57,6 +57,17 @@ This SKILL.md is intentionally short. The substance lives in:
   — the shared risk-aware quality model used by planning,
   implementation, review, and consistency checks.
 
+When you spawn a sub-agent, substitute every `{placeholder}` in the
+prompt with a concrete value — the agent runs in `{project_root}`
+with FRESH context and cannot resolve bundle-relative paths or
+unfilled tokens. In particular, `{skill_dir}` is the absolute path of
+THIS skill's directory (shown as "Base directory for this skill" when
+the skill loads); the shared quality model, when bundled with the
+suite, sits at `{skill_dir}/../_shared/references/agentic-quality-model.md`.
+If the skill is installed without the `_shared` sibling, tell the
+agent the model is absent and to fall back to the milestone's own
+QUALITY PLAN and test matrix.
+
 ## When this applies
 
 The operator wants a milestone built end-to-end without

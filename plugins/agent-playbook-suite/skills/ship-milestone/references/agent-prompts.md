@@ -96,7 +96,7 @@ assume nothing from any other session.
 READ, in order:
   1. The project's CLAUDE.md, AGENTS.md, or equivalent context and conventions.
   2. The shared risk-aware quality model
-      (`../../_shared/references/agentic-quality-model.md`) if present.
+      (`{skill_dir}/../_shared/references/agentic-quality-model.md`) if present.
   3. {milestone_doc} — the milestone task plan: its TDD Implementation Plan for
      {phase_range}, Decisions, Deliverables, Success Criteria.
   4. {milestone_log} — the per-phase log; shows what is already done.
@@ -156,7 +156,8 @@ in the project at {project_root}. Branch {branch} is checked out. Think deeply
 at every phase boundary and decision.
 
 You have FRESH context. Build understanding from the plan below, the milestone
-doc/log, the specs, the shared risk-aware quality model if present, and the
+doc/log, the specs, the shared risk-aware quality model
+(`{skill_dir}/../_shared/references/agentic-quality-model.md`) if present, and the
 code on {branch}.
 {resume_note}
 PLAN (from the planning agent, with operator-resolved answers applied):
@@ -247,8 +248,9 @@ Assess:
   - Correctness — real bugs, missed edge cases, behavior wrong vs. the
     milestone spec and the pinned specs.
   {test_quality_clause}
-  - Test adequacy against the shared risk-aware quality model: visible
-    contract coverage, hidden/generalization gaps, adequacy checks,
+  - Test adequacy against the shared risk-aware quality model
+    (`{skill_dir}/../_shared/references/agentic-quality-model.md`) if present:
+    visible contract coverage, hidden/generalization gaps, adequacy checks,
     risk-level gates, and mock justification.
   - Whether the work satisfies the milestone's Deliverables and Success
     Criteria for {phase_range}.
