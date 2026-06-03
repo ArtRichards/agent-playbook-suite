@@ -220,6 +220,8 @@ Ask:
 
 - What product, functional, technical, and cross-cutting adequacy
   tests will you write?
+- Which preparatory, planning, handoff, or workflow artifacts need
+  explicit non-product checks?
 - Which project areas or milestone families are Lite, Standard, or
   High risk, and why?
 - What commands make up the fast PR gate?
@@ -245,6 +247,7 @@ Use this starter shape:
 ## Validation taxonomy
 
 - Product tests:
+- Non-product checks:
 - Functional tests:
 - Technical tests:
 - Cross-cutting adequacy tests:

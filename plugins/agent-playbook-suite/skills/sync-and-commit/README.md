@@ -31,9 +31,9 @@ direct skill-directory installs.
 - Never uses `--no-verify` or bypasses git hooks (unless the operator explicitly asks).
 - Never pushes to `main` or any shared branch — only feature/milestone branches.
 - Never blanket-adds with `git add -A` unless project context says otherwise.
-- Fails closed on required visible tests, configured build/lint/type gates,
-  missing Standard/High contract-test matrix, unexplained mocks, and
-  unapproved skipped High-risk deep gates.
+- Fails closed on required visible product tests or explicit non-product checks,
+  configured build/lint/type gates, missing Standard/High contract-test
+  matrix, unexplained mocks, and unapproved skipped High-risk deep gates.
 
 ## License
 

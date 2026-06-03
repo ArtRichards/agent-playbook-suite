@@ -98,5 +98,6 @@ Same file, same slug, same history.
   being cited as authoritative, not as a working sketch.
   Usually around DoR.
 - **`outline` → `spec`** when the test strategy graduates from
-  "what we plan to test" to "what the test contract
-  guarantees." Often during Phase 2 of the first milestone.
+  "what we plan to validate" to "what the product-test and
+  explicit-check contract guarantees." Often during Phase 2 of
+  the first milestone.

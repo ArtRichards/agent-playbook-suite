@@ -11,7 +11,7 @@ preserved by re-running the same risk-level gate.
 
 ## When to invoke
 
-Manually invoked (e.g. `/simplify`) once a milestone's implementation is complete and the test suite is green. Also called automatically by [`ship-milestone`](https://github.com/ArtRichards/ship-milestone) at Step 3.
+Manually invoked (e.g. `/simplify`) once a milestone's implementation is complete and the product suite plus required explicit checks are green. Also called automatically by [`ship-milestone`](https://github.com/ArtRichards/ship-milestone) at Step 3.
 
 ## Hard constraints
 

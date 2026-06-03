@@ -83,6 +83,10 @@ Milestones follow a risk-aware 10-phase TDD cycle:
 9. Integrate / Accept / Dogfood
 10. Quality, Docs, Refactor
 
+Product tests validate shipped behavior and may belong in default
+test discovery. Non-product checks validate planning, documentation,
+handoff, or workflow artifacts and must be invoked explicitly.
+
 Canonical reference: the `create-milestones` skill's
 `tdd-phases.md`.
 

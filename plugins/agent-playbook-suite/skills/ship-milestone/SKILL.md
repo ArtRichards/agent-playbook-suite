@@ -231,8 +231,8 @@ agent pressure-tests the milestone spec as part of its job.
    model with high reasoning with the
    [Fresh-eyes review agent prompt](references/agent-prompts.md#fresh-eyes-review-agent),
    reviewing `<slug>/phases-1-4` against its base. For Step 1
-   it must specifically judge whether the phase-2 tests
-   genuinely pin the contract.
+   it must specifically judge whether the phase-2 product tests
+   or explicit non-product checks genuinely pin the contract.
 6. **Triage** the review findings. Then **resume the
    implementation agent** (SendMessage) with the review
    findings to address (blockers + should-fixes), any operator
@@ -270,7 +270,8 @@ agent pressure-tests the milestone spec as part of its job.
    logged), the specs, and the code on the branch.
 3. The fresh-eyes review for Step 2 judges correctness,
    completeness against the milestone's Deliverables/Success
-   Criteria, and that the suite is GREEN.
+   Criteria, and that the product suite plus required explicit
+   checks are GREEN.
 4. Same triage → resume → sync-and-commit as Step 1.
 
 ### Step 3 — Simplify (post-phase-10)
@@ -284,8 +285,9 @@ agent pressure-tests the milestone spec as part of its job.
    No planning agent, no review agent — `/simplify` is
    behavior-preserving and self-tests.
 3. The simplify agent runs the `/simplify` process, confirms
-   the suite is GREEN, and runs `sync-and-commit`. If nothing
-   genuinely simplifies, it makes no changes —
+   the product suite plus required explicit checks are GREEN, and
+   runs `sync-and-commit`. If nothing genuinely simplifies, it
+   makes no changes —
    `sync-and-commit` then finds a clean tree, which is fine.
 
 ### End-of-run verification & report
@@ -293,7 +295,8 @@ agent pressure-tests the milestone spec as part of its job.
 The conductor now verifies directly (read-only — cheap, keeps
 the final report first-hand rather than pure trust):
 
-- run the test suite — expect fully GREEN;
+- run the product test suite — expect fully GREEN;
+- run required explicit non-product checks — expect fully GREEN;
 - run the quality gate (lint, format check, type check);
 - run `docs check` on the docs tree — expect exit 0;
 - `git log --oneline` across the branch stack.

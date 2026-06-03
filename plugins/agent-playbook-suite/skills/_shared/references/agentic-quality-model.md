@@ -19,6 +19,18 @@ risk level.
 | Technical gates | Catch structural and non-functional defects | lint, typecheck, build, security, schemas, migrations, benchmark deltas | every PR or risk-gated |
 | Product acceptance | Validate user-visible behavior in context | E2E, visual/manual review, CLI dogfooding, benchmark acceptance | PR end / release |
 
+## Product tests vs non-product checks
+
+Product tests validate shipped behavior: runtime code, public APIs, CLI
+behavior, integrations, regressions, and externally binding product
+contracts. Non-product checks validate project artifacts: preparatory docs,
+planning docs, handoff contracts, milestone docs, implementation logs,
+metadata, links, and workflow gates. They may use pytest-style assertions, but
+they are not product tests by default.
+
+Product tests are default-suite obligations. Non-product checks are explicit
+workflow gates.
+
 ## Umbrella categories
 
 - Product tests: acceptance criteria, end-to-end journeys, user-visible
@@ -109,8 +121,8 @@ Required:
 
 - Do not special-case visible examples, fixture names, literals, or test-only
   branches.
-- Do not weaken, skip, or delete tests unless the contract changed and the
-  decision is logged.
+- Do not weaken, skip, or delete tests or required explicit checks unless the
+  contract changed and the decision is logged.
 - Do not treat green visible tests as sufficient when the risk level requires
   deeper gates.
 - Do not allow simplification to reduce test adequacy silently.

@@ -56,16 +56,19 @@ intent — list those in your return message for the operator.
 
 ## Tests & quality
 
-- The suite is in the state the phases require: the intended RED baseline for
-  phases 1–4; fully GREEN from phase 8 onward.
+- The product test suite and required explicit non-product checks are in the
+  state the phases require: the intended RED baseline for phases 1–4; fully
+  GREEN from phase 8 onward.
 - Lint, format check, and type check are clean tree-wide.
-- **Phases 1–4 only:** the tests genuinely pin the contract — they are not
-  trivial passes and do not under-constrain the implementation. This is the
-  highest-leverage check; every later step trusts these tests.
+- **Phases 1–4 only:** the product tests or explicit non-product checks
+  genuinely pin the contract — they are not trivial passes and do not
+  under-constrain the implementation. This is the highest-leverage check;
+  every later step trusts these tests/checks.
 
 ## Test adequacy
 
-- Contract clauses are mapped to visible tests.
+- Contract clauses are mapped to visible product tests or explicit
+  non-product checks.
 - Hidden/generalization categories are recorded without exposing private cases.
 - Risk-level gates were run or explicitly marked not configured.
 - Property/stateful, mutation, fuzz, benchmark, security, schema, migration, or
@@ -73,8 +76,8 @@ intent — list those in your return message for the operator.
   marked not configured.
 - No code path appears keyed to visible test literals, fixture names, or narrow
   examples.
-- No tests were weakened, skipped, deleted, or rewritten without a logged
-  contract change.
+- No tests or required explicit checks were weakened, skipped, deleted, or
+  rewritten without a logged contract change.
 
 ## Mock audit
 

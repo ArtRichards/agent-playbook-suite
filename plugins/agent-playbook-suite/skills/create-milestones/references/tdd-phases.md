@@ -17,6 +17,9 @@ and mock policy.
 
 - Visible tests drive implementation, but green visible tests are
   not sufficient evidence of intent for Standard or High-risk work.
+- Classify validation as product tests or explicit non-product
+  checks. Planning, documentation, and handoff checks must not enter
+  default product-test discovery unless they define shipped behavior.
 - Actual hidden/private cases must not be pasted into milestone
   docs, visible tests, implementation prompts, or implementation
   context. Record categories, owners, command names, and summaries
@@ -28,8 +31,8 @@ and mock policy.
 - Do not add or expand mocks without justification. Prefer
   real-path tests for domain behavior, and record whether a
   real-path test covers each mocked boundary.
-- Do not weaken, skip, delete, or narrow tests unless the contract
-  changes and the decision is logged.
+- Do not weaken, skip, delete, or narrow tests or required explicit
+  checks unless the contract changes and the decision is logged.
 - Do not special-case visible examples, fixture names, literals, or
   test-only branches.
 
@@ -70,19 +73,22 @@ and mock policy.
 
 ## Phase 2 — Write Tests (RED)
 
-- **Objective:** Express desired behaviour as failing tests
-  before any implementation.
-- **Activities:** Write visible tests that trace to contract
-  clauses where practical; prefer behavior tests over
-  implementation-detail tests; add at least one negative and one
-  boundary case per public behavior where applicable; propose
-  hidden/generalization categories separately; justify any new
-  mocks.
-- **Deliverables:** Test module(s) with clear names and
-  docstrings; minimum coverage targets noted; test matrix updated
-  with visible tests and hidden/generalization categories.
+- **Objective:** Express desired behaviour as failing product tests
+  or explicit non-product checks before any implementation.
+- **Activities:** Write visible product tests that trace to contract
+  clauses where practical; for planning, documentation, or handoff
+  artifacts, write explicit checks outside default product-test
+  discovery. Prefer behavior tests over implementation-detail tests;
+  add at least one negative and one boundary case per public behavior
+  where applicable; propose hidden/generalization categories
+  separately; justify any new mocks.
+- **Deliverables:** Test or check module(s) with clear names and
+  docstrings; minimum coverage targets noted where applicable; test
+  matrix updated with visible tests/checks and hidden/generalization
+  categories.
 - **Exit:**
-  - [ ] Each public behavior has at least one visible test.
+  - [ ] Each public behavior has at least one visible product test.
+  - [ ] Each non-product gate has an explicit check when applicable.
   - [ ] Negative and boundary cases exist where applicable.
   - [ ] Tests are expected to fail for missing behavior, not import/setup mistakes.
   - [ ] Hidden/generalization categories are recorded without leaking private cases.
@@ -108,15 +114,16 @@ and mock policy.
 ## Phase 4 — Run Tests (RED Baseline)
 
 - **Objective:** Confirm tests fail for the right reasons.
-- **Activities:** Run the test suite; capture failure summary
-  verbatim; inspect already-green visible tests; check that the
-  test matrix is complete enough to proceed.
-- **Deliverables:** Test output with failure reasons noted in
-  the impl log; RED status summarized in the test matrix when
+- **Activities:** Run the product test suite and any explicit
+  non-product checks required for this phase; capture failure summary
+  verbatim; inspect already-green visible tests/checks; check that
+  the test matrix is complete enough to proceed.
+- **Deliverables:** Test/check output with failure reasons noted
+  in the impl log; RED status summarized in the test matrix when
   useful.
-- **Exit:** Failing tests trace to missing implementation, not
+- **Exit:** Failing tests/checks trace to missing implementation, not
   misconfiguration; the test matrix is complete enough to proceed.
-  Trivial, under-constrained, already-green, or setup-only tests
+  Trivial, under-constrained, already-green, or setup-only tests/checks
   block progression until fixed.
 - **Docs touchpoints:** standard per-phase set above. Paste the
   RED baseline output into the Phase 4 log section verbatim.
@@ -172,14 +179,15 @@ and mock policy.
 - **Objective:** Achieve a passing state for the implemented
   path(s) and satisfy the risk-appropriate gate.
 - **Activities:** Run focused suites; iterate fixes; keep a
-  changelog in the impl log; run the required gates for the
-  milestone's Risk Level.
-- **Deliverables:** Passing test output; notes on any flaky cases;
+  changelog in the impl log; run the required product gates and
+  explicit non-product checks for the milestone's Risk Level.
+- **Deliverables:** Passing test/check output; notes on any flaky cases;
   coverage / property / hidden smoke / mock audit / security /
   schema / benchmark / mutation summaries where required.
 - **Exit:** Required gates for the Risk Level are green or
   explicitly approved as skipped:
-  - **Lite:** visible tests green; lint/type/build green where
+  - **Lite:** visible product tests green; explicit non-product
+    checks green where required; lint/type/build green where
     configured; docs check green.
   - **Standard:** Lite plus coverage report if configured;
     property/stateful smoke where applicable; hidden/generalization
@@ -188,7 +196,7 @@ and mock policy.
     checks where applicable; mutation smoke or baseline where
     configured; reviewer/operator signoff where required.
 - **Docs touchpoints:** standard per-phase set above. Paste
-  GREEN test output verbatim into the Phase 8 log section. If
+  GREEN test/check output verbatim into the Phase 8 log section. If
   anything is RED, STOP — fix the root cause; do not relax a
   test.
 

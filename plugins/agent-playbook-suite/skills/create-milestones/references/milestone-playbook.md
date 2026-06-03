@@ -139,11 +139,12 @@ Required gates:
 
 - Do not special-case visible examples.
 - Do not branch on test literals.
-- Do not weaken, skip, or delete tests unless the contract changes and the decision is logged.
+- Do not weaken, skip, or delete tests or required explicit checks unless the contract changes and the decision is logged.
 
 ### Test hooks
 
 - Visible tests to generate:
+- Explicit non-product checks, outside default product-test discovery:
 - Hidden/generalization categories to hold back:
 - Property/stateful invariants:
 - Mutation-sensitive logic:
@@ -155,6 +156,10 @@ Required gates:
 ### Visible tests
 
 <visible tests that will drive implementation; cite contract clauses where practical>
+
+### Non-product checks
+
+<planning, documentation, handoff, or workflow checks; keep outside default product-test discovery>
 
 ### Hidden/generalization categories
 
@@ -284,6 +289,10 @@ docs new spec <slug>-test-matrix --project <p> --title "<M<N>> — Test Matrix" 
 Lite | Standard | High
 
 Reason:
+
+## Check classification
+
+Product tests belong in default test discovery. Non-product checks are explicit workflow gates.
 
 ## Matrix
 

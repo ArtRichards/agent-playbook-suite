@@ -1,12 +1,13 @@
 ---
 name: simplify
-description: Post-implementation simplify mode for TDD Phase 10 (Quality, Docs, Refactor). Reduces code complexity while preserving behavior — replaces clever code with obvious code, removes abstraction layers that do not earn their keep, collapses needless helpers, and favors linear execution. Manually invoked (e.g. /simplify) once a milestone's implementation is complete and the test suite is green.
+description: Post-implementation simplify mode for TDD Phase 10 (Quality, Docs, Refactor). Reduces code complexity while preserving behavior — replaces clever code with obvious code, removes abstraction layers that do not earn their keep, collapses needless helpers, and favors linear execution. Manually invoked (e.g. /simplify) once a milestone's implementation is complete and the product suite plus required explicit checks are green.
 ---
 
 # Simplify (Post-Implementation Simplify Mode)
 
 Use this skill during **Phase 10 (Quality, Docs, Refactor)** of the TDD process, after a
-milestone's implementation is complete and the test suite is green. It is invoked manually.
+milestone's implementation is complete and the product suite plus required explicit checks
+are green. It is invoked manually.
 
 You are in post-implementation simplify mode.
 
@@ -101,12 +102,14 @@ or require speculative rewrites, return with no changes and explain why.
 
 ## Verify behavior is preserved
 
-Behavior preservation is not optional — prove it with the tests:
+Behavior preservation is not optional — prove it with the relevant product tests and
+required explicit checks:
 
-1. Run the full test suite first to confirm the green baseline.
-2. After simplifying, run the same suite again. Every test must still pass.
-3. If a test fails, the change altered behavior — revert or fix it. Never relax a test to
-   make it pass.
+1. Run the full product suite first to confirm the green baseline.
+2. Run required explicit non-product checks if the milestone has them.
+3. After simplifying, run the same suite and checks again. Every required gate must still pass.
+4. If a test or required check fails, the change altered behavior — revert or fix it.
+   Never relax a test or check to make it pass.
 
 Also run the project quality gate, e.g. `make format && make lint && make typecheck && make test`
 (or the project equivalent).

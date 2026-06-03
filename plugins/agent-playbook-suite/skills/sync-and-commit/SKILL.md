@@ -53,6 +53,10 @@ For the phase/step just completed, verify:
 
 ### 2b. Test completeness
 
+- Validation is classified as product tests or explicit non-product
+  checks. Planning, documentation, handoff, and workflow checks are
+  not in default product-test discovery unless they define shipped
+  behavior.
 - Unit tests for new functions/methods.
 - Integration tests for cross-component interactions.
 - E2E tests for user-facing flows (if applicable).
@@ -129,10 +133,11 @@ quality log, or project policy:
   approval from the Phase 4 RED-baseline checkpoint before committing.
   Acceptable evidence is a milestone-doc, test-matrix,
   implementation-log, or quality-log entry approving the contract,
-  visible tests, hidden/generalization plan, mock policy, and risk
-  gates. If project policy allows automatic continuation, require an
-  explicit recorded operator-approved exception before committing
-  phases 5-10 or final sync.
+  visible product tests or explicit non-product checks,
+  hidden/generalization plan, mock policy, and risk gates. If project
+  policy allows automatic continuation, require an explicit recorded
+  operator-approved exception before committing phases 5-10 or final
+  sync.
 - Record skipped deep gates as `not configured`, `deferred with reason`,
   or `operator-approved skip`; never silently mark them green.
 
@@ -141,7 +146,8 @@ quality log, or project policy:
 Lite:
 
 - format/lint/type/build where configured;
-- visible tests;
+- visible product tests;
+- explicit non-product checks where required;
 - docs check.
 
 Standard:
@@ -167,9 +173,10 @@ High:
 Check:
 
 - Contract file or contract section exists.
-- Tests trace to contract clauses where practical.
-- No visible test was weakened, skipped, or deleted without a logged
-  contract change.
+- Product tests or explicit non-product checks trace to contract
+  clauses where practical.
+- No visible test or required explicit check was weakened, skipped,
+  or deleted without a logged contract change.
 - No code appears to branch on test literals, fixture names, or visible
   examples.
 - New mocks are listed and justified.

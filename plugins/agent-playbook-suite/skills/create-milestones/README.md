@@ -15,7 +15,9 @@ the set with `docs archive --cascade` on completion.
 
 - A milestone task-plan doc (`Role: milestone`) capturing the risk level, behavior contract, test strategy, 10-phase plan, decisions, deliverables, success criteria, and per-phase checklist.
 - A milestone implementation log (`Role: log`, paired via `Related: pairs-with`) updated phase by phase as work progresses.
-- A test matrix (`Role: spec`) mapping contract clauses to visible tests, hidden/generalization categories, adequacy checks, and mock-audit notes.
+- A test matrix (`Role: spec`) mapping contract clauses to visible product
+  tests or explicit non-product checks, hidden/generalization categories,
+  adequacy checks, and mock-audit notes.
 - A `status.md` updated to reflect the current in-flight milestone and phase.
 - An archived milestone set on completion — task plan, log, and test matrix moved together under `archive/YYYY-MM-DD/` via `docs archive --cascade`.
 

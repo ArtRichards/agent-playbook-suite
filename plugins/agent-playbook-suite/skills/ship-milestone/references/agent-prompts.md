@@ -114,6 +114,7 @@ ALSO produce a dedicated "QUALITY PLAN" section:
   - Risk level:
   - Reason:
   - Visible test plan:
+  - Explicit non-product checks:
   - Hidden/generalization categories:
   - Property/stateful invariants:
   - Mutation-sensitive logic:
@@ -127,6 +128,9 @@ ALSO produce a dedicated "QUALITY PLAN" section:
 Quality-plan rules:
   - Hidden/generalization categories may be described, but actual
     hidden/private cases must not be exposed to implementation agents.
+  - Planning, documentation, handoff, and workflow checks must be explicit
+    non-product checks, not default-discovered product tests, unless they
+    define shipped behavior.
   - If the risk level is missing from the milestone doc, infer a provisional
     level from the change type using the shared quality model. Log the
     assumption in the QUALITY PLAN when the inference is obvious; otherwise
@@ -169,7 +173,8 @@ RESOLVED QUESTIONS (operator decisions — binding):
 BEFORE CODING, restate in your own words:
   - the contract invariants you must preserve;
   - the forbidden shortcuts from the shared quality model and the QUALITY PLAN;
-  - which tests are visible implementation drivers;
+  - which product tests are visible implementation drivers;
+  - which non-product checks are explicit workflow gates;
   - the risk level and required gate set for this phase range;
   - the mock policy and any real-path coverage expected for mocked boundaries.
 
@@ -179,13 +184,16 @@ Rules:
     exist for reviewers and CI to assess generalization.
   - Do not special-case visible examples, literals, fixture names, or
     test-only branches.
-  - Do not weaken, skip, delete, or rewrite tests merely to get green. Change
-    tests only when the contract changes and the decision is logged.
+  - Do not put planning, documentation, handoff, or workflow checks into
+    default product-test discovery unless they define shipped behavior.
+  - Do not weaken, skip, delete, or rewrite tests or required explicit checks
+    merely to get green. Change them only when the contract changes and the
+    decision is logged.
 
 IMPLEMENT phases {phase_range} of the 10-phase TDD cycle, in order. For each:
   - Do the phase's work per the plan and the milestone doc's exit criteria.
-  - Keep the suite in the state the phase expects (the intended RED baseline
-    for phases 1-4; fully GREEN by phase 8).
+  - Keep the product suite and explicit checks in the state the phase expects
+    (the intended RED baseline for phases 1-4; fully GREEN by phase 8).
   - After each patch or coherent implementation step, run the configured gate
     for the current phase and risk level. Stop on abnormalities; do not
     continue accumulating changes after a failed gate.
