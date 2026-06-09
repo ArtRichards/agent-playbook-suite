@@ -17,8 +17,8 @@ The conductor walks a milestone through four steps, each on its own branch:
 
 1. `<slug>/milestone-setup` — milestone creation agent (only if the milestone's task plan, implementation log, or test matrix does not yet exist).
 2. `<slug>/phases-1-4` — planning agent → implementation agent
-   (contract, visible RED product tests or explicit non-product checks,
-   hidden/generalization categories, test matrix) → fresh-eyes review
+   (contract, visible RED product tests or selected explicit non-product
+   checks, hidden/generalization categories, test matrix) → fresh-eyes review
    and risk-aware RED checkpoint.
 3. `<slug>/phases-5-10` — planning agent → implementation agent (implement, integrate, quality) → fresh-eyes review.
 4. `<slug>/simplify` — sole simplify agent ([`/simplify`](https://github.com/ArtRichards/simplify) skill), then [`sync-and-commit`](https://github.com/ArtRichards/sync-and-commit).

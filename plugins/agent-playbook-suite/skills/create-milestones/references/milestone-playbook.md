@@ -71,7 +71,7 @@ Lite | Standard | High
 
 Reason:
 
-Required gates:
+Selected gates:
 
 ## Contract
 
@@ -139,7 +139,7 @@ Required gates:
 
 - Do not special-case visible examples.
 - Do not branch on test literals.
-- Do not weaken, skip, or delete tests or required explicit checks unless the contract changes and the decision is logged.
+- Do not weaken, skip, or delete tests or configured explicit checks unless the contract changes and the decision is logged.
 
 ### Test hooks
 
@@ -292,7 +292,7 @@ Reason:
 
 ## Check classification
 
-Product tests belong in default test discovery. Non-product checks are explicit workflow gates.
+Product tests belong in default test discovery. Non-product checks run only when selected as explicit workflow gates.
 
 ## Matrix
 
@@ -440,7 +440,7 @@ When Phase 10 wraps up:
 2. **Append a completion summary** to the milestone doc under
    `## Milestone-completion summary`.
 3. **Update `<slug>-test-matrix.md`** with final visible,
-   hidden/generalization, property/stateful, mutation,
+   selected hidden/generalization, property/stateful, mutation,
    fuzz/benchmark/security/schema, mock-audit, skipped-gate,
    and follow-up status.
 4. **Archive with cascade:**
@@ -461,7 +461,7 @@ When Phase 10 wraps up:
    - Append a row to the milestone-progress table with the
      archive date.
    - `docs touch status.md`.
-6. **Run the full gate** once more:
+6. **Run the docs gate** once more:
    ```sh
    docs check <root> --stale 14
    ```
@@ -470,7 +470,7 @@ When Phase 10 wraps up:
 
 ## Quality gate commands (per phase, adapt to project)
 
-Project-side gate — substitute your stack's commands:
+Project-side gate — substitute your stack's configured commands:
 
 ```sh
 make format    # or: black . / prettier --write .
@@ -479,7 +479,7 @@ make typecheck # or: mypy . / tsc --noEmit
 make test      # or: pytest / npm test
 ```
 
-Plus the docs-side gate, always:
+Plus the docs-side gate when the project uses docs-cli:
 
 ```sh
 docs check <root> --stale 14
@@ -490,7 +490,7 @@ docs index <root>
 not prove behavior, visible-test adequacy, hidden/generalization
 coverage, or risk gates. Use the milestone's Risk Level and the
 shared quality model to decide which Phase 8 and Phase 10 gates
-must run or be explicitly approved as skipped.
+should run, be marked not configured, or be approved as skipped.
 
 ## Wrapping up a phase or step — sync-and-commit
 

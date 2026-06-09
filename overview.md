@@ -3,7 +3,7 @@
 Lifecycle: active
 Role: guide
 Project: agent-playbook-suite
-Updated: 2026-06-02
+Updated: 2026-06-08
 
 This guide explains a public workflow built from five workflow skills and the
 supporting `docs` skill, distributed as one suite plugin for Codex and Claude
@@ -237,7 +237,7 @@ At each step boundary, `sync-and-commit` verifies the implementation against the
 
 ### 6. Simplify before closing the milestone
 
-The final pass uses `simplify` to make the code more obvious without changing behavior. It anchors to the last known-good implementation state, simplifies, reruns the full tests and quality gate, and leaves the code alone if nothing truly simplifies.
+The final pass uses `simplify` to make the code more obvious without changing behavior. It anchors to the last known-good implementation state, simplifies, reruns the selected tests and configured quality gate, and leaves the code alone if nothing truly simplifies.
 
 ## A small example
 

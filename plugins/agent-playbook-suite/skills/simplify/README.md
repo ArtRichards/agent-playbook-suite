@@ -11,16 +11,16 @@ preserved by re-running the same risk-level gate.
 
 ## When to invoke
 
-Manually invoked (e.g. `/simplify`) once a milestone's implementation is complete and the product suite plus required explicit checks are green. Also called automatically by [`ship-milestone`](https://github.com/ArtRichards/ship-milestone) at Step 3.
+Manually invoked (e.g. `/simplify`) once a milestone's implementation is complete and the selected product tests plus configured explicit checks are green. Also called automatically by [`ship-milestone`](https://github.com/ArtRichards/ship-milestone) at Step 3.
 
 ## Hard constraints
 
 - Does not change public behavior.
 - Does not add generic architecture or new abstractions (unless they remove more complexity than they add).
 - Does not rewrite working code just to make it look different.
-- Does not reduce visible, property/stateful, hidden-hook, mutation, fuzz,
-  benchmark, security, schema, fixture, or real-path coverage without explicit
-  logged approval.
+- Does not reduce selected visible, property/stateful, hidden-hook, mutation,
+  fuzz, benchmark, security, schema, fixture, or real-path coverage without
+  explicit logged approval.
 - Does not replace real-path tests with mocks.
 - If nothing genuinely simplifies, makes no changes.
 

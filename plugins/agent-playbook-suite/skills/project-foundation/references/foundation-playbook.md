@@ -254,7 +254,7 @@ Use this starter shape:
 
 ## Risk levels
 
-| Area | Risk level | Reason | Required gates |
+| Area | Risk level | Reason | Selected gates |
 |---|---|---|---|
 |  | Lite / Standard / High |  |  |
 

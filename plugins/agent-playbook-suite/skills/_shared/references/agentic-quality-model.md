@@ -3,10 +3,10 @@
 ## Purpose
 
 This project uses risk-aware agentic TDD. Visible tests drive implementation,
-but visible tests are not sufficient evidence of intent. Each milestone must
-define a contract, visible red tests, hidden/generalization strategy, adequacy
-checks, technical gates, and product acceptance criteria appropriate to its
-risk level.
+but visible tests are not always sufficient evidence of intent. Each milestone
+should define a contract, visible red tests or explicit checks, and the smallest
+useful set of technical gates and acceptance evidence appropriate to its risk
+level.
 
 ## Test layers
 
@@ -28,7 +28,8 @@ planning docs, handoff contracts, milestone docs, implementation logs,
 metadata, links, and workflow gates. They may use pytest-style assertions, but
 they are not product tests by default.
 
-Product tests are default-suite obligations. Non-product checks are explicit
+Product tests normally live in the default product suite. Non-product checks
+are run only when the milestone or project context names them as explicit
 workflow gates.
 
 ## Umbrella categories
@@ -49,11 +50,11 @@ workflow gates.
 Use for internal tools, low-impact refactors, documentation-adjacent
 automation, and non-critical admin paths.
 
-Required:
+Default gate set:
 - contract;
-- visible tests;
+- visible tests or explicit checks for the changed behavior;
 - lint/type/build where configured;
-- docs check;
+- docs check if the project uses docs-cli;
 - ordinary review.
 
 ### Standard
@@ -61,13 +62,13 @@ Required:
 Use for customer-facing product paths, ordinary APIs, medium-risk refactors,
 and behavior used by more than one person/team.
 
-Required:
+Default gate set:
 - Lite gates;
-- coverage report if configured;
+- coverage report if the project already produces one;
 - hidden/generalization smoke where configured;
-- property/stateful smoke where applicable;
-- mock audit;
-- reviewer signoff on contract/test adequacy.
+- property/stateful smoke where the contract is stateful or invariant-heavy;
+- mock audit when mocks are added or expanded;
+- reviewer signoff on contract/test adequacy when review is available.
 
 ### High
 
@@ -75,15 +76,18 @@ Use for auth, billing, security, permissions, privacy, data integrity,
 migrations, concurrency, incident response, public APIs, and
 performance-sensitive core paths.
 
-Required:
+Default gate set:
 - Standard gates;
-- operator approval after RED baseline before implementation continues;
-- benchmark/security/schema/migration/rollback checks where applicable;
+- operator approval after RED baseline before implementation continues, unless
+  project policy allows automatic continuation;
+- benchmark/security/schema/migration/rollback checks where they match the
+  risk;
 - mutation smoke or mutation baseline where configured;
-- fresh-eyes review signoff;
-- explicit approval for skipped deep gates.
+- fresh-eyes review signoff when available;
+- explicit approval or logged follow-up for skipped deep gates selected for the
+  milestone.
 
-## Required metrics where available
+## Useful metrics where available
 
 - visible_pass_rate
 - hidden_pass_rate
@@ -105,8 +109,8 @@ Required:
 - It is acceptable to record hidden-test categories, owners, command names,
   and summaries.
 - If the repo is fully visible to the implementation agent, assume hidden
-  cases are not truly hidden and compensate with mutation, property/stateful,
-  fuzz, metamorphic, and review-agent checks.
+  cases are not truly hidden and consider mutation, property/stateful, fuzz,
+  metamorphic, or review-agent checks based on risk.
 
 ## Mock policy
 
@@ -121,8 +125,8 @@ Required:
 
 - Do not special-case visible examples, fixture names, literals, or test-only
   branches.
-- Do not weaken, skip, or delete tests or required explicit checks unless the
+- Do not weaken, skip, or delete tests or configured explicit checks unless the
   contract changed and the decision is logged.
 - Do not treat green visible tests as sufficient when the risk level requires
-  deeper gates.
+  or project policy selects deeper gates.
 - Do not allow simplification to reduce test adequacy silently.

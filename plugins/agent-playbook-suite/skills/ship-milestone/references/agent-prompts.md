@@ -126,6 +126,9 @@ ALSO produce a dedicated "QUALITY PLAN" section:
   - Human approval triggers:
 
 Quality-plan rules:
+  - Select the smallest useful gate set for the milestone's risk. Mark gates
+    `not selected` or `not configured` rather than inventing property,
+    mutation, fuzz, benchmark, or security work for low-risk changes.
   - Hidden/generalization categories may be described, but actual
     hidden/private cases must not be exposed to implementation agents.
   - Planning, documentation, handoff, and workflow checks must be explicit
@@ -175,7 +178,7 @@ BEFORE CODING, restate in your own words:
   - the forbidden shortcuts from the shared quality model and the QUALITY PLAN;
   - which product tests are visible implementation drivers;
   - which non-product checks are explicit workflow gates;
-  - the risk level and required gate set for this phase range;
+  - the risk level and selected gate set for this phase range;
   - the mock policy and any real-path coverage expected for mocked boundaries.
 
 Rules:
@@ -186,13 +189,13 @@ Rules:
     test-only branches.
   - Do not put planning, documentation, handoff, or workflow checks into
     default product-test discovery unless they define shipped behavior.
-  - Do not weaken, skip, delete, or rewrite tests or required explicit checks
+  - Do not weaken, skip, delete, or rewrite tests or selected explicit checks
     merely to get green. Change them only when the contract changes and the
     decision is logged.
 
 IMPLEMENT phases {phase_range} of the 10-phase TDD cycle, in order. For each:
   - Do the phase's work per the plan and the milestone doc's exit criteria.
-  - Keep the product suite and explicit checks in the state the phase expects
+  - Keep the selected product tests and explicit checks in the state the phase expects
     (the intended RED baseline for phases 1-4; fully GREEN by phase 8).
   - After each patch or coherent implementation step, run the configured gate
     for the current phase and risk level. Stop on abnormalities; do not
@@ -216,7 +219,7 @@ commits made, audit findings + fixes, items needing an operator decision, and
 the test + quality-gate status. You will be resumed to handle fresh-eyes
 review feedback and run sync-and-commit.
 
-If you cannot reach the required test state (e.g. GREEN at phase 8), STOP and
+If you cannot reach the selected test state (e.g. GREEN at phase 8), STOP and
 return a clear description of the blocker. Never loop; never relax a test.
 ```
 
@@ -258,8 +261,8 @@ Assess:
   {test_quality_clause}
   - Test adequacy against the shared risk-aware quality model
     (`{skill_dir}/../_shared/references/agentic-quality-model.md`) if present:
-    visible contract coverage, hidden/generalization gaps, adequacy checks,
-    risk-level gates, and mock justification.
+    visible contract coverage, hidden/generalization gaps, selected adequacy
+    checks, risk-level gates, and mock justification.
   - Whether the work satisfies the milestone's Deliverables and Success
     Criteria for {phase_range}.
   - Consistency with the codebase's existing patterns and conventions.
@@ -287,9 +290,9 @@ Each finding: what is wrong, where (file:line), and a recommended fix.
 - Do visible tests trace to contract clauses?
 - Are any tests trivial, tautological, or implementation-detail-only?
 - Are there likely hidden/generalization gaps?
-- Are property/stateful tests appropriate?
-- What mutation targets should be inspected?
-- Are fuzz/adversarial checks appropriate?
+- Are property/stateful tests appropriate for this risk?
+- Are there mutation targets worth inspecting?
+- Are fuzz/adversarial checks appropriate for this risk?
 - Are mocks excessive or unjustified?
 - Is at least one real-path test present for mocked boundaries?
 - Does any code appear keyed to visible test literals, fixture names, or narrow
@@ -329,7 +332,7 @@ You are the simplify agent for milestone {milestone_id} in the project at
 Run the post-implementation simplification process — follow the project's
 `/simplify` skill exactly: establish the green baseline, reduce complexity in
 this milestone's code while preserving behavior, then prove behavior is
-preserved by re-running the full suite and quality gate.
+preserved by re-running the same selected suite and quality gate.
 
 If nothing genuinely simplifies, make NO changes — do not rewrite working code
 just to look different.

@@ -1,13 +1,13 @@
 ---
 name: simplify
-description: Post-implementation simplify mode for TDD Phase 10 (Quality, Docs, Refactor). Reduces code complexity while preserving behavior — replaces clever code with obvious code, removes abstraction layers that do not earn their keep, collapses needless helpers, and favors linear execution. Manually invoked (e.g. /simplify) once a milestone's implementation is complete and the product suite plus required explicit checks are green.
+description: Post-implementation simplify mode for TDD Phase 10 (Quality, Docs, Refactor). Reduces code complexity while preserving behavior — replaces clever code with obvious code, removes abstraction layers that do not earn their keep, collapses needless helpers, and favors linear execution. Manually invoked (e.g. /simplify) once a milestone's implementation is complete and the selected product tests plus configured explicit checks are green.
 ---
 
 # Simplify (Post-Implementation Simplify Mode)
 
 Use this skill during **Phase 10 (Quality, Docs, Refactor)** of the TDD process, after a
-milestone's implementation is complete and the product suite plus required explicit checks
-are green. It is invoked manually.
+milestone's implementation is complete and the selected product tests plus configured
+explicit checks are green. It is invoked manually.
 
 You are in post-implementation simplify mode.
 
@@ -35,8 +35,9 @@ files. Do not touch unrelated code, and do not undo good code from earlier TDD s
 ## Preserve quality, not only behavior
 
 The quality baseline is part of the behavior baseline. Simplification must preserve the
-contract, visible tests, hidden/generalization hooks, adequacy metrics, and realistic
-coverage expected for the milestone's risk level.
+contract, selected visible tests, configured hidden/generalization hooks, adequacy
+metrics already being tracked, and realistic coverage expected for the milestone's
+risk level.
 
 Before simplifying:
 
@@ -45,7 +46,8 @@ Before simplifying:
   baselines if configured for the milestone risk level.
 - Record coverage and test counts if the project already reports them.
 - Record new/expanded mocks and real-path coverage for mocked boundaries.
-- Identify the risk level and the gate set that must still pass after simplification.
+- Identify the risk level and the selected gate set that must still pass after
+  simplification.
 
 During simplification:
 
@@ -61,7 +63,7 @@ During simplification:
 
 After simplifying:
 
-- Run the same risk-level gate as before.
+- Run the same selected risk-level gate as before.
 - Compare test count, coverage, mutation score, hidden/generalization result, property
   result, fuzz result, and benchmark deltas when available.
 - If a metric drops, restore the stronger version or log an explicit operator-approved
@@ -90,8 +92,9 @@ or require speculative rewrites, return with no changes and explain why.
 - Do not create reusable abstractions unless they remove more complexity than they add.
 - Do not optimize prematurely.
 - Do not rewrite working code just to make it look different.
-- Do not reduce visible, property, fixture, integration, hidden-hook, mutation, fuzz,
-  benchmark, security, schema, or real-path coverage without explicit logged approval.
+- Do not reduce selected visible, property, fixture, integration, hidden-hook,
+  mutation, fuzz, benchmark, security, schema, or real-path coverage without
+  explicit logged approval.
 - Do not replace real-path tests with mocks or preserve a green suite by weakening tests.
 
 ## Success criteria
@@ -102,17 +105,18 @@ or require speculative rewrites, return with no changes and explain why.
 
 ## Verify behavior is preserved
 
-Behavior preservation is not optional — prove it with the relevant product tests and
-required explicit checks:
+Behavior preservation is not optional — prove it with the same selected product tests
+and configured explicit checks used for the baseline:
 
-1. Run the full product suite first to confirm the green baseline.
-2. Run required explicit non-product checks if the milestone has them.
-3. After simplifying, run the same suite and checks again. Every required gate must still pass.
-4. If a test or required check fails, the change altered behavior — revert or fix it.
+1. Run the selected product suite or focused gate first to confirm the green baseline.
+2. Run configured explicit non-product checks if the milestone has them.
+3. After simplifying, run the same suite and checks again. Every selected gate must still pass.
+4. If a test or selected check fails, the change altered behavior — revert or fix it.
    Never relax a test or check to make it pass.
 
-Also run the project quality gate, e.g. `make format && make lint && make typecheck && make test`
-(or the project equivalent).
+Also run the configured project quality gate, or the relevant subset for the touched
+files, e.g. `make format && make lint && make typecheck && make test` (or the
+project equivalent).
 
 Then review the final `git diff HEAD` against the baseline: every change must be a
 deliberate simplification. If the diff removes or alters code from a prior TDD step that was
