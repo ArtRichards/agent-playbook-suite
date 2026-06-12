@@ -315,7 +315,9 @@ the code is sound, say so plainly in the relevant sections.
 `{test_quality_clause}` is filled per step:
 
 - **Step 1:** `- CRITICAL: do the phase-2 tests genuinely pin the contract?
-  Are any trivial passes or under-constraining the implementation? Every
+  Are any trivial passes or under-constraining the implementation? Are any
+  overconstraining it — freezing incidental representation (byte-exact
+  goldens, change-detector assertions) without a contract reason? Every
   later step trusts these tests.`
 - **Step 2:** `- Do the tests still meaningfully cover the implemented
   behavior?`

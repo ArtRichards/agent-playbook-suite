@@ -85,6 +85,14 @@ These are non-negotiable across the whole flow:
    let the next `docs touch` do it.)
 6. **One phase at a time.** Ask the phase's questions, wait for
    answers, author artifacts, confirm before moving on.
+7. **Investigate before asking; propose, don't assign.** Inspect
+   the repo or product before each phase and propose
+   evidence-backed answers for the operator to correct. Risk
+   levels in particular are proposed with reasoning and confirmed
+   with the operator — default Standard; High only with a stated
+   reason and explicit operator approval. If the operator asks,
+   launch a thorough investigation of the entire product's
+   foundation.
 
 ## Role mapping (summary)
 
@@ -104,11 +112,13 @@ Full table in [`references/role-mapping.md`](references/role-mapping.md).
 | test-strategy | `outline` | draft → active (→ `spec` later) |
 | documentation-plan | `plan` | draft → active |
 | risks | `log` | active (ongoing) |
+| followup-log | `log` | active (ongoing) |
+| feedback-log | `log` | active (ongoing) |
 | foundation-log | `log` | active (ongoing) |
 | definition-of-ready | `reference` | draft → active when green |
 | status | `status` | active (lives the project's life) |
 
-## Hand-off to create-milestones
+## Hand-off to use-cases, then create-milestones
 
 When DoR flips to `active`:
 
@@ -121,12 +131,19 @@ When DoR flips to `active`:
    or confirmed already-complete.
 4. Update `status.md`'s "Current milestone" to point at M1;
    `docs touch status.md`.
-5. Suggest the user invoke `create-milestones` to begin M1 setup.
+5. Run the `use-cases` skill — automatic after foundation
+   completes; optional, but strongly preferred. It explores the
+   primary use cases collaboratively and records them in a
+   use-cases doc that milestone test matrices map against.
+6. Then suggest the user invoke `create-milestones` to begin M1
+   setup.
 
 ## Per-phase output format
 
 1. State the phase name and objective.
-2. Ask the phase's questions (from the playbook).
+2. Investigate what already exists (code, tests, configs), then
+   ask the phase's questions (from the playbook), proposing
+   evidence-backed answers where the investigation supports them.
 3. Wait for answers.
 4. Author the artifact(s) with `docs new --body-from -`.
 5. Append a one-line entry to `foundation-log.md`; `docs touch`.

@@ -38,6 +38,10 @@ intent — list those in your return message for the operator.
 - No doc claims a behavior the code does not have, and no shipped behavior is
   undocumented.
 - Cross-references and `Related:` links resolve to real files.
+- Open follow-ups and feedback noted during this step live in the project's
+  `followup-log.md` / `feedback-log.md` at the docs root, not only inline in
+  milestone docs; milestone docs reference open log entries rather than
+  holding them.
 - Doc front-matter (`Lifecycle`, `Role`, `Updated`) is correct; any doc
   edited this step had its `Updated:` bumped per the convention (via
   `docs touch`).
@@ -62,9 +66,11 @@ intent — list those in your return message for the operator.
 - Configured lint, format check, and type check are clean for the touched
   surface, or known unrelated failures are documented.
 - **Phases 1–4 only:** the product tests or explicit non-product checks
-  genuinely pin the contract — they are not trivial passes and do not
-  under-constrain the implementation. This is the highest-leverage check;
-  every later step trusts these tests/checks.
+  genuinely pin the contract — they are not trivial passes, do not
+  under-constrain the implementation, and do not overconstrain it by
+  freezing incidental representation (byte-exact goldens or
+  change-detector assertions without a contract reason). This is the
+  highest-leverage check; every later step trusts these tests/checks.
 
 ## Test adequacy
 
@@ -74,7 +80,7 @@ intent — list those in your return message for the operator.
 - Selected risk-level gates were run or explicitly marked not configured.
 - Property/stateful, mutation, fuzz, benchmark, security, schema, migration, or
   rollback checks selected for the milestone are run, explicitly marked not
-  configured, or logged as follow-up.
+  configured, or recorded as open entries in the project's `followup-log.md`.
 - No code path appears keyed to visible test literals, fixture names, or narrow
   examples.
 - No tests or selected explicit checks were weakened, skipped, deleted, or

@@ -120,7 +120,8 @@ high reasoning — its triage decisions need it.
 | 2 — Implement & ship | 5–10 | `<slug>/phases-5-10` (off step 1's branch) |
 | 3 — Simplify | post-10 | `<slug>/simplify` (off step 2's branch) |
 
-`<slug>` is a branch-safe milestone id (e.g. `m4`). The branches
+`<slug>` is a branch-safe milestone id (e.g. `m4`, or an
+inserted id like `m4a`). The branches
 stack; nothing is merged to `main` — the operator reviews and
 merges the stack.
 
@@ -137,7 +138,12 @@ one **simplify** agent.
    - An explicit id argument → use it.
    - The literal phrase `next milestone` → read `status.md`,
      take the first row whose lifecycle is `draft` (or marked
-     pending in the milestone table).
+     pending in the milestone table). "First" follows id order
+     with insertion suffixes respected: numeric segments compare
+     numerically, and a suffixed id runs after its prefix and
+     before that prefix's next sibling
+     (`m5 < m5a < m5a1 < m5b < m6` — see the `create-milestones`
+     playbook's id convention).
    - No argument → `AskUserQuestion` for which milestone. Do
      not proceed without an explicit answer.
 2. **Check whether it was created.** Look for the milestone's

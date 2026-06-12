@@ -18,7 +18,7 @@
   "interface": {
     "displayName": "Agent Playbook Suite",
     "shortDescription": "Docs-backed workflow skills for agent-led software delivery.",
-    "longDescription": "Agent Playbook Suite bundles the docs, project-foundation, create-milestones, ship-milestone, sync-and-commit, and simplify skills for running durable project planning and milestone delivery loops with Codex.",
+    "longDescription": "Agent Playbook Suite bundles the docs, project-foundation, use-cases, create-milestones, ship-milestone, sync-and-commit, and simplify skills for running durable project planning and milestone delivery loops with Codex.",
     "developerName": "Art Richards",
     "category": "Productivity",
     "capabilities": [

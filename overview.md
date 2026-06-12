@@ -3,20 +3,21 @@
 Lifecycle: active
 Role: guide
 Project: agent-playbook-suite
-Updated: 2026-06-08
+Updated: 2026-06-12
 
-This guide explains a public workflow built from five workflow skills and the
+This guide explains a public workflow built from six workflow skills and the
 supporting `docs` skill, distributed as one suite plugin for Codex and Claude
 Code, plus one supporting CLI:
 
 - [`project-foundation`](https://github.com/ArtRichards/project-foundation)
+- [`use-cases`](https://github.com/ArtRichards/agent-playbook-suite/tree/main/plugins/agent-playbook-suite/skills/use-cases)
 - [`create-milestones`](https://github.com/ArtRichards/create-milestones)
 - [`ship-milestone`](https://github.com/ArtRichards/ship-milestone)
 - [`sync-and-commit`](https://github.com/ArtRichards/sync-and-commit)
 - [`simplify`](https://github.com/ArtRichards/simplify)
 - [`docs-cli`](https://github.com/ArtRichards/docs-cli)
 
-All six are public. The five skills are MIT-licensed and together form an opinionated way to run a software project, or a broad feature-release effort, with an AI coding agent as the main build engine.
+All seven are public. The six skills are MIT-licensed and together form an opinionated way to run a software project, or a broad feature-release effort, with an AI coding agent as the main build engine.
 
 ## What problem this solves
 
@@ -40,9 +41,10 @@ That matters because, in this workflow, documentation is not side paperwork. It 
 
 The convention is portable without the CLI, but the workflow assumes you use the CLI because that is what makes the process safe for repeated agent use.
 
-The five skills sit on top of that:
+The six skills sit on top of that:
 
 - `project-foundation` sets up the project front-half: charter, scope, architecture, milestone plan, definition of ready, status docs, and agent context (`CLAUDE.md`, `AGENTS.md`, or equivalent)
+- `use-cases` explores the project's primary use cases collaboratively after foundation work and records them in a doc that milestone test matrices map against — optional, but strongly preferred, because tests focus on these use cases first
 - `create-milestones` creates and advances a milestone interactively through a fixed 10-phase TDD workflow
 - `ship-milestone` runs a milestone more autonomously by spawning fresh agents for planning, implementation, review, and simplification
 - `sync-and-commit` verifies the work, syncs the docs tree, reviews the diff, and commits safely
@@ -50,7 +52,9 @@ The five skills sit on top of that:
 
 The workflow is sequential:
 
-`project-foundation` -> `create-milestones` or `ship-milestone` -> `sync-and-commit` -> `simplify`
+`project-foundation` -> `use-cases` -> `create-milestones` or `ship-milestone` -> `sync-and-commit` -> `simplify`
+
+The `use-cases` stage runs automatically after foundation work and can be skipped, though skipping it is discouraged.
 
 ## What a user needs to do
 
@@ -128,7 +132,7 @@ When you start a project with `project-foundation`, the system creates the worki
 - a docs root such as `docs/specs/` or `specs/`
 - a `.docs.toml` file that marks and configures the tree
 - a generated `INDEX.md`
-- always-on living docs such as `status.md`, `foundation-log.md`, and `risks.md`
+- always-on living docs such as `status.md`, `foundation-log.md`, and `risks.md`, plus two project logs that act as the single home for open items: `followup-log.md` (engineering follow-ups) and `feedback-log.md` (feedback, ideas, and scope thoughts)
 - charter
 - scope and constraints
 - stakeholder and interface map
@@ -142,6 +146,10 @@ When you start a project with `project-foundation`, the system creates the worki
 - documentation plan
 - definition of ready
 - `CLAUDE.md`, `AGENTS.md`, or a matching companion additions file
+
+When the `use-cases` stage runs after foundation work, it adds `use-cases.md` —
+the primary use cases, recorded as primary goals, that milestone test matrices
+map against.
 
 When you start delivery work, each milestone gets its own milestone doc,
 implementation log, and test matrix; quality logs or generated report companions
@@ -299,6 +307,6 @@ Budget planning depends on the agent, model, plan, codebase size, test cost, and
 
 ## The short version
 
-Install `docs-cli` from PyPI, then install the Agent Playbook Suite plugin from the Codex or Claude marketplace catalog in this repository. Run `project-foundation` once for the broad project or feature-release effort. Break delivery into small technical milestones. Add new milestones with `create-milestones` as the release evolves. Use `create-milestones` or `ship-milestone` to drive active milestones through the 10 phases. Use `sync-and-commit` to keep code and docs aligned. Use `simplify` at the end.
+Install `docs-cli` from PyPI, then install the Agent Playbook Suite plugin from the Codex or Claude marketplace catalog in this repository. Run `project-foundation` once for the broad project or feature-release effort, and let `use-cases` capture how users will really work with the result. Break delivery into small technical milestones. Add new milestones with `create-milestones` as the release evolves. Use `create-milestones` or `ship-milestone` to drive active milestones through the 10 phases. Use `sync-and-commit` to keep code and docs aligned. Use `simplify` at the end.
 
 The result is a project that can be resumed by a fresh agent from artifacts on disk instead of reconstructed from chat history.

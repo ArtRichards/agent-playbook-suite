@@ -35,6 +35,14 @@ and mock policy.
   checks unless the contract changes and the decision is logged.
 - Do not special-case visible examples, fixture names, literals, or
   test-only branches.
+- Deferred work and feedback have a single home in the project logs
+  at the docs root: engineering deferrals go to `followup-log.md`,
+  operator feedback and ideas to `feedback-log.md` (both created by
+  `project-foundation`, with entry templates embedded in each).
+  Milestone docs reference open entries while they remain open and
+  drop the reference once incorporated. Do not leave open items only
+  in milestone docs — those archive at completion and the item is
+  lost.
 
 ## Phase 1 — Define Contract
 
@@ -77,9 +85,16 @@ and mock policy.
   or explicit non-product checks before implementation, using enough
   evidence to pin the contract without overbuilding the test surface.
 - **Activities:** Write visible product tests that trace to contract
-  clauses where practical; for planning, documentation, or handoff
+  clauses where practical and, when the project has a
+  `use-cases.md`, to the primary use cases they demonstrate —
+  tests focus on use cases first; for planning, documentation, or handoff
   artifacts, write explicit checks outside default product-test
   discovery. Prefer behavior tests over implementation-detail tests;
+  prefer the least constraining check that gives real confidence in
+  the intended behavior — check semantic behavior first and do not
+  freeze incidental representation (byte-exact goldens, exhaustive
+  snapshots, change-detector assertions) unless the exact
+  representation is itself the contract;
   add negative and boundary cases where they clarify the contract or
   cover meaningful risk; propose hidden/generalization categories
   separately; justify any new mocks.
@@ -92,6 +107,9 @@ and mock policy.
         test, explicit check, or logged acceptance rationale.
   - [ ] Each selected non-product gate has an explicit check.
   - [ ] Negative and boundary cases exist where applicable.
+  - [ ] Checks constrain intended behavior, not incidental
+        representation (no byte-exact goldens or change-detector
+        assertions without a contract reason).
   - [ ] Tests are expected to fail for missing behavior, not import/setup mistakes.
   - [ ] Hidden/generalization categories are recorded without leaking private cases.
   - [ ] New mocks are listed and justified.
@@ -217,7 +235,8 @@ and mock policy.
   clear TODOs for blocked external dependencies.
 - **Exit:** The milestone's user-visible or integration behavior
   is accepted for its Risk Level, or blocked items are documented
-  with owner, risk, and follow-up.
+  with owner and risk and recorded as open `followup-log.md`
+  entries.
 - **Docs touchpoints:** standard per-phase set above. Many
   milestones have no online surface; in that case repurpose
   Phase 9 for dogfooding against realistic fixtures and
@@ -235,8 +254,8 @@ and mock policy.
   - Summarize adequacy results.
   - Record hidden-generalization gap if visible and hidden pass
     rates are available.
-  - Log mutation/property/fuzz/benchmark gaps as follow-up work if
-    not run.
+  - Log mutation/property/fuzz/benchmark gaps as open
+    `followup-log.md` entries if not run.
   - Complete the mock audit.
   - Refactor for clarity (the `simplify` skill may help here).
   - Confirm simplification did not reduce selected test adequacy
@@ -250,8 +269,8 @@ and mock policy.
   applicable.
 - **Exit:** Selected quality gate green; documentation current;
   adequacy results summarized; mock audit complete when relevant;
-  skipped selected deep gates have explicit approval or follow-up;
-  handoff notes written. Ready for
+  skipped selected deep gates have explicit approval or an open
+  `followup-log.md` entry; handoff notes written. Ready for
   `docs archive <slug>.md --cascade --reason "<reason>"`.
 - **Docs touchpoints:**
   - Append "Milestone-completion summary" sections to both

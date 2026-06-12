@@ -43,7 +43,32 @@ workflow gates.
 - Cross-cutting adequacy tests: hidden tests, mutation testing, fuzzing,
   adversarial/metamorphic tests, prompt-variation checks, mock audits.
 
+## Check calibration
+
+Prefer the least constraining check that gives real confidence in the
+intended behavior. Check semantic behavior first; do not freeze incidental
+representation — byte-exact goldens, exhaustive snapshots, and
+change-detector assertions that mirror the implementation overconstrain
+later change unless the exact representation is itself the contract.
+Overconstrained tests are a defect for review to flag, just like
+under-constrained ones: they push complexity into the system instead of
+checking correctness.
+
+In Kent Beck's test-desiderata terms: good tests are behavioral —
+sensitive to changes in the behavior of the code under test — and
+structure-insensitive — their result does not change when only the
+code's structure changes.
+
 ## Risk levels
+
+### Choosing a level
+
+Default to Standard for ordinary product or workflow changes. Reserve Lite
+for docs, internal/admin work, and low-blast-radius changes. Propose High
+only with an explicit trigger from the High list below: state the reason
+and confirm with the operator before recording it — never assign High
+unilaterally. Record the agreed level and its reasoning wherever the
+milestone or strategy doc asks for it.
 
 ### Lite
 
@@ -84,8 +109,8 @@ Default gate set:
   risk;
 - mutation smoke or mutation baseline where configured;
 - fresh-eyes review signoff when available;
-- explicit approval or logged follow-up for skipped deep gates selected for the
-  milestone.
+- explicit approval or an open entry in the project's follow-up log
+  (`followup-log.md`) for skipped deep gates selected for the milestone.
 
 ## Useful metrics where available
 

@@ -3,10 +3,10 @@
 Lifecycle: active
 Role: notes
 Project: agent-playbook-suite
-Updated: 2026-05-25
+Updated: 2026-06-12
 
 This project produces public documentation and marketplace package metadata for
-Agent Playbook Suite: one suite plugin that bundles five workflow skills plus
+Agent Playbook Suite: one suite plugin that bundles six workflow skills plus
 the `docs` skill. The runtime CLI is `docs-cli`, published on PyPI.
 
 ## Your input
@@ -68,5 +68,6 @@ or fetch the raw URL.
 
 ## When done
 
-Update the relevant docs and run `docs index` plus `docs check .`. No need to
-commit unless the operator asks.
+Update the relevant docs and run `docs touch <changed docs> --check` (touch,
+reindex, and tree-wide check in one step; the stale window comes from
+`.docs.toml [check] stale_days`). No need to commit unless the operator asks.

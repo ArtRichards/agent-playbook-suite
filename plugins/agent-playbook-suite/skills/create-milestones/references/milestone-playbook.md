@@ -34,16 +34,55 @@ Ready doc is `Lifecycle: active`).
    `docs list --root <root> --project <p> --role plan --lifecycle active`
    should show `milestone-plan.md`. Read it for M1..Mn.
 5. **Read the status doc** for the latest narrative.
+6. **Read `use-cases.md`** when it exists — milestone tests focus
+   primarily on the primary use cases recorded there, and the
+   test matrix maps against them. If it is missing, suggest
+   running the `use-cases` skill first (optional, but strongly
+   preferred); do not block milestone work on it.
 
 ## Step 1 — Identify the milestone
 
-From `milestone-plan.md`, pick the next milestone (usually the
-lowest-numbered one not yet `active` or `archived`). Slug it
-`m<N>` or `m<N>-<short-topic>` (e.g. `m1-fetch-and-parse`).
+From `milestone-plan.md`, pick the next milestone — the first in
+id order not yet `active` or `archived`. Slug it `m<N>` or
+`m<N>-<short-topic>` (e.g. `m1-fetch-and-parse`).
+
+### Milestone ids: insert, never renumber
+
+The planned sequence uses integer ids (`m5`, `m6`). When new work
+must land between existing milestones, append an alternating
+letter/number suffix to the id it follows instead of renumbering:
+`m5a` runs between `m5` and `m6`; `m5a1` runs between `m5a` and
+`m5b`; deeper as needed (`m5a2a`). The same scheme may denote a
+sub-milestone that decomposes its parent — either way, id order
+is execution order.
+
+- **Never renumber existing milestones.** Ids appear in doc
+  filenames, `Related:` pairing, branch names, and archived
+  status tables; renumbering breaks all of them. Insert at a
+  deeper suffix level instead.
+- Id order respects suffix depth: numeric segments compare
+  numerically, and a suffixed id sorts after its prefix and
+  before that prefix's next sibling
+  (`m5 < m5a < m5a1 < m5a2 < m5a2a < m5b < m6`).
+- When inserting, confirm the proposed id with the operator
+  before authoring docs for it, and record the insertion in
+  `milestone-plan.md` so plan order stays explicit.
+
+**Sweep the project logs before authoring.** Read
+`followup-log.md` and `feedback-log.md` at the docs root for open
+entries this milestone should incorporate. For each item taken
+on, move its content into the milestone doc (contract, test
+hooks, or deliverables as appropriate) and remove the entry from
+the log — the logs hold open items only, and an incorporated item
+needs no log mention.
 
 Confirm the slug and initial Risk Level (Lite / Standard / High)
-with the user before authoring. If risk is ambiguous, choose the
-higher plausible level or pause for an operator decision.
+with the user before authoring. Propose the level with one-line
+reasoning per the shared quality model's "Choosing a level" rule:
+default Standard for ordinary work, Lite reserved for
+low-blast-radius changes, and High only with an explicit trigger
+from the model's High list — stated and explicitly approved by
+the operator, never assigned unilaterally.
 
 ## Step 2 — Create the milestone artifacts
 
@@ -304,6 +343,17 @@ Product tests belong in default test discovery. Non-product checks run only when
 | Idempotency/retry/state |  |  |  |  |  |
 | Security/privacy/perf |  |  |  |  |  |
 
+## Use-case mapping
+
+Tests focus primarily on the project's primary use cases (from
+`use-cases.md`, when the project has one). Map this milestone's
+tests to the use cases they demonstrate; mirror the mapping in
+the use-cases doc's test-matrix table.
+
+| Use case | Covered by |
+|---|---|
+|  |  |
+
 ## Mock policy
 
 - New mocks:
@@ -329,7 +379,7 @@ Product tests belong in default test discovery. Non-product checks run only when
 - fuzz result:
 - benchmark delta:
 - security/schema/migration result:
-- skipped deep gates and follow-up:
+- skipped deep gates and follow-up: <reference open followup-log.md entries>
 EOF
 ```
 
@@ -407,7 +457,7 @@ Drive phases 1-10 one at a time. Full per-phase procedure in
    - Gate evidence:
    - Hidden/generalization handling:
    - Mock changes:
-   - Adequacy gaps or follow-ups:
+   - Adequacy gaps or follow-ups: <open items go to followup-log.md; reference them here>
 
    ### Issues/Decisions
    - <problems, decisions, rationale>
@@ -443,7 +493,14 @@ When Phase 10 wraps up:
    selected hidden/generalization, property/stateful, mutation,
    fuzz/benchmark/security/schema, mock-audit, skipped-gate,
    and follow-up status.
-4. **Archive with cascade:**
+4. **Sweep open items to the project logs.** The milestone docs
+   are about to leave the active tree, and the logs are the
+   single home for open items: move any still-open follow-up,
+   adequacy gap, or skipped-gate item into `followup-log.md` as a
+   dated entry, and any unaddressed feedback or idea into
+   `feedback-log.md`. Drop milestone-doc mentions of log entries
+   this milestone incorporated. `docs touch` the logs.
+5. **Archive with cascade:**
    ```sh
    docs archive <slug>.md --reason "Milestone <M<N>> complete" --cascade
    ```
@@ -455,18 +512,18 @@ When Phase 10 wraps up:
 
    Result: all milestone docs move to `<root>/archive/<today>/`,
    with `Lifecycle: archived`, INDEX regenerated.
-5. **Update `status.md`:**
+6. **Update `status.md`:**
    - "Current milestone" → next milestone (or "Project
      complete").
    - Append a row to the milestone-progress table with the
      archive date.
    - `docs touch status.md`.
-6. **Run the docs gate** once more:
+7. **Run the docs gate** once more:
    ```sh
    docs check <root> --stale 14
    ```
    Exit 0 or 1. Errors block declaring completion.
-7. **Ask the user** about the next milestone.
+8. **Ask the user** about the next milestone.
 
 ## Quality gate commands (per phase, adapt to project)
 
@@ -516,6 +573,11 @@ when the phase or milestone is ready.
   choice).
 - **Hot-fix outside the TDD flow:** log to
   `decision-log.md` so the audit trail stays complete.
+- **Operator feedback, ideas, scope thoughts:** append a dated
+  entry to `feedback-log.md` at the docs root (following the
+  template embedded there) rather than burying them in phase
+  notes or a milestone's follow-on sections. Engineering
+  deferrals go to `followup-log.md` the same way.
 
 ## Parallel milestones
 
