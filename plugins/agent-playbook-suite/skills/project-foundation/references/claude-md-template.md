@@ -39,6 +39,12 @@ self-describing Markdown tree.
   test-strategy, env-and-tooling, definition-of-ready, …
 - Archive subtree: `<docs-root-path>/archive/<YYYY-MM-DD>/`
 - Single source of truth for progress: `<docs-root-path>/status.md`
+- Open follow-ups and feedback: `<docs-root-path>/followup-log.md`
+  (engineering follow-ups) and `<docs-root-path>/feedback-log.md`
+  (operator feedback, ideas, scope thoughts). These are the single
+  home for open items — milestone docs reference open entries, and
+  an entry moves into the milestone that incorporates it. Each log
+  embeds its own entry template.
 - Auto-generated machine view: `<docs-root-path>/INDEX.md`
   (never hand-edit)
 
@@ -62,6 +68,10 @@ This project is set up to use:
 - **`project-foundation`** — front-half planning (charter →
   Definition of Ready). Use when scoping a new sub-project or
   major feature inside this repo.
+- **`use-cases`** — collaborative use-case exploration after
+  foundation work (optional, but strongly preferred). Produces
+  `use-cases.md`; milestone tests focus primarily on the primary
+  use cases recorded there.
 - **`create-milestones`** — milestone-level TDD work. Use to
   create, advance, or complete one milestone interactively.
 - **`ship-milestone`** — autonomous end-to-end milestone driver.

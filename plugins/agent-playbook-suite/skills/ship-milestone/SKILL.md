@@ -120,7 +120,8 @@ high reasoning — its triage decisions need it.
 | 2 — Implement & ship | 5–10 | `<slug>/phases-5-10` (off step 1's branch) |
 | 3 — Simplify | post-10 | `<slug>/simplify` (off step 2's branch) |
 
-`<slug>` is a branch-safe milestone id (e.g. `m4`). The branches
+`<slug>` is a branch-safe milestone id (e.g. `m4`, or an
+inserted id like `m4a`). The branches
 stack; nothing is merged to `main` — the operator reviews and
 merges the stack.
 
@@ -137,7 +138,12 @@ one **simplify** agent.
    - An explicit id argument → use it.
    - The literal phrase `next milestone` → read `status.md`,
      take the first row whose lifecycle is `draft` (or marked
-     pending in the milestone table).
+     pending in the milestone table). "First" follows id order
+     with insertion suffixes respected: numeric segments compare
+     numerically, and a suffixed id runs after its prefix and
+     before that prefix's next sibling
+     (`m5 < m5a < m5a1 < m5b < m6` — see the `create-milestones`
+     playbook's id convention).
    - No argument → `AskUserQuestion` for which milestone. Do
      not proceed without an explicit answer.
 2. **Check whether it was created.** Look for the milestone's
@@ -232,7 +238,7 @@ agent pressure-tests the milestone spec as part of its job.
    [Fresh-eyes review agent prompt](references/agent-prompts.md#fresh-eyes-review-agent),
    reviewing `<slug>/phases-1-4` against its base. For Step 1
    it must specifically judge whether the phase-2 product tests
-   or explicit non-product checks genuinely pin the contract.
+   or selected explicit non-product checks genuinely pin the contract.
 6. **Triage** the review findings. Then **resume the
    implementation agent** (SendMessage) with the review
    findings to address (blockers + should-fixes), any operator
@@ -253,7 +259,7 @@ agent pressure-tests the milestone spec as part of its job.
      should-fixes are resolved.
    - **High:** stop after Step 1. Ask the operator to approve
      the contract, visible tests, hidden/generalization plan
-     (categories only, no private cases), mock policy, and risk
+     (categories only, no private cases), mock policy, and selected
      gates before Step 2 implementation starts. Resume only
      after explicit approval or after the requested Step 1 fixes
      are completed.
@@ -270,8 +276,8 @@ agent pressure-tests the milestone spec as part of its job.
    logged), the specs, and the code on the branch.
 3. The fresh-eyes review for Step 2 judges correctness,
    completeness against the milestone's Deliverables/Success
-   Criteria, and that the product suite plus required explicit
-   checks are GREEN.
+   Criteria, and that the selected product tests plus configured
+   explicit checks are GREEN.
 4. Same triage → resume → sync-and-commit as Step 1.
 
 ### Step 3 — Simplify (post-phase-10)
@@ -285,7 +291,7 @@ agent pressure-tests the milestone spec as part of its job.
    No planning agent, no review agent — `/simplify` is
    behavior-preserving and self-tests.
 3. The simplify agent runs the `/simplify` process, confirms
-   the product suite plus required explicit checks are GREEN, and
+   the selected product tests plus configured explicit checks are GREEN, and
    runs `sync-and-commit`. If nothing genuinely simplifies, it
    makes no changes —
    `sync-and-commit` then finds a clean tree, which is fine.
@@ -295,9 +301,9 @@ agent pressure-tests the milestone spec as part of its job.
 The conductor now verifies directly (read-only — cheap, keeps
 the final report first-hand rather than pure trust):
 
-- run the product test suite — expect fully GREEN;
-- run required explicit non-product checks — expect fully GREEN;
-- run the quality gate (lint, format check, type check);
+- run the selected product test suite — expect GREEN;
+- run configured explicit non-product checks — expect GREEN;
+- run the configured quality gate (lint, format check, type check where present);
 - run `docs check` on the docs tree — expect exit 0;
 - `git log --oneline` across the branch stack.
 
@@ -332,11 +338,11 @@ test — when:
 
 - the milestone cannot be resolved;
 - the working tree is dirty at pre-flight;
-- an implementation agent cannot reach the required test state
+- an implementation agent cannot reach the selected test state
   (e.g. GREEN at phase 8);
 - a High-risk milestone has completed Step 1 and needs operator
   approval for the contract, visible tests, hidden/generalization
-  plan, mock policy, and risk gates before Step 2;
+  plan, mock policy, and selected gates before Step 2;
 - a review finding needs an operator decision (use
   `AskUserQuestion`);
 - an agent reports a blocker it cannot resolve.

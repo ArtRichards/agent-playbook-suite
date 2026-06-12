@@ -14,7 +14,7 @@ jobs:
       # `docs` skill from. The policy is to track the newest docs-cli: when a
       # newer release ships, re-vendor the skill (docs install-skill --force)
       # and bump this pin in the same change. See marketplace-publishing-guide.md.
-      DOCS_CLI_VERSION: "1.6.0"
+      DOCS_CLI_VERSION: "1.6.5"
     steps:
       - uses: actions/checkout@v4
 
@@ -41,6 +41,7 @@ jobs:
               "ship-milestone",
               "simplify",
               "sync-and-commit",
+              "use-cases",
           }
           skills = Path("plugins/agent-playbook-suite/skills")
           actual = {p.name for p in skills.iterdir() if p.is_dir()}
@@ -96,6 +97,7 @@ jobs:
               "sync-and-commit": ("hidden/generalization", "mock", "mutation", "risk level"),
               "simplify": ("hidden/generalization", "mock", "mutation", "risk level"),
               "docs": ("quality artifacts", "docs check", "generated reports", "mutation"),
+              "use-cases": ("use case", "test matrices"),
           }
           for skill, terms in required.items():
               text = "\n".join(
@@ -197,11 +199,11 @@ jobs:
               ),
               (
                   root / "blog-post.md",
-                  ["implementation log, and test matrix", "test matrices"],
+                  ["milestone doc", "implementation log", "test matrix", "use-cases.md"],
               ),
               (
                   root / "site" / "blog.md",
-                  ["implementation log, and test matrix", "test matrices"],
+                  ["milestone doc", "implementation log", "test matrix", "use-cases.md"],
               ),
           ]
 
@@ -242,7 +244,7 @@ jobs:
               )
               raise SystemExit("INDEX.md is not in sync with docs index output")
           PY
-          docs check . --stale 14
+          docs check .   # stale window from .docs.toml [check] stale_days
 
       - uses: ruby/setup-ruby@v1
         if: ${{ hashFiles('site/Gemfile') != '' }}

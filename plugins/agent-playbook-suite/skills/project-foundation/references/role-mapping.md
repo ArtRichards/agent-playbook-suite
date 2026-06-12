@@ -27,6 +27,8 @@ includes `sketch`, `outline`, `implementation`, `template`,
 | `test-strategy` | `outline` | `draft` | `active`; → `spec` if it becomes the canonical contract | Detail fills in as implementation proceeds. |
 | `documentation-plan` | `plan` | `draft` | `active` | Covers docs outside the docs tree. |
 | `risks` | `log` | `active` | stays `active` | Risk Register — dated entries with mitigation/owner. |
+| `followup-log` | `log` | `active` | stays `active` | Engineering follow-ups: adequacy gaps, skipped deep gates, deferred test work. Single home for open items; milestone docs reference open entries; an entry is removed and its content rehomed when a milestone incorporates it. Tight entry shape (item, source milestone, risk, owner, status) embedded in the doc body. |
+| `feedback-log` | `log` | `active` | stays `active` | Operator feedback, ideas, and scope thoughts as dated intake entries (template embedded in the doc body). Same single-home rule as the follow-up log. |
 | `foundation-log` | `log` | `active` | `archived` only when the project ends | Front-half decision/note audit trail. |
 | `definition-of-ready` | `reference` | `draft` | `active` when green; `superseded` if rewritten | A checklist that links out. |
 | `status` | `status` | `active` | stays `active` | Curated narrative. INDEX.md carries the machine view. |
@@ -48,12 +50,18 @@ For reference — these are authored by the `create-milestones`
 skill, not this one. Documented here so the foundation wizard
 can hand off cleanly.
 
+`m<N>` ids may carry alternating letter/number insertion
+suffixes (`m5a`, `m5a1`, `m5a2a`) when work is inserted between
+planned milestones or decomposes a parent — id order is
+execution order, and existing milestones are never renumbered.
+See the `create-milestones` playbook for the convention.
+
 | Slug pattern | Role | Starts as | Graduates to | Notes |
 |---|---|---|---|---|
 | `m<N>` (or `m<N>-<topic>`) | `milestone` | `draft` | `active` while in flight; `archived` via `docs archive --cascade` when complete | One per milestone in the milestone-plan. |
 | `m<N>-impl` | `log` | `active` | `archived` (cascaded with its milestone) | Phase-by-phase TDD log. Paired via `Related: pairs-with`. |
 | `m<N>-test-matrix` | `spec` | `active` | `archived` (cascaded with its milestone) | Contract-to-test matrix covering risk level, visible tests, hidden/generalization categories, adequacy checks, mock audit, gate commands, and result summaries. Paired via `Related: pairs-with`. |
-| `quality/m<N>-quality-log` | `log` | `active` | project-specific | Optional companion for generated quality reports, benchmark/mutation/security summaries, and deferred deep-gate follow-ups. Link generated reports with `Related:` when they live inside the docs tree. |
+| `quality/m<N>-quality-log` | `log` | `active` | project-specific | Optional companion for generated quality reports and benchmark/mutation/security summaries. Deferred deep-gate follow-ups live in `followup-log.md`, not here. Link generated reports with `Related:` when they live inside the docs tree. |
 
 ## Lifecycle vocabulary (built-in)
 

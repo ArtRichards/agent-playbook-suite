@@ -3,7 +3,7 @@
 Lifecycle: active
 Role: guide
 Project: agent-playbook-suite
-Updated: 2026-06-02
+Updated: 2026-06-12
 
 Agent Playbook Suite is a single marketplace-distributed plugin for agent
 workflow skills. It packages the project-planning, milestone-delivery,
@@ -14,6 +14,7 @@ The suite plugin includes:
 
 - `docs`
 - `project-foundation`
+- `use-cases`
 - `create-milestones`
 - `ship-milestone`
 - `sync-and-commit`
@@ -112,7 +113,7 @@ Gemini CLI and OpenCode do not consume the Codex or Claude plugin marketplace
 manifests directly. The portable skill payload lives at
 `plugins/agent-playbook-suite/skills/` for agents that support direct skill
 directories. For a manual install, check out this repository and point the agent
-at the relevant skill subdirectory. The five workflow skills are maintained here;
+at the relevant skill subdirectory. The six workflow skills are maintained here;
 the former standalone `ArtRichards/<skill>` repositories are archived and read
 only.
 
@@ -131,6 +132,7 @@ plugins/agent-playbook-suite/
     _shared/
     docs/
     project-foundation/
+    use-cases/
     create-milestones/
     ship-milestone/
     sync-and-commit/

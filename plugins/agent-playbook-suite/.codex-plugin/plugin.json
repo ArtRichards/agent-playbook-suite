@@ -1,6 +1,6 @@
 {
   "name": "agent-playbook-suite",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "A curated suite of agent workflow skills for docs-backed project planning, milestone delivery, verification, and simplification.",
   "author": {
     "name": "Art Richards"
@@ -18,7 +18,7 @@
   "interface": {
     "displayName": "Agent Playbook Suite",
     "shortDescription": "Docs-backed workflow skills for agent-led software delivery.",
-    "longDescription": "Agent Playbook Suite bundles the docs, project-foundation, create-milestones, ship-milestone, sync-and-commit, and simplify skills for running durable project planning and milestone delivery loops with Codex.",
+    "longDescription": "Agent Playbook Suite bundles the docs, project-foundation, use-cases, create-milestones, ship-milestone, sync-and-commit, and simplify skills for running durable project planning and milestone delivery loops with Codex.",
     "developerName": "Art Richards",
     "category": "Productivity",
     "capabilities": [

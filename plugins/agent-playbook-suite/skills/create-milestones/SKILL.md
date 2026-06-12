@@ -126,7 +126,7 @@ exists, suggest the user run `project-foundation`'s Phase 8 step
 4. Do the work — write code, run tests.
 5. Append a phase section to the impl log via body edit.
 6. Record risk-gate, adequacy, hidden/generalization, and mock
-   evidence required by the phase.
+   evidence selected for the phase.
 7. Tick the milestone doc's checklist; flip the impl log's
    progress-table cell.
 8. `docs touch <slug>.md <slug>-impl.md <slug>-test-matrix.md
@@ -141,13 +141,14 @@ When Phase 10 is done:
 
 - [ ] Milestone-completion summary appended to both
       `<slug>.md` and `<slug>-impl.md`.
-- [ ] Test matrix updated with visible, hidden/generalization,
-      property/stateful, mutation, fuzz/benchmark/security/schema,
-      and mock-audit status.
+- [ ] Test matrix updated with visible tests/checks, selected
+      hidden/generalization, property/stateful, mutation,
+      fuzz/benchmark/security/schema, and mock-audit status.
 - [ ] Adequacy results summarized, including hidden-generalization
       gap when available and explicit follow-ups for skipped deep
       gates.
-- [ ] Full quality gate green: project commands + `docs check`.
+- [ ] Selected quality gate green: configured project commands +
+      `docs check`.
 - [ ] `docs archive <slug>.md --reason "Milestone <M<N>>
       complete" --cascade` — accept the cascade prompt for the
       impl log and test matrix; decline for long-lived parents

@@ -5,6 +5,9 @@ name = "agent-playbook-suite"
 dir = "archive"
 date_format = "%Y-%m-%d"
 
+[check]
+stale_days = 60
+
 [exclude]
 dirs = [
     "site",

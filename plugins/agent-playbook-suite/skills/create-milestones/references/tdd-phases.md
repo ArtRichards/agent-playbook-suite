@@ -25,16 +25,24 @@ and mock policy.
   context. Record categories, owners, command names, and summaries
   instead.
 - If the repository is fully visible to the implementation agent,
-  assume hidden cases are not truly hidden and compensate with
-  property/stateful, mutation, fuzz, metamorphic, benchmark, and
-  review-agent checks.
+  assume hidden cases are not truly hidden and choose additional
+  property/stateful, mutation, fuzz, metamorphic, benchmark, or
+  review-agent checks only when they fit the risk.
 - Do not add or expand mocks without justification. Prefer
   real-path tests for domain behavior, and record whether a
   real-path test covers each mocked boundary.
-- Do not weaken, skip, delete, or narrow tests or required explicit
+- Do not weaken, skip, delete, or narrow tests or configured explicit
   checks unless the contract changes and the decision is logged.
 - Do not special-case visible examples, fixture names, literals, or
   test-only branches.
+- Deferred work and feedback have a single home in the project logs
+  at the docs root: engineering deferrals go to `followup-log.md`,
+  operator feedback and ideas to `feedback-log.md` (both created by
+  `project-foundation`, with entry templates embedded in each).
+  Milestone docs reference open entries while they remain open and
+  drop the reference once incorporated. Do not leave open items only
+  in milestone docs — those archive at completion and the item is
+  lost.
 
 ## Phase 1 — Define Contract
 
@@ -74,22 +82,34 @@ and mock policy.
 ## Phase 2 — Write Tests (RED)
 
 - **Objective:** Express desired behaviour as failing product tests
-  or explicit non-product checks before any implementation.
+  or explicit non-product checks before implementation, using enough
+  evidence to pin the contract without overbuilding the test surface.
 - **Activities:** Write visible product tests that trace to contract
-  clauses where practical; for planning, documentation, or handoff
+  clauses where practical and, when the project has a
+  `use-cases.md`, to the primary use cases they demonstrate —
+  tests focus on use cases first; for planning, documentation, or handoff
   artifacts, write explicit checks outside default product-test
   discovery. Prefer behavior tests over implementation-detail tests;
-  add at least one negative and one boundary case per public behavior
-  where applicable; propose hidden/generalization categories
+  prefer the least constraining check that gives real confidence in
+  the intended behavior — check semantic behavior first and do not
+  freeze incidental representation (byte-exact goldens, exhaustive
+  snapshots, change-detector assertions) unless the exact
+  representation is itself the contract;
+  add negative and boundary cases where they clarify the contract or
+  cover meaningful risk; propose hidden/generalization categories
   separately; justify any new mocks.
 - **Deliverables:** Test or check module(s) with clear names and
   docstrings; minimum coverage targets noted where applicable; test
   matrix updated with visible tests/checks and hidden/generalization
   categories.
 - **Exit:**
-  - [ ] Each public behavior has at least one visible product test.
-  - [ ] Each non-product gate has an explicit check when applicable.
+  - [ ] Each changed public behavior is pinned by a visible product
+        test, explicit check, or logged acceptance rationale.
+  - [ ] Each selected non-product gate has an explicit check.
   - [ ] Negative and boundary cases exist where applicable.
+  - [ ] Checks constrain intended behavior, not incidental
+        representation (no byte-exact goldens or change-detector
+        assertions without a contract reason).
   - [ ] Tests are expected to fail for missing behavior, not import/setup mistakes.
   - [ ] Hidden/generalization categories are recorded without leaking private cases.
   - [ ] New mocks are listed and justified.
@@ -114,8 +134,8 @@ and mock policy.
 ## Phase 4 — Run Tests (RED Baseline)
 
 - **Objective:** Confirm tests fail for the right reasons.
-- **Activities:** Run the product test suite and any explicit
-  non-product checks required for this phase; capture failure summary
+- **Activities:** Run the focused product tests and any explicit
+  non-product checks selected for this phase; capture failure summary
   verbatim; inspect already-green visible tests/checks; check that
   the test matrix is complete enough to proceed.
 - **Deliverables:** Test/check output with failure reasons noted
@@ -124,13 +144,14 @@ and mock policy.
 - **Exit:** Failing tests/checks trace to missing implementation, not
   misconfiguration; the test matrix is complete enough to proceed.
   Trivial, under-constrained, already-green, or setup-only tests/checks
-  block progression until fixed.
+  block progression only when they are the main evidence for a
+  contract clause.
 - **Docs touchpoints:** standard per-phase set above. Paste the
   RED baseline output into the Phase 4 log section verbatim.
 - **High-risk checkpoint:** For High-risk milestones, stop after
   the RED baseline and ask the operator to approve the contract,
   visible tests, hidden/generalization plan, mock policy, and risk
-  gates before Phase 5 starts, unless project policy explicitly
+  selected gates before Phase 5 starts, unless project policy explicitly
   allows automatic continuation.
 
 ## Phase 5 — Update Base Interfaces
@@ -179,21 +200,21 @@ and mock policy.
 - **Objective:** Achieve a passing state for the implemented
   path(s) and satisfy the risk-appropriate gate.
 - **Activities:** Run focused suites; iterate fixes; keep a
-  changelog in the impl log; run the required product gates and
+  changelog in the impl log; run the selected product gates and
   explicit non-product checks for the milestone's Risk Level.
 - **Deliverables:** Passing test/check output; notes on any flaky cases;
   coverage / property / hidden smoke / mock audit / security /
   schema / benchmark / mutation summaries where required.
-- **Exit:** Required gates for the Risk Level are green or
+- **Exit:** Selected gates for the Risk Level are green or
   explicitly approved as skipped:
   - **Lite:** visible product tests green; explicit non-product
-    checks green where required; lint/type/build green where
+    checks green when selected; lint/type/build green where
     configured; docs check green.
   - **Standard:** Lite plus coverage report if configured;
-    property/stateful smoke where applicable; hidden/generalization
+    property/stateful smoke where useful; hidden/generalization
     smoke where configured; mock audit complete.
   - **High:** Standard plus security/schema/benchmark/migration
-    checks where applicable; mutation smoke or baseline where
+    checks where they match the risk; mutation smoke or baseline where
     configured; reviewer/operator signoff where required.
 - **Docs touchpoints:** standard per-phase set above. Paste
   GREEN test/check output verbatim into the Phase 8 log section. If
@@ -214,7 +235,8 @@ and mock policy.
   clear TODOs for blocked external dependencies.
 - **Exit:** The milestone's user-visible or integration behavior
   is accepted for its Risk Level, or blocked items are documented
-  with owner, risk, and follow-up.
+  with owner and risk and recorded as open `followup-log.md`
+  entries.
 - **Docs touchpoints:** standard per-phase set above. Many
   milestones have no online surface; in that case repurpose
   Phase 9 for dogfooding against realistic fixtures and
@@ -225,18 +247,19 @@ and mock policy.
 
 - **Objective:** Final polish and handoff readiness.
 - **Activities:**
-  - Run the full quality gate (`make format && make lint &&
-    make typecheck && make test` or project equivalent).
+  - Run the project quality gate or the relevant configured subset
+    (`make format && make lint && make typecheck && make test` or
+    project equivalent).
   - Update the test matrix.
   - Summarize adequacy results.
   - Record hidden-generalization gap if visible and hidden pass
     rates are available.
-  - Log mutation/property/fuzz/benchmark gaps as follow-up work if
-    not run.
+  - Log mutation/property/fuzz/benchmark gaps as open
+    `followup-log.md` entries if not run.
   - Complete the mock audit.
   - Refactor for clarity (the `simplify` skill may help here).
-  - Confirm simplification did not reduce test adequacy without
-    explicit approval.
+  - Confirm simplification did not reduce selected test adequacy
+    without explicit approval.
   - Update user-facing docs.
   - Append a milestone-completion summary to both the milestone
     doc and the impl log.
@@ -244,9 +267,10 @@ and mock policy.
   checklist completed; test matrix current; adequacy results and
   follow-up gaps recorded; open questions noted; release notes if
   applicable.
-- **Exit:** Quality gate green; documentation current; adequacy
-  results summarized; mock audit complete; skipped deep gates have
-  explicit approval or follow-up; handoff notes written. Ready for
+- **Exit:** Selected quality gate green; documentation current;
+  adequacy results summarized; mock audit complete when relevant;
+  skipped selected deep gates have explicit approval or an open
+  `followup-log.md` entry; handoff notes written. Ready for
   `docs archive <slug>.md --cascade --reason "<reason>"`.
 - **Docs touchpoints:**
   - Append "Milestone-completion summary" sections to both
@@ -286,14 +310,14 @@ After every phase, regardless of which one:
   intended; go back.
 - **High-risk milestones pause after Phase 4** for operator
   approval of the contract, visible tests, hidden/generalization
-  plan, mock policy, and risk gates unless project policy
+  plan, mock policy, and selected gates unless project policy
   explicitly allows automatic continuation.
-- **Phase 8 must be fully GREEN before Phase 9.** A flaky test
-  is not GREEN; either fix the flake or scope it out with a
-  documented TODO before proceeding.
-- **Risk gates are cumulative.** Lite gates are required for
-  Standard; Standard gates are required for High unless explicitly
-  marked not applicable or approved as skipped.
+- **Phase 8 selected gates must be GREEN before Phase 9.** A flaky
+  selected test is not GREEN; either fix the flake or scope it out
+  with a documented TODO before proceeding.
+- **Risk gates are cumulative by default.** Lite gates are the base
+  for Standard; Standard gates are the base for High unless project
+  policy selects a lighter equivalent or marks a gate not applicable.
 - **Phase 10 always runs**, even for milestones that feel small.
   The completion summary, test matrix, adequacy results, and docs
   touch are what make archive meaningful.

@@ -57,16 +57,18 @@ For the phase/step just completed, verify:
   checks. Planning, documentation, handoff, and workflow checks are
   not in default product-test discovery unless they define shipped
   behavior.
-- Unit tests for new functions/methods.
-- Integration tests for cross-component interactions.
-- E2E tests for user-facing flows (if applicable).
-- Edge cases and error paths covered.
-- All tests pass.
+- Relevant unit tests for new behavior where unit boundaries are useful.
+- Integration tests for meaningful cross-component interactions.
+- E2E tests for user-facing flows when the milestone owns the flow.
+- Important edge cases and error paths covered.
+- Selected tests/checks pass, or unrelated known failures are documented.
 
 ### 2c. Type safety and linting
 
-Run the project's quality gate (from project context, or
-`make format && make lint && make typecheck && make test`):
+Run the project's configured quality gate. If project context is absent, infer
+the smallest useful equivalent from files such as `Makefile`, `package.json`, or
+`pyproject.toml` (common shape: `make format && make lint && make typecheck &&
+make test`):
 
 - Typecheck clean.
 - Lint clean.
@@ -125,19 +127,20 @@ project's shared quality model or test matrix when present.
 Read the risk level from the milestone doc, contract/test matrix,
 quality log, or project policy:
 
-- If the risk level is missing, fail closed unless it can be safely
-  inferred from the change type and logged in the verification report.
-- For Standard or High risk, a contract/test matrix is required. Stop
-  if it is missing or stale.
-- For High-risk work in or after Phase 5, require recorded operator
-  approval from the Phase 4 RED-baseline checkpoint before committing.
+- If the risk level is missing, infer a conservative level from the change type
+  and log the assumption; pause only when the risk is ambiguous or potentially
+  High.
+- For Standard or High risk, expect a contract/test matrix or equivalent
+  contract-to-check notes. Stop only when the missing evidence makes the gate
+  impossible to judge.
+- For High-risk work in or after Phase 5, look for recorded operator approval
+  from the Phase 4 RED-baseline checkpoint before committing.
   Acceptable evidence is a milestone-doc, test-matrix,
   implementation-log, or quality-log entry approving the contract,
   visible product tests or explicit non-product checks,
-  hidden/generalization plan, mock policy, and risk gates. If project
-  policy allows automatic continuation, require an explicit recorded
-  operator-approved exception before committing phases 5-10 or final
-  sync.
+  hidden/generalization plan, mock policy, and selected gates. If project
+  policy allows automatic continuation, log that policy instead of requiring a
+  separate exception.
 - Record skipped deep gates as `not configured`, `deferred with reason`,
   or `operator-approved skip`; never silently mark them green.
 
@@ -146,22 +149,22 @@ quality log, or project policy:
 Lite:
 
 - format/lint/type/build where configured;
-- visible product tests;
-- explicit non-product checks where required;
-- docs check.
+- visible product tests for changed behavior;
+- explicit non-product checks when selected;
+- docs check if the project uses docs-cli.
 
 Standard:
 
-- Lite plus coverage report;
+- Lite plus coverage report if already configured;
 - property/stateful smoke where configured;
 - hidden/generalization smoke where configured;
 - security/schema smoke where configured;
-- mock audit.
+- mock audit when mocks are added or expanded.
 
 High:
 
-- Standard plus benchmark/security/migration/rollback checks where
-  applicable;
+- Standard plus benchmark/security/migration/rollback checks where they match
+  the risk;
 - mutation smoke or recorded mutation baseline where configured;
 - recorded operator approval after the Phase 4 RED baseline before
   phases 5-10 or final sync, unless an explicit operator-approved
@@ -175,7 +178,7 @@ Check:
 - Contract file or contract section exists.
 - Product tests or explicit non-product checks trace to contract
   clauses where practical.
-- No visible test or required explicit check was weakened, skipped,
+- No visible test or selected explicit check was weakened, skipped,
   or deleted without a logged contract change.
 - No code appears to branch on test literals, fixture names, or visible
   examples.
@@ -222,16 +225,16 @@ quality log:
 Stop before commit and fix or escalate on:
 
 - docs-check failure;
-- visible test failure;
+- selected visible product-test or explicit-check failure;
 - configured build, lint, type, format, or package gate failure;
-- missing risk level unless it can be safely inferred and logged;
-- missing contract/test matrix for Standard or High-risk work;
-- unapproved skipped High-risk deep gates;
-- unauthorized visible-test weakening, deletion, or skip;
+- ambiguous or potentially High risk level that cannot be inferred safely;
+- missing contract/test evidence needed to judge Standard or High-risk work;
+- unapproved skipped High-risk deep gates selected for the milestone;
+- unauthorized visible-test or selected-check weakening, deletion, or skip;
 - unexplained new or expanded mocks in Standard or High-risk work.
 
 Do not proceed by weakening tests, removing hooks, or relabeling a
-required gate as optional. If a configured gate cannot run, record
+selected gate as optional. If a configured gate cannot run, record
 whether it is `not configured`, `deferred with reason`, or
 `operator-approved skip`.
 

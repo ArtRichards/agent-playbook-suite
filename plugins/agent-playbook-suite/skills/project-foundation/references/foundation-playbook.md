@@ -20,14 +20,35 @@ Before any phase question:
 
 1. **Detect or pick the docs root.** Walk up three directory
    levels from the project location looking for `.docs.toml`.
-   - **Found existing root** → ask: nest this project as a
-     subdirectory (`<found-root>/<project-slug>/`, the
-     per-project-subdirectory layout), or bootstrap a new
-     dedicated root?
-   - **No root found** → suggest a default and confirm:
-     `<repo-root>/docs/specs/` if a `docs/` directory exists,
-     else `<repo-root>/specs/`. Single-project repos use the
-     flat layout (no subdirectory).
+   - **Found existing root** → inspect it before reusing: is it
+     internal project documentation, and does its layout fit this
+     project? When it is appropriate, default to placing the
+     foundation under `<found-root>/specs/<project-slug>/`;
+     otherwise ask whether to bootstrap a new dedicated root.
+   - **No root found** → inspect the existing directories before
+     suggesting a location. Classify any candidate documentation
+     directory as internal vs public/customer-facing before
+     reusing it: public signals include a documentation builder,
+     a tool that builds docs for customers, or generated customer
+     docs. Never place internal specs inside a public
+     documentation surface, or in site/publishing directories
+     such as `site/`, `website/`, `pages/`, or `public/`, even
+     when they contain Markdown.
+     - `docs/` exists and is internal → prefer
+       `<repo-root>/docs/specs/<project-slug>/` when that fits
+       the layout. Single-project repos may use the flat
+       `docs/specs/` layout (no subdirectory).
+     - `docs/` exists but is public/customer-facing → prefer
+       `internal-docs/specs/<project-slug>/`, and ask the
+       operator before creating it.
+     - No usable internal docs directory → suggest
+       `<repo-root>/docs/specs/` if a `docs/` directory exists,
+       else `<repo-root>/specs/`, and confirm.
+   - **Confirmation scales with repository maturity.** In a large
+     existing codebase, confirm before creating a new docs root
+     or internal specs directory. In a relatively greenfield
+     repo, proceed with the preferred default when the layout is
+     clear.
 
 2. **Bootstrap the new root** by:
    - Creating the directory.
@@ -41,13 +62,44 @@ Before any phase question:
    working directory; every subsequent `docs new` runs from
    there.
 
-4. **Create the three living docs** before any phase question:
+4. **Create the five living docs** before any phase question:
    `status.md` (`Role: status`, `Lifecycle: active`),
    `foundation-log.md` (`Role: log`, `Lifecycle: active`),
-   `risks.md` (`Role: log`, `Lifecycle: active`). These
-   accumulate throughout foundation work — see the
+   `risks.md` (`Role: log`, `Lifecycle: active`),
+   `followup-log.md` (`Role: log`, `Lifecycle: active`), and
+   `feedback-log.md` (`Role: log`, `Lifecycle: active`). These
+   accumulate throughout the project — see the
    [worked example](#worked-example-link-checker) for their
    initial bodies.
+
+   The two project logs are the single home for open items, kept
+   outside milestone docs so nothing is lost when milestones
+   archive: `followup-log.md` holds engineering follow-ups
+   (adequacy gaps, skipped deep gates, deferred test work) in a
+   tight entry shape; `feedback-log.md` holds operator feedback,
+   ideas, and scope thoughts as dated intake entries. Each log
+   embeds its own entry template in its body — skills appending
+   entries follow the template found in the file. Milestone docs
+   reference open entries rather than holding them inline; when a
+   milestone incorporates an item, its content moves into that
+   milestone's docs and the log entry is removed.
+
+## Ground every phase in investigation
+
+Foundation questions work best when the wizard arrives informed.
+Before asking a phase's questions, inspect what already exists —
+code, build files, existing tests, READMEs, deployment configs —
+and fold the findings into the questions: propose answers the
+evidence supports instead of presenting blank questionnaires, and
+let the operator correct a concrete proposal rather than fill in
+a form.
+
+If the operator asks for it, launch a thorough investigation of
+the entire product's foundation — architecture, module
+boundaries, dependencies, data flows, test coverage, operational
+surfaces — before or during foundation work. Record the findings
+in `foundation-log.md` (and `architecture.md` once it exists) so
+the investigation outlives the session.
 
 ## Authoring docs without harness friction
 
@@ -233,6 +285,18 @@ Ask:
   is real-path coverage required?
 - What human/operator approval triggers should stop implementation?
 
+**Propose risk levels, never assign them.** Investigate the repo
+or product first, then propose a level per area with one-line
+reasoning and confirm with the operator. Default to Standard for
+ordinary product or workflow changes; reserve Lite for docs,
+internal/admin work, and low-blast-radius changes. Propose High
+only with an explicit reason from the shared quality model's High
+triggers (auth, billing, security, privacy, data integrity,
+migrations, concurrency, incident response, public APIs,
+performance-sensitive core paths) — and get the operator's
+explicit approval before recording High. Record the agreed level
+and its reasoning in the risk table.
+
 Author `docs new outline test-strategy` with body sections:
 **Validation taxonomy**, **Risk levels**, **Fast PR gate**,
 **Deep/nightly/release gate**, **Hidden-test policy**,
@@ -254,7 +318,7 @@ Use this starter shape:
 
 ## Risk levels
 
-| Area | Risk level | Reason | Required gates |
+| Area | Risk level | Reason | Selected gates |
 |---|---|---|---|
 |  | Lite / Standard / High |  |  |
 
@@ -447,7 +511,10 @@ When DoR flips to `active`:
 3. Update `status.md`'s "Current milestone" section:
    _Pending → M1 setup_.
 4. `docs touch status.md`.
-5. Hand off to `create-milestones`.
+5. Hand off to the `use-cases` skill — it runs automatically
+   after foundation completes (optional, but strongly preferred)
+   to explore the primary use cases that will guide testing.
+6. Then hand off to `create-milestones`.
 
 ## Worked example: link-checker
 
@@ -470,7 +537,7 @@ cd ~/code/link-checker/docs/specs
 docs check .   # exit 0 — empty tree
 ```
 
-Three living docs created before any phase question:
+Five living docs created before any phase question:
 
 ```sh
 docs new status status --project link-checker \
@@ -505,6 +572,37 @@ dated H2 entry per risk with body sub-sections:
 
 ## (no risks logged yet)
 EOF
+
+docs new log followup-log --project link-checker \
+  --title "link-checker: Follow-up Log" --body-from - <<'EOF'
+Open engineering follow-ups: adequacy gaps, skipped deep gates,
+deferred test work, and similar items not yet scheduled into a
+milestone. This log is the single home for open items — milestone
+docs reference an entry while it is open and drop the reference
+once it is incorporated. When a milestone takes an item on, move
+its content into that milestone's docs and remove the entry here.
+
+Append a dated H2 entry per item with body sub-sections:
+**Item**, **Source milestone**, **Risk**, **Owner**, **Status**.
+
+## (no open follow-ups yet)
+EOF
+
+docs new log feedback-log --project link-checker \
+  --title "link-checker: Feedback Log" --body-from - <<'EOF'
+Operator feedback, ideas, and scope thoughts that surface during
+work. This log is the single home for open items — when the work
+that addresses an entry lands, move its content to where it was
+acted on (a milestone doc, the scope spec, a decision entry) and
+remove the entry here.
+
+Append a dated H2 entry per item with body sub-sections:
+**Source**, **Feedback** (verbatim), **Evidence or example**,
+**Use cases affected**, **Planned change**, **Status**,
+**Follow-up**.
+
+## (no feedback logged yet)
+EOF
 ```
 
 ### Phases 0-8
@@ -531,6 +629,8 @@ tree looks like:
 ├── documentation-plan.md        Role: plan,       Lifecycle: draft
 ├── foundation-log.md            Role: log,        Lifecycle: active
 ├── risks.md                     Role: log,        Lifecycle: active
+├── followup-log.md              Role: log,        Lifecycle: active
+├── feedback-log.md              Role: log,        Lifecycle: active
 └── status.md                    Role: status,     Lifecycle: active
 ```
 
@@ -593,9 +693,12 @@ test-strategy.md              outline      active
 documentation-plan.md         plan         active
 foundation-log.md             log          active
 risks.md                      log          active
+followup-log.md               log          active
+feedback-log.md               log          active
 definition-of-ready.md        reference    active
 status.md                     status       active
 ```
 
-15 docs, all `active`, every `Related:` link resolves,
-`docs check` exit 0. Ready for `create-milestones`.
+17 docs, all `active`, every `Related:` link resolves,
+`docs check` exit 0. Ready for the `use-cases` stage, then
+`create-milestones`.
