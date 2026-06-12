@@ -71,7 +71,7 @@ Related process: [Feedback Integration Process](process.md)
 - Planned change (proposed, awaiting operator confirmation): (1) create skill payload `plugins/agent-playbook-suite/skills/use-cases/` with SKILL.md and references for the collaborative exploration playbook and the use-cases doc template; (2) `project-foundation` hands off to it automatically at completion and adds the role-mapping row; (3) `create-milestones` test matrices gain use-case mapping, with tests focused primarily on use cases; (4) plugin manifest, both marketplace JSONs, and public README/overview updated to describe the new stage.
 - Validation required: update this log, then run `docs touch <this log> --check` (stale window from `.docs.toml [check] stale_days`); parse changed JSON manifests with `python3 -m json.tool`; confirm skill payload shape; check handoff wording across project-foundation, use-cases, and create-milestones together.
 - Status: implemented in working tree on `v1.7.0-feedback-use-cases` (2026-06-12). New `use-cases` skill payload created (SKILL.md plus use-cases-playbook reference with the `docs new spec use-cases` template); project-foundation hands off automatically; create-milestones reads `use-cases.md` at bootstrap and its test-matrix template gains a Use-case mapping section; Codex plugin longDescription, README, overview, and the generated-context template updated.
-- Follow-up: review wording before commit; the plugin version question (0.3.2 vs the 1.7.0 line) remains open for the release step.
+- Follow-up: resolved 2026-06-12 — shipped in the 0.4.0 release (operator chose `0.4.0`).
 
 ### 2026-06-12 — New milestones need appropriate placement and numbering
 
@@ -154,7 +154,7 @@ Related process: [Feedback Integration Process](process.md)
 - Planned change: replace blanket required/full-gate language with selected/configured gate language; make deep checks explicitly risk-driven.
 - Validation required: `docs index .`, `docs check . --stale 14`, whitespace diff check, JSON manifest parsing, workflow payload and quality-model consistency checks; site build if Bundler is available.
 - Status: implemented in working tree on `v1.7.0-feedback-use-cases`; docs validation and workflow-content checks passed; site build not run because `bundle` is unavailable.
-- Follow-up: review final wording before committing and decide whether release/version metadata needs to move from plugin `0.3.2` toward the intended 1.7.0 line.
+- Follow-up: resolved 2026-06-12 — wording shipped with the 0.4.0 release; operator chose `0.4.0` over the 1.7.0 line for the version.
 
 ### 2026-06-08 — Add feedback integration process and internal docs layout
 

@@ -3,7 +3,7 @@
 Lifecycle: active
 Role: guide
 Project: agent-playbook-suite
-Updated: 2026-06-03
+Updated: 2026-06-12
 
 This guide is the maintainer checklist for publishing Agent Playbook Suite as
 one plugin marketplace package for Codex and Claude Code.
@@ -19,6 +19,7 @@ The suite contains exactly these skills:
 
 - `docs`
 - `project-foundation`
+- `use-cases`
 - `create-milestones`
 - `ship-milestone`
 - `sync-and-commit`
@@ -60,9 +61,10 @@ binary drifts from the pin, so the pin and the vendored `docs` skill can never
 silently fall out of sync. Always bump the pin to the newest release rather than
 holding it back.
 
-The five workflow skills — `project-foundation`, `create-milestones`,
-`ship-milestone`, `sync-and-commit`, and `simplify` — are maintained directly in
-this repository under `plugins/agent-playbook-suite/skills/`. This repository is
+The six workflow skills — `project-foundation`, `use-cases`,
+`create-milestones`, `ship-milestone`, `sync-and-commit`, and `simplify` — are
+maintained directly in this repository under
+`plugins/agent-playbook-suite/skills/`. This repository is
 their source of truth: edit them in place. The standalone
 `ArtRichards/<skill>` repositories are archived and read-only; they exist only as
 historical pointers back here. Do not rsync or copy from them — their content
@@ -80,7 +82,7 @@ find plugins/agent-playbook-suite/skills -mindepth 1 -maxdepth 1 -type d -printf
 find plugins/agent-playbook-suite/skills -name .git -print
 ```
 
-The first command should print the six skill directories and, if present,
+The first command should print the seven skill directories and, if present,
 `_shared`. The second command should print nothing. Each skill directory must
 contain `SKILL.md`; `_shared` must only contain reusable references.
 
@@ -126,6 +128,7 @@ expected = {
     "ship-milestone",
     "simplify",
     "sync-and-commit",
+    "use-cases",
 }
 skills = Path("plugins/agent-playbook-suite/skills")
 actual = {p.name for p in skills.iterdir() if p.is_dir()}
@@ -159,6 +162,7 @@ required = {
     "sync-and-commit": ("hidden/generalization", "mock", "mutation", "risk level"),
     "simplify": ("hidden/generalization", "mock", "mutation", "risk level"),
     "docs": ("quality artifacts", "docs check", "generated reports", "mutation"),
+    "use-cases": ("use case", "test matrices"),
 }
 shared = skills / "_shared" / "references" / "agentic-quality-model.md"
 if not shared.exists():
@@ -213,12 +217,12 @@ claude plugin marketplace add ./
 claude plugin install agent-playbook-suite@agent-playbook-suite
 ```
 
-Restart the relevant agent and confirm the six skills are discoverable.
+Restart the relevant agent and confirm the seven skills are discoverable.
 
 For both smoke tests, also confirm:
 
-- `docs`, `project-foundation`, `create-milestones`, `ship-milestone`,
-  `sync-and-commit`, and `simplify` are installed;
+- `docs`, `project-foundation`, `use-cases`, `create-milestones`,
+  `ship-milestone`, `sync-and-commit`, and `simplify` are installed;
 - `_shared` is present only as a reference directory if installed;
 - the shared quality model is readable from installed workflow skills;
 - the bundled `docs` skill exposes quality-artifact guidance.
