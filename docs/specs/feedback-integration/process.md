@@ -3,7 +3,7 @@
 Lifecycle: draft
 Role: spec
 Project: agent-playbook-suite
-Updated: 2026-06-08
+Updated: 2026-06-12
 
 ## Purpose
 
@@ -119,7 +119,7 @@ For each accepted feedback item:
 
 Use the smallest validation set that covers the changed surface:
 
-- For root docs: run `docs index .` and `docs check . --stale 14`.
+- For root docs: run `docs touch <changed docs> --check` — touch, reindex, and tree-wide check in one step; the stale window comes from `.docs.toml [check] stale_days`.
 - For marketplace metadata: parse changed JSON manifests with `python3 -m json.tool`.
 - For skill payload shape: confirm the expected skill directories and `SKILL.md` files still exist.
 - For shared quality-model changes: confirm every consuming skill still references the shared terms it depends on.
