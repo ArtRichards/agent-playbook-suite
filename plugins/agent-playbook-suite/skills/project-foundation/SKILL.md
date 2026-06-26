@@ -93,6 +93,16 @@ These are non-negotiable across the whole flow:
    reason and explicit operator approval. If the operator asks,
    launch a thorough investigation of the entire product's
    foundation.
+8. **The docs root is the project, not a parent of it.** A
+   `Project:` is metadata, not a directory; because `Related:`
+   paths are root-relative, nesting a lone project's docs beneath
+   a parent root prefixes every intra-project sibling reference
+   with a redundant `<subdir>/`. When bootstrapping a **new** root
+   for a single project, put `.docs.toml` in the directory that
+   holds the docs (root = project, docs flat, clean refs). Nest
+   under `<root>/specs/<project-slug>/` **only** when joining an
+   existing shared root that already hosts other projects. See
+   Bootstrap (Step 0) in the foundation playbook.
 
 ## Role mapping (summary)
 
