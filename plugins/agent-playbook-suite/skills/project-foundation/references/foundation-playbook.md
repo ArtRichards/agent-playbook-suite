@@ -22,9 +22,12 @@ Before any phase question:
    levels from the project location looking for `.docs.toml`.
    - **Found existing root** → inspect it before reusing: is it
      internal project documentation, and does its layout fit this
-     project? When it is appropriate, default to placing the
-     foundation under `<found-root>/specs/<project-slug>/`;
-     otherwise ask whether to bootstrap a new dedicated root.
+     project? When the found root already hosts other projects,
+     placing the foundation under `<found-root>/specs/<project-slug>/`
+     is appropriate — the `<subdir>/` prefix on its `Related:` paths
+     then reflects a real shared tree. Otherwise prefer a dedicated
+     root whose directory *is* this project (see the placement note
+     below), or ask whether to bootstrap one.
    - **No root found** → inspect the existing directories before
      suggesting a location. Classify any candidate documentation
      directory as internal vs public/customer-facing before
@@ -49,6 +52,19 @@ Before any phase question:
      or internal specs directory. In a relatively greenfield
      repo, proceed with the preferred default when the layout is
      clear.
+   - **Project ≠ directory — keep `.docs.toml` with the docs.** A
+     `Project:` is a metadata slug, not a folder, and `Related:`
+     paths are root-relative, so the directory holding `.docs.toml`
+     *is* the root. For a single project, put `.docs.toml` in the
+     same directory as the foundation docs and keep them flat
+     (root = project) — whether that directory is `docs/specs/` or
+     `docs/specs/<project-slug>/`. Do **not** drop `.docs.toml` at a
+     parent root and then author the docs in a `<project-slug>/`
+     child: that makes every sibling `Related:` carry a redundant
+     `<subdir>/` prefix for no benefit. The nested
+     `specs/<project-slug>/` form is for joining an existing
+     multi-project root only. (Mirrors the docs convention's "Where
+     to put `.docs.toml`" section.)
 
 2. **Bootstrap the new root** by:
    - Creating the directory.
