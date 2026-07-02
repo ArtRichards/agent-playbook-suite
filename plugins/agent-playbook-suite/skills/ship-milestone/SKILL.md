@@ -241,10 +241,11 @@ agent pressure-tests the milestone spec as part of its job.
    or selected explicit non-product checks genuinely pin the contract.
 6. **Triage** the review findings. Then **resume the
    implementation agent** (SendMessage) with the review
-   findings to address (blockers + should-fixes), any operator
-   answers to items it surfaced, and the instruction to then
-   run the `sync-and-commit` skill. If the review was clean,
-   the SendMessage simply says so and instructs
+   findings to address (blockers + should-fixes), the taste
+   triage decisions (fix/waive per the *Triage rules*), any
+   operator answers to items it surfaced, and the instruction
+   to then run the `sync-and-commit` skill. If the review was
+   clean, the SendMessage simply says so and instructs
    sync-and-commit.
 7. The implementation agent is on its own milestone branch, so
    `sync-and-commit` may push if a remote exists.

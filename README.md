@@ -3,7 +3,7 @@
 Lifecycle: active
 Role: guide
 Project: agent-playbook-suite
-Updated: 2026-06-12
+Updated: 2026-07-02
 
 Agent Playbook Suite is a single marketplace-distributed plugin for agent
 workflow skills. It packages the project-planning, milestone-delivery,
@@ -32,7 +32,10 @@ The suite treats tests as more than RED/GREEN examples. Each milestone records:
 - adequacy checks such as property/stateful tests, mutation, fuzzing,
   benchmarks, and security or schema checks;
 - a risk level that determines how much validation runs before commit or merge;
-- mock audit notes and real-path coverage expectations.
+- mock audit notes and real-path coverage expectations;
+- taste anchors (reference modules, in-project libraries to reuse, patterns,
+  expected diff footprint), with review taste findings triaged — fixed or
+  waived with a logged reason — before a step is committed.
 
 This keeps the resumable artifact trail while reducing the chance that an
 implementation agent optimizes for visible tests instead of intended behavior.

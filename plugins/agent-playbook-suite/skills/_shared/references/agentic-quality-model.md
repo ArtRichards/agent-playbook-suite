@@ -165,8 +165,9 @@ Codebase practice alignment, judged against the surrounding code:
 Gate only what is objective; force triage of everything else.
 
 - **Gating (blocker-eligible):** taste-anchor violations; scope creep beyond
-  the milestone's Deliverables; hygiene violations (these are forbidden
-  shortcuts); library duplication without a logged decision.
+  the milestone's Deliverables; hygiene violations (shortcuts, workarounds,
+  hardcoded values, code smells); library duplication without a logged
+  decision.
 - **Must-triage (never dropped, never blocking on its own):** findings on the
   subjective dimensions — approach quality, fluency, craftsmanship, style
   consistency, abstraction level, documentation fit. Every such finding ends

@@ -41,7 +41,8 @@ READ first:
 PRODUCE:
   - the milestone task-plan doc — the 10-phase TDD Implementation Plan,
     Decisions, Deliverables, Success Criteria, phase checklist — same shape as
-    the previous milestones' task plans;
+    the previous milestones' task plans, and always including the Contract's
+    taste anchors (add them even if older milestones predate the taste model);
   - the milestone log — skeleton with the phase table — same shape as the
     previous logs;
   - the milestone test matrix — `<slug>-test-matrix.md`, `Role: spec`, linked

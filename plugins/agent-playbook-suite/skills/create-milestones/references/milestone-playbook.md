@@ -174,6 +174,14 @@ Selected gates:
 - When:
 - Then:
 
+### Taste anchors
+
+- Reference modules this change should read like:
+- In-project libraries to reuse:
+- Established patterns to follow (error handling, config, logging, naming):
+- Expected diff footprint:
+- Dependency policy: no new dependencies without a logged decision
+
 ### Forbidden shortcuts
 
 - Do not special-case visible examples.
@@ -297,6 +305,7 @@ decisions.
 - Hidden/generalization handling:
 - Mock audit:
 - Adequacy results:
+- Taste triage: (each review finding fixed or waived with reason; High-risk waivers operator-approved)
 
 ## TDD Phase Progress
 
