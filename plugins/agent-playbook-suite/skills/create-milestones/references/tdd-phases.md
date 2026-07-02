@@ -35,6 +35,11 @@ and mock policy.
   checks unless the contract changes and the decision is logged.
 - Do not special-case visible examples, fixture names, literals, or
   test-only branches.
+- Taste is part of the quality model (see the shared quality model's
+  Taste model): taste anchors are recorded at Phase 1, honored during
+  implementation, and every taste finding raised in review is triaged —
+  fixed, or waived with a logged reason — before the work is finalized.
+  Never dropped silently.
 - Deferred work and feedback have a single home in the project logs
   at the docs root: engineering deferrals go to `followup-log.md`,
   operator feedback and ideas to `feedback-log.md` (both created by
@@ -56,7 +61,10 @@ and mock policy.
   Matrix` sections; separate facts from assumptions; resolve or
   mark ambiguities for operator decision; identify visible test
   hooks, hidden/generalization categories, adequacy checks, and
-  mock policy.
+  mock policy; record taste anchors per the shared quality model
+  (reference modules the change should read like, in-project
+  libraries to reuse, established patterns, expected diff
+  footprint, dependency policy).
 - **Deliverables:** Behavior contract recorded; risk level assigned;
   test matrix created or linked; public inputs, outputs,
   invariants, error cases, and non-functional constraints made
@@ -67,6 +75,7 @@ and mock policy.
   - [ ] Ambiguities are resolved or marked for operator decision.
   - [ ] Public inputs, outputs, invariants, and error cases are testable.
   - [ ] Non-functional constraints are recorded or explicitly marked not applicable.
+  - [ ] Taste anchors are recorded or explicitly marked not applicable.
   - [ ] Risk level is assigned.
   - [ ] Test matrix has been created or linked.
 - **Docs touchpoints:**
@@ -173,7 +182,10 @@ and mock policy.
 - **Objective:** Make the offline / local / core implementation
   pass tests.
 - **Activities:** Implement filtering, pagination, business
-  rules; keep changes scoped.
+  rules; keep changes scoped. Implement to the Phase 1 taste
+  anchors: a dependency, hand-rolled equivalent of an in-project
+  library, or pattern the anchors do not cover is a logged
+  decision, not a silent choice.
 - **Deliverables:** Offline/core provider or module implemented;
   helpers factored.
 - **Exit:** Target tests passing in offline/core mode; no
@@ -185,7 +197,9 @@ and mock policy.
 - **Objective:** Validate inputs/outputs at the boundary (tool
   wrappers, controllers, RPC handlers).
 - **Activities:** Add request/response validation; wire
-  providers; enforce enums/ranges.
+  providers; enforce enums/ranges. Follow the taste anchors at
+  the boundary layer (error shapes, message style, validation
+  patterns already in use).
 - **Deliverables:** Wrapper updated; errors/user-facing
   messages aligned with the contract.
 - **Exit:** Lint and type checks pass; wrappers delegate to the
@@ -257,6 +271,13 @@ and mock policy.
   - Log mutation/property/fuzz/benchmark gaps as open
     `followup-log.md` entries if not run.
   - Complete the mock audit.
+  - Run the taste checklist from the shared quality model's Taste
+    model against the milestone diff; record patch bloat (diff
+    size vs. the plan's expected footprint).
+  - Triage every open taste finding: fixed, or waived with a
+    logged reason. High-risk waivers need operator approval.
+    Note recurring findings/waivers for promotion into project
+    conventions (CLAUDE.md / AGENTS.md) or future taste anchors.
   - Refactor for clarity (the `simplify` skill may help here).
   - Confirm simplification did not reduce selected test adequacy
     without explicit approval.
@@ -269,8 +290,10 @@ and mock policy.
   applicable.
 - **Exit:** Selected quality gate green; documentation current;
   adequacy results summarized; mock audit complete when relevant;
-  skipped selected deep gates have explicit approval or an open
-  `followup-log.md` entry; handoff notes written. Ready for
+  taste findings triaged (each fixed or waived with a logged
+  reason — none untriaged); skipped selected deep gates have
+  explicit approval or an open `followup-log.md` entry; handoff
+  notes written. Ready for
   `docs archive <slug>.md --cascade --reason "<reason>"`.
 - **Docs touchpoints:**
   - Append "Milestone-completion summary" sections to both

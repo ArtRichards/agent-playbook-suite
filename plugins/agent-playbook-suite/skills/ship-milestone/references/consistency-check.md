@@ -56,7 +56,14 @@ intent — list those in your return message for the operator.
 
 - New code follows the existing naming, file organization, error-handling,
   logging, and output conventions.
-- The diff contains only this milestone's work — no unrelated changes.
+- The milestone's taste anchors (when recorded) are honored: the code reads
+  like its reference modules, in-project libraries are reused, and no new
+  dependency or hand-rolled equivalent of an existing library was introduced
+  without a logged decision.
+- Abstraction level and comment/docstring density match the surrounding code.
+- The diff contains only this milestone's work — no unrelated changes. The
+  diff footprint is in line with the plan's expected scope; note outsized
+  patch bloat for the fresh-eyes reviewer rather than hiding it.
 
 ## Tests & quality
 

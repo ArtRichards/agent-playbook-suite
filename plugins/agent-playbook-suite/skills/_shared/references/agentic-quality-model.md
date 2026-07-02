@@ -112,6 +112,79 @@ Default gate set:
 - explicit approval or an open entry in the project's follow-up log
   (`followup-log.md`) for skipped deep gates selected for the milestone.
 
+## Taste model
+
+Correctness gates decide whether the work solves the problem; taste decides
+whether a senior reviewer would merge it. The reference point is not a
+universal style guide — it is the surrounding codebase and the milestone
+contract. Reward alignment with observed project practice, not imposed
+conventions.
+
+### Taste anchors (contract-time)
+
+At contract time (Phase 1), record taste anchors in the milestone doc's
+Contract:
+
+- the module(s) or area the change should read like;
+- in-project libraries expected to be reused;
+- established patterns to follow (error handling, config, logging, naming);
+- the expected rough diff footprint;
+- the dependency policy (default: no new dependencies without a logged
+  decision).
+
+Anchors make most of taste objective up front: violating an anchor is a
+contract violation and gates like any other contract clause. Mark anchors
+`not applicable` for milestones with no meaningful code surface.
+
+### Taste dimensions
+
+Solution quality, judged against the contract and the codebase:
+
+- Minimality — changes are focused on the milestone's Deliverables; no scope
+  creep.
+- Approach quality — root-cause fix for bugs, sound design for features; not
+  a symptom patch.
+- Hygiene — no shortcuts, workarounds, hardcoded values, or code smells.
+- Fluency — comfortable with the domain, frameworks, tools, and conventions
+  in use.
+- Craftsmanship — engineering effort a senior reviewer would approve.
+
+Codebase practice alignment, judged against the surrounding code:
+
+- Style consistency — formatting, naming, and structure match the neighbors.
+- Pattern adherence — uses the project's established patterns and idioms.
+- Library reuse — reuses libraries already in the project rather than
+  introducing alternatives or hand-rolled equivalents.
+- Abstraction level — the right abstraction level for this part of the
+  codebase.
+- Documentation fit — comments and docstrings match the project's style and
+  density.
+
+### Gating split
+
+Gate only what is objective; force triage of everything else.
+
+- **Gating (blocker-eligible):** taste-anchor violations; scope creep beyond
+  the milestone's Deliverables; hygiene violations (these are forbidden
+  shortcuts); library duplication without a logged decision.
+- **Must-triage (never dropped, never blocking on its own):** findings on the
+  subjective dimensions — approach quality, fluency, craftsmanship, style
+  consistency, abstraction level, documentation fit. Every such finding ends
+  in exactly one of two states: **fixed**, or **waived with a logged reason**
+  (in the implementation log or followup log). Work is not finalized while a
+  taste finding is untriaged.
+
+Waiver authority: for Lite and Standard milestones the conductor (or, in
+interactive runs, the operator at the phase boundary) may waive with a
+recorded reason. High-risk waivers require explicit operator approval.
+
+### Compounding
+
+Recurring taste findings and repeated waivers signal a missing project
+convention. Promote them into the project's agent context (CLAUDE.md /
+AGENTS.md) or into future milestones' taste anchors, so the gating surface
+grows one proven rule at a time — never faster than confidence in each rule.
+
 ## Useful metrics where available
 
 - visible_pass_rate
@@ -126,6 +199,8 @@ Default gate set:
 - security/schema/migration result
 - new mocks introduced
 - real-path tests covering mocked boundaries
+- patch bloat — diff SLOC vs. the plan's expected footprint; an outsized
+  ratio triggers a minimality look, nothing more
 
 ## Hidden-test policy
 

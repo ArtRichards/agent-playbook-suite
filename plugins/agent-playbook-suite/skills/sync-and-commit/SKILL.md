@@ -78,6 +78,11 @@ make test`):
 
 - Naming, file organization, error handling, logging, and
   output formats match existing patterns in the codebase.
+- The milestone's taste anchors (when recorded) are honored:
+  reference modules matched, in-project libraries reused, no new
+  dependency or hand-rolled equivalent without a logged decision.
+- Abstraction level and comment/docstring density match the
+  surrounding code.
 
 ### 2e. Accuracy — code vs. spec
 
@@ -189,6 +194,19 @@ Check:
 - `hidden_generalization_gap` is recorded if hidden-pass data is
   available.
 
+### Taste triage
+
+Per the shared quality model's Taste model:
+
+- If a review returned taste findings for this step, every one is recorded in
+  the implementation log's taste-triage table as **fixed** or **waived with a
+  reason**. An untriaged taste finding is a fail-closed condition — do not
+  commit past it.
+- High-risk waivers show explicit operator approval.
+- Recurring findings or repeated waivers are noted for promotion into the
+  project's agent context (CLAUDE.md / AGENTS.md) or future milestones'
+  taste anchors.
+
 ### Verification report
 
 Before committing, prepare a verification report in the operator
@@ -210,6 +228,7 @@ quality log:
 - Fuzz:
 - Benchmark/security/schema/migration:
 - Mock audit:
+- Taste triage (findings fixed/waived; untriaged = fail):
 - Contract/test matrix status:
 - Docs check:
 - Diff scope:
@@ -231,6 +250,9 @@ Stop before commit and fix or escalate on:
 - missing contract/test evidence needed to judge Standard or High-risk work;
 - unapproved skipped High-risk deep gates selected for the milestone;
 - unauthorized visible-test or selected-check weakening, deletion, or skip;
+- an untriaged taste finding from this step's review (no fixed or
+  waived-with-reason record in the taste-triage table), or a High-risk
+  taste waiver without operator approval;
 - unexplained new or expanded mocks in Standard or High-risk work.
 
 Do not proceed by weakening tests, removing hooks, or relabeling a

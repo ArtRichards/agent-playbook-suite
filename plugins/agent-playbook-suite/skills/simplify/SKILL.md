@@ -84,6 +84,14 @@ or require speculative rewrites, return with no changes and explain why.
 - Collapsing unnecessary helpers into the caller when that makes the flow easier to follow.
 - Favoring linear execution over branching where possible.
 - Using the fewest concepts needed to solve the problem cleanly.
+- Aligning with the project's observed practices: prefer libraries already in
+  the project over new dependencies or hand-rolled equivalents; converge on
+  the codebase's established idioms; match the surrounding naming, structure,
+  and comment/docstring density.
+- Addressing waived or deferred taste findings from review when a
+  behavior-preserving change fixes them — then update their taste-triage
+  entries (in the impl log) to fixed. Do not expand scope to chase findings
+  that need behavior changes; those stay waived.
 
 ## Hard constraints
 

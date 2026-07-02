@@ -121,6 +121,7 @@ ALSO produce a dedicated "QUALITY PLAN" section:
   - Fuzz targets:
   - Benchmark/security/schema/migration checks:
   - Mock policy:
+  - Taste anchors:
   - Fast PR commands:
   - Deep/nightly/release commands:
   - Human approval triggers:
@@ -134,6 +135,11 @@ Quality-plan rules:
   - Planning, documentation, handoff, and workflow checks must be explicit
     non-product checks, not default-discovered product tests, unless they
     define shipped behavior.
+  - Carry the milestone doc's taste anchors (see the shared quality model's
+    Taste model) into the QUALITY PLAN. If the milestone doc lacks them,
+    propose anchors from the codebase — reference modules the change should
+    read like, in-project libraries to reuse, established patterns, expected
+    diff footprint, dependency policy — and log the assumption.
   - If the risk level is missing from the milestone doc, infer a provisional
     level from the change type using the shared quality model. Log the
     assumption in the QUALITY PLAN when the inference is obvious; otherwise
@@ -179,7 +185,8 @@ BEFORE CODING, restate in your own words:
   - which product tests are visible implementation drivers;
   - which non-product checks are explicit workflow gates;
   - the risk level and selected gate set for this phase range;
-  - the mock policy and any real-path coverage expected for mocked boundaries.
+  - the mock policy and any real-path coverage expected for mocked boundaries;
+  - the taste anchors from the contract and QUALITY PLAN.
 
 Rules:
   - Do not inspect, request, or reconstruct hidden/private test cases.
@@ -192,6 +199,9 @@ Rules:
   - Do not weaken, skip, delete, or rewrite tests or selected explicit checks
     merely to get green. Change them only when the contract changes and the
     decision is logged.
+  - Do not introduce a new dependency, a hand-rolled equivalent of an
+    in-project library, or a pattern outside the taste anchors without
+    logging the decision.
 
 IMPLEMENT phases {phase_range} of the 10-phase TDD cycle, in order. For each:
   - Do the phase's work per the plan and the milestone doc's exit criteria.
@@ -228,12 +238,23 @@ fresh-eyes review):
 
 ```
 Fresh-eyes review of this step returned the findings below. Address every
-blocker and should-fix; nits at your discretion. Operator answers to items you
-surfaced are included. Then run the `sync-and-commit` skill to finalize this
-step (you are on milestone branch {branch}, so it may push if a remote exists).
+blocker and should-fix; non-taste nits at your discretion. Operator answers to
+items you surfaced are included.
+
+Taste findings are must-triage — never dropped. The conductor's fix/waive
+decision for each taste finding is included below. Apply the fixes, then
+record EVERY taste finding in a taste-triage table in the impl log's section
+for this step (finding | fixed/waived | reason). sync-and-commit fails closed
+on untriaged taste findings.
+
+Then run the `sync-and-commit` skill to finalize this step (you are on
+milestone branch {branch}, so it may push if a remote exists).
 
 REVIEW FINDINGS:
 {review_findings}
+
+TASTE TRIAGE DECISIONS (conductor/operator — binding):
+{taste_triage_decisions}
 
 OPERATOR ANSWERS:
 {operator_answers}
@@ -265,7 +286,11 @@ Assess:
     checks, risk-level gates, and mock justification.
   - Whether the work satisfies the milestone's Deliverables and Success
     Criteria for {phase_range}.
-  - Consistency with the codebase's existing patterns and conventions.
+  - Taste, per the shared quality model's Taste model: the solution-quality
+    and practice-alignment dimensions, judged against the milestone's taste
+    anchors and the surrounding code — not against universal conventions.
+    Include patch bloat: does the diff footprint fit the milestone's
+    expected scope?
   - Anything the builder likely rationalized or has a blind spot on.
 
 You may run the tests and quality gate to confirm state, and may use the
@@ -284,6 +309,24 @@ Each finding: what is wrong, where (file:line), and a recommended fix.
 ## NITS
 
 Each finding: what is wrong, where (file:line), and a recommended fix.
+
+## Taste
+
+Judge against the shared quality model's taste dimensions and the milestone's
+taste anchors. Route by the gating split:
+
+- Gating findings — taste-anchor violations, scope creep beyond the
+  milestone's Deliverables, hygiene violations (hardcoded values,
+  workarounds, test-keyed code), and library duplication without a logged
+  decision — report under BLOCKERS and reference them here.
+- Subjective findings — approach quality, fluency, craftsmanship, style
+  consistency, abstraction level, documentation fit — list each here with
+  file:line, the dimension, and a recommended fix. These are must-triage:
+  the conductor decides fix or waive; none may be silently dropped.
+- Patch bloat: state whether the diff size fits the milestone's expected
+  footprint, with rough numbers.
+
+If taste is sound, say so plainly.
 
 ## Test adequacy
 
@@ -335,6 +378,15 @@ Run the post-implementation simplification process — follow the project's
 `/simplify` skill exactly: establish the green baseline, reduce complexity in
 this milestone's code while preserving behavior, then prove behavior is
 preserved by re-running the same selected suite and quality gate.
+
+UNRESOLVED TASTE FINDINGS from this milestone's fresh-eyes reviews (waived or
+deferred; see the impl log's taste-triage tables):
+{unresolved_taste_findings}
+
+Address the ones a behavior-preserving change can fix — practice alignment
+(library reuse, established idioms, naming, comment/docstring density) is in
+scope for simplify — and update their taste-triage entries to fixed. Leave
+the rest waived; do not expand scope to chase them.
 
 If nothing genuinely simplifies, make NO changes — do not rewrite working code
 just to look different.

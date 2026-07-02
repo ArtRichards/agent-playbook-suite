@@ -287,9 +287,11 @@ agent pressure-tests the milestone spec as part of its job.
 2. **Spawn the simplify agent** using a fresh worker/general-purpose
    sub-agent on the strongest available model with high reasoning
    with the
-   [Simplify agent prompt](references/agent-prompts.md#simplify-agent).
-   No planning agent, no review agent — `/simplify` is
-   behavior-preserving and self-tests.
+   [Simplify agent prompt](references/agent-prompts.md#simplify-agent),
+   filling `{unresolved_taste_findings}` with the waived/deferred
+   taste findings from Steps 1–2 reviews (or "none"). No planning
+   agent, no review agent — `/simplify` is behavior-preserving and
+   self-tests.
 3. The simplify agent runs the `/simplify` process, confirms
    the selected product tests plus configured explicit checks are GREEN, and
    runs `sync-and-commit`. If nothing genuinely simplifies, it
@@ -330,6 +332,17 @@ review agent flags a finding:
   genuine requirement fork with no obvious right answer.
   Concentrate these in Step 0 and the planning stage so
   implementation runs unattended afterward.
+- **Taste findings (the review's `## Taste` section)** — must-triage,
+  never dropped. Gating taste findings (anchor violations, scope
+  creep, hygiene, library duplication — see the shared quality
+  model's Taste model) are handled as blockers. For each
+  subjective finding, the conductor decides **fix** or **waive
+  with a recorded reason**: on Lite/Standard milestones the
+  conductor waives on its own authority; on High-risk milestones
+  every waiver goes to the operator via `AskUserQuestion`. Pass
+  all decisions to the implementation agent as
+  `{taste_triage_decisions}` so the impl log's taste-triage table
+  is complete before sync-and-commit.
 
 ## Stop conditions
 
@@ -345,6 +358,9 @@ test — when:
   plan, mock policy, and selected gates before Step 2;
 - a review finding needs an operator decision (use
   `AskUserQuestion`);
+- a taste finding is left untriaged — no fixed/waived-with-reason
+  decision recorded (a High-risk waiver additionally needs
+  operator approval);
 - an agent reports a blocker it cannot resolve.
 
 ## Notes

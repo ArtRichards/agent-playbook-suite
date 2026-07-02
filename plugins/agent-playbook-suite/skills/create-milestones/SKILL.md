@@ -71,10 +71,15 @@ model before driving any milestone.**
    with the user; never batch. After each phase: append to the
    impl log, tick the checklist, `docs touch`, `docs check`,
    confirm before proceeding.
-6. **Risk and adequacy are first-class.** Every milestone doc
-   records `Risk Level`, a behavior `Contract`, `Test Strategy
-   For This Milestone`, and a linked `Test Matrix`. Use the
-   shared quality model to decide Lite / Standard / High gates.
+6. **Risk, adequacy, and taste are first-class.** Every milestone
+   doc records `Risk Level`, a behavior `Contract` (including
+   taste anchors per the shared quality model's Taste model),
+   `Test Strategy For This Milestone`, and a linked `Test
+   Matrix`. Use the shared quality model to decide Lite /
+   Standard / High gates. Taste findings raised in review are
+   must-triage — fixed or waived with a logged reason, never
+   dropped. In interactive runs there is no conductor, so taste
+   waivers fall to the operator at the phase boundary.
 7. **High-risk RED checkpoint.** For High-risk milestones,
    stop after Phase 4's RED baseline and ask for operator
    approval before implementation continues, unless a project
@@ -147,6 +152,10 @@ When Phase 10 is done:
 - [ ] Adequacy results summarized, including hidden-generalization
       gap when available and explicit follow-ups for skipped deep
       gates.
+- [ ] Taste findings triaged: each fixed or waived with a logged
+      reason (High-risk waivers operator-approved); recurring
+      findings/waivers noted for promotion into CLAUDE.md /
+      AGENTS.md conventions or future taste anchors.
 - [ ] Selected quality gate green: configured project commands +
       `docs check`.
 - [ ] `docs archive <slug>.md --reason "Milestone <M<N>>

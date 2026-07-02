@@ -3,7 +3,7 @@
 Lifecycle: active
 Role: guide
 Project: agent-playbook-suite
-Updated: 2026-06-12
+Updated: 2026-07-02
 
 This guide explains a public workflow built from six workflow skills and the
 supporting `docs` skill, distributed as one suite plugin for Codex and Claude
@@ -213,6 +213,15 @@ Standard work adds hidden/generalization smoke, property or stateful checks
 where applicable, and explicit mock review. High-risk work adds stronger gates
 such as mutation, security/schema/migration, benchmark, rollback, and
 fresh-eyes review checks, with operator approval after the RED baseline.
+
+Taste is part of the same model. A milestone's contract records taste anchors
+— the modules the change should read like, the in-project libraries to reuse,
+the patterns to follow, and the expected diff footprint — so most taste
+failures gate as ordinary contract violations rather than reviewer opinions.
+Subjective review findings (craftsmanship, abstraction level, documentation
+fit) never block on their own, but they cannot be dropped either: each one
+must be fixed or waived with a logged reason before the step is committed,
+and recurring waivers get promoted into project conventions.
 
 The point is not more process for its own sake. The artifact trail should show
 what was tested, what was intentionally not tested, and why the selected gate
