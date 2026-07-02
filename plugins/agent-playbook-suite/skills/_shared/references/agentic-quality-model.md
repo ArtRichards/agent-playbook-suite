@@ -186,6 +186,65 @@ convention. Promote them into the project's agent context (CLAUDE.md /
 AGENTS.md) or into future milestones' taste anchors, so the gating surface
 grows one proven rule at a time — never faster than confidence in each rule.
 
+## Demand-driven chains
+
+Chained steps — phases within a milestone, milestones within a plan —
+overproduce by default: each step guesses generously at what downstream will
+need, tests entrench the guesses, and fresh agents inherit them as apparent
+contract. The counter-principle is information liveness: every output a step
+produces must trace forward to a consumer.
+
+### The liveness rule
+
+- Every produced output — return value, field, parameter, threaded context,
+  doc section — names its consumer: a downstream step, a contract clause, an
+  observable behavior, or an explicit audit need.
+- A public output that is neither named in the contract nor asserted by a
+  visible test is speculative.
+- Speculative outputs are permitted only as logged decisions naming the
+  intended future consumer, each with a matching entry in `followup-log.md`
+  (the speculative ledger). An unlogged speculative output is a minimality
+  finding and routes through taste triage.
+
+### Record the demand, not the implementation
+
+When work reveals a future need outside the current scope, record it — a
+line in the milestone plan or the followup log — instead of building surface
+for it. A recorded need is cheap, revisable, and re-evaluated when its
+milestone is planned; built-ahead surface is test-entrenched and, at every
+milestone boundary, laundered into apparent contract that fresh agents
+preserve without question.
+
+### Within a milestone
+
+- Phase 5 designs interfaces pull-style: derived backward from the
+  milestone's Deliverables and the phase-2 tests, with each intermediate
+  output naming its downstream consumer.
+- Phase 9 — the first end-to-end run — walks the chain backward from the
+  observable outputs and flags anything produced but never consumed.
+- Review checks the inverse of completeness: everything demanded is present,
+  and everything present is demanded (traceable to a contract clause, a
+  visible test, or a ledger entry).
+- Simplify removes dead information flow. When a dead output is contractual,
+  simplify surfaces a contract-change proposal instead of removing it
+  unilaterally.
+
+### Between milestones
+
+- Milestone deliverables name their consumer: the end user, or a specific
+  later milestone. Prefer vertical slices whose outputs are consumed
+  immediately; a milestone whose deliverables are only surface for later
+  milestones is an exception that needs explicit justification.
+- At each milestone's planning, check ledger entries naming that milestone
+  as consumer: entries the work consumes are closed; entries it does not
+  consume are challenged.
+- When the milestone plan changes (insertion, re-scope, drop), sweep the
+  ledger: entries whose named consumer vanished are dead, and removing that
+  surface becomes an explicit task rather than invisible rot.
+- At milestone completion, run the boundary sweep: every speculative output
+  left behind gets a ledger entry or is removed now, while it is still known
+  to be speculation — after archive it is indistinguishable from contract.
+
 ## Useful metrics where available
 
 - visible_pass_rate

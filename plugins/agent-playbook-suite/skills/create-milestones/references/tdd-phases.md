@@ -40,6 +40,12 @@ and mock policy.
   implementation, and every taste finding raised in review is triaged —
   fixed, or waived with a logged reason — before the work is finalized.
   Never dropped silently.
+- Record the demand, not the implementation (see the shared quality
+  model's Demand-driven chains): when work reveals a future need outside
+  the milestone's Deliverables, record it in the milestone plan or
+  `followup-log.md` — do not build surface for it. A public output
+  neither named in the contract nor asserted by a visible test is
+  speculative and needs a logged decision plus a ledger entry.
 - Deferred work and feedback have a single home in the project logs
   at the docs root: engineering deferrals go to `followup-log.md`,
   operator feedback and ideas to `feedback-log.md` (both created by
@@ -168,11 +174,17 @@ and mock policy.
 - **Objective:** Adjust shared interfaces / base classes for new
   parameters or behaviours.
 - **Activities:** Add method signatures, shared utilities,
-  validation hooks.
+  validation hooks. Design pull-style: derive interfaces backward
+  from the milestone's Deliverables and the Phase 2 tests, not
+  forward from guesses about what later phases might want. Each
+  intermediate output (return field, parameter, threaded context)
+  names its downstream consumer; anything speculative is a logged
+  decision with a `followup-log.md` ledger entry naming the
+  intended future consumer.
 - **Deliverables:** Updated base modules; minimal logic, just
   the scaffolding to support later phases.
 - **Exit:** Type checks pass; downstream components can import
-  the new interfaces.
+  the new interfaces; no unlogged speculative surface.
 - **Docs touchpoints:** standard per-phase set above. If a
   decision was made here (e.g., a base-class API choice), append
   an entry to `decision-log.md` and `docs touch` it.
@@ -243,7 +255,13 @@ and mock policy.
   UI browser checks, CLI dogfooding, benchmark validation,
   migration rehearsal, realistic fixture runs, or manual
   exploratory acceptance. Add online / remote paths only when the
-  milestone actually owns them.
+  milestone actually owns them. This is the first time the whole
+  chain runs end to end, so also run the liveness walk: trace
+  backward from the observable outputs and flag anything the
+  chain produces but never consumes — return fields no caller
+  reads, parameters always passed the same value, threaded
+  context nobody uses. Each flag is fixed, or recorded as a
+  minimality finding for taste triage / the simplify pass.
 - **Deliverables:** Integration or acceptance results; realistic
   fixture metrics; benchmark or migration evidence where relevant;
   clear TODOs for blocked external dependencies.
@@ -278,6 +296,12 @@ and mock policy.
     logged reason. High-risk waivers need operator approval.
     Note recurring findings/waivers for promotion into project
     conventions (CLAUDE.md / AGENTS.md) or future taste anchors.
+  - Run the boundary sweep from the shared quality model's
+    Demand-driven chains: every speculative output this milestone
+    leaves behind gets a `followup-log.md` ledger entry naming its
+    intended consumer, or is removed now; ledger entries naming
+    THIS milestone as consumer are closed (consumed) or challenged
+    (the reserved surface went unused — remove it or re-justify).
   - Refactor for clarity (the `simplify` skill may help here).
   - Confirm simplification did not reduce selected test adequacy
     without explicit approval.
@@ -291,9 +315,10 @@ and mock policy.
 - **Exit:** Selected quality gate green; documentation current;
   adequacy results summarized; mock audit complete when relevant;
   taste findings triaged (each fixed or waived with a logged
-  reason — none untriaged); skipped selected deep gates have
-  explicit approval or an open `followup-log.md` entry; handoff
-  notes written. Ready for
+  reason — none untriaged); boundary sweep complete (speculative
+  outputs ledgered or removed; inbound ledger entries closed or
+  challenged); skipped selected deep gates have explicit approval
+  or an open `followup-log.md` entry; handoff notes written. Ready for
   `docs archive <slug>.md --cascade --reason "<reason>"`.
 - **Docs touchpoints:**
   - Append "Milestone-completion summary" sections to both

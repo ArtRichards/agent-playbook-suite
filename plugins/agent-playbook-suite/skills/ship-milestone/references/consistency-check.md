@@ -61,6 +61,11 @@ intent — list those in your return message for the operator.
   dependency or hand-rolled equivalent of an existing library was introduced
   without a logged decision.
 - Abstraction level and comment/docstring density match the surrounding code.
+- Liveness (shared quality model, Demand-driven chains): every new public
+  output traces to a contract clause, a visible test, or a logged decision
+  with a `followup-log.md` ledger entry naming its intended consumer. Flag
+  produced-but-unconsumed values — return fields no caller reads, parameters
+  always passed the same value, threaded context nobody uses.
 - The diff contains only this milestone's work — no unrelated changes. The
   diff footprint is in line with the plan's expected scope; note outsized
   patch bloat for the fresh-eyes reviewer rather than hiding it.

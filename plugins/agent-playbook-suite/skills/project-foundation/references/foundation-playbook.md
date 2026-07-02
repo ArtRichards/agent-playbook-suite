@@ -232,7 +232,15 @@ Ask:
 Author `docs new plan milestone-plan` with body sections:
 **Sequencing** (ASCII flow diagram if useful), **Milestones**
 (one H3 per milestone — `### M1 — <title>`, with goal +
-dependencies + demo checkpoint), **Buffer notes**.
+dependencies + demo checkpoint + consumer), **Buffer notes**.
+
+Decompose demand-driven (see the shared quality model's
+Demand-driven chains): each milestone's deliverables name their
+consumer — the end user, or a specific later milestone. Prefer
+vertical slices whose outputs are consumed immediately over
+horizontal layers ("M1: all the models, M2: all the services");
+a milestone that delivers only surface for later milestones is
+an exception that needs explicit justification in the plan.
 
 Add `Related: implements: charter.md`,
 `Related: pairs-with: architecture.md`. Per-milestone task

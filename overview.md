@@ -223,6 +223,17 @@ fit) never block on their own, but they cannot be dropped either: each one
 must be fixed or waived with a logged reason before the step is committed,
 and recurring waivers get promoted into project conventions.
 
+The model also checks chains for dead information flow. Steps in a chain —
+phases within a milestone, milestones within a plan — tend to overproduce:
+generous return values and anticipatory surface that nothing downstream ever
+consumes. The suite counters this with a liveness rule (every public output
+traces to a contract clause, a visible test, or a logged decision), pull-style
+interface design derived backward from the deliverables, a liveness walk at
+integration time, and a speculative ledger in the follow-up log: future needs
+get recorded as plan entries instead of built as code, and reserved surface is
+re-checked — consumed, or removed — when its target milestone is planned,
+re-scoped, or dropped.
+
 The point is not more process for its own sake. The artifact trail should show
 what was tested, what was intentionally not tested, and why the selected gate
 matches the risk.

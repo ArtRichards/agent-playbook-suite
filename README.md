@@ -35,7 +35,11 @@ The suite treats tests as more than RED/GREEN examples. Each milestone records:
 - mock audit notes and real-path coverage expectations;
 - taste anchors (reference modules, in-project libraries to reuse, patterns,
   expected diff footprint), with review taste findings triaged — fixed or
-  waived with a logged reason — before a step is committed.
+  waived with a logged reason — before a step is committed;
+- a liveness rule for chained work: every public output traces to a contract
+  clause, a visible test, or a logged decision, and speculative
+  built-for-later surface lives in a followup-log ledger that is re-checked
+  when its consuming milestone is planned, re-scoped, or dropped.
 
 This keeps the resumable artifact trail while reducing the chance that an
 implementation agent optimizes for visible tests instead of intended behavior.

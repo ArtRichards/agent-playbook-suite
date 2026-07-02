@@ -88,6 +88,14 @@ or require speculative rewrites, return with no changes and explain why.
   the project over new dependencies or hand-rolled equivalents; converge on
   the codebase's established idioms; match the surrounding naming, structure,
   and comment/docstring density.
+- Removing dead information flow: return fields no caller reads, parameters
+  always passed the same value, threaded context nobody consumes, results
+  computed and then dropped. When the dead output is part of the contract
+  (or asserted by a visible test), do NOT remove it unilaterally — surface a
+  contract-change proposal instead; removal goes through the "contract
+  changed and the decision is logged" path. Dead outputs covered by a
+  speculative-ledger entry in `followup-log.md` stay: their consumer is a
+  named future milestone.
 - Addressing waived or deferred taste findings from review when a
   behavior-preserving change fixes them — then update their taste-triage
   entries (in the impl log) to fixed. Do not expand scope to chase findings

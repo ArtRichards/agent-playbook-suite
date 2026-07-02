@@ -156,6 +156,10 @@ When Phase 10 is done:
       reason (High-risk waivers operator-approved); recurring
       findings/waivers noted for promotion into CLAUDE.md /
       AGENTS.md conventions or future taste anchors.
+- [ ] Boundary sweep done: speculative outputs this milestone
+      leaves behind are ledgered in `followup-log.md` (with named
+      consumer) or removed; inbound ledger entries naming this
+      milestone as consumer are closed or challenged.
 - [ ] Selected quality gate green: configured project commands +
       `docs check`.
 - [ ] `docs archive <slug>.md --reason "Milestone <M<N>>

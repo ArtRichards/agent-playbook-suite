@@ -103,13 +103,24 @@ READ, in order:
   4. {milestone_log} — the per-phase log; shows what is already done.
   5. The pinned specs the milestone references, plus status.md and
      milestone-plan.md.
-  6. The current code and tests on branch {branch}.
+  6. `followup-log.md` at the docs root — especially speculative-ledger
+     entries naming this milestone as consumer (surface an earlier milestone
+     reserved "for" this one): plan to consume and close them, or challenge
+     them as removal candidates.
+  7. The current code and tests on branch {branch}.
 {resume_note}
 PRODUCE a concrete, code-level implementation plan for {phase_range} of the
 10-phase TDD cycle. For each phase: what to implement/change, in which files,
 the exact function/type signatures, the exit criteria, and how to verify it.
 Reference existing functions/utilities to reuse, with file:line paths — do not
 propose new code where suitable code already exists.
+
+Plan interfaces pull-style (shared quality model, Demand-driven chains):
+derive them backward from the milestone's Deliverables and the phase-2 tests,
+and name the downstream consumer of each intermediate output. Do not plan
+surface for future milestones — record the future need in the plan or
+followup log instead. Mark any genuinely speculative output as an explicit
+decision needing a ledger entry.
 
 ALSO produce a dedicated "QUALITY PLAN" section:
   - Risk level:
@@ -203,6 +214,11 @@ Rules:
   - Do not introduce a new dependency, a hand-rolled equivalent of an
     in-project library, or a pattern outside the taste anchors without
     logging the decision.
+  - Record the demand, not the implementation: when you notice a future need
+    outside this milestone's Deliverables, record it in `followup-log.md` —
+    do not build surface for it. A public output neither named in the
+    contract nor asserted by a visible test is speculative and needs a
+    logged decision plus a ledger entry naming its intended consumer.
 
 IMPLEMENT phases {phase_range} of the 10-phase TDD cycle, in order. For each:
   - Do the phase's work per the plan and the milestone doc's exit criteria.
@@ -292,6 +308,12 @@ Assess:
     anchors and the surrounding code — not against universal conventions.
     Include patch bloat: does the diff footprint fit the milestone's
     expected scope?
+  - Liveness, per the shared quality model's Demand-driven chains — the
+    inverse of completeness: is everything present demanded? Trace each new
+    public output to a contract clause, a visible test, or a logged
+    decision with a ledger entry. Untraceable outputs (return fields no
+    caller reads, parameters always passed the same value, threaded context
+    nobody consumes) are minimality findings for the Taste section.
   - Anything the builder likely rationalized or has a blind spot on.
 
 You may run the tests and quality gate to confirm state, and may use the

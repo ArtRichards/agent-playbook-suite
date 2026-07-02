@@ -67,6 +67,12 @@ is execution order.
 - When inserting, confirm the proposed id with the operator
   before authoring docs for it, and record the insertion in
   `milestone-plan.md` so plan order stays explicit.
+- **Any plan change — insertion, re-scope, or drop — sweeps the
+  speculative ledger.** Check `followup-log.md` for entries whose
+  named consuming milestone this change re-scopes or removes:
+  those entries' reserved surface is now dead — removing it
+  becomes an explicit task (or the entry is re-justified against
+  a new consumer), never silent rot.
 
 **Sweep the project logs before authoring.** Read
 `followup-log.md` and `feedback-log.md` at the docs root for open
@@ -75,6 +81,13 @@ on, move its content into the milestone doc (contract, test
 hooks, or deliverables as appropriate) and remove the entry from
 the log — the logs hold open items only, and an incorporated item
 needs no log mention.
+
+In the same sweep, check speculative-ledger entries naming this
+milestone as consumer (surface an earlier milestone built or
+reserved "for" this one): if the milestone's work will consume the
+surface, plan for it and close the entry at completion; if not,
+challenge it — the reserved surface is a removal candidate, not a
+default to build on.
 
 Confirm the slug and initial Risk Level (Lite / Standard / High)
 with the user before authoring. Propose the level with one-line
@@ -232,8 +245,12 @@ Link: [<slug>-test-matrix.md](<slug>-test-matrix.md)
 
 ## Deliverables
 
-- [ ] Schemas/contracts
-- [ ] Implementation
+Each deliverable names its consumer — the end user, or a specific later
+milestone. A deliverable that is only surface for later milestones needs
+explicit justification (see the shared quality model's Demand-driven chains).
+
+- [ ] Schemas/contracts — consumer:
+- [ ] Implementation — consumer:
 - [ ] Tests (RED → GREEN)
 - [ ] Data/fixtures
 - [ ] Documentation updates
