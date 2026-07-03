@@ -3,7 +3,7 @@
 Lifecycle: active
 Role: spec
 Project: docs
-Updated: 2026-06-12
+Updated: 2026-07-02
 
 Related:
 - pairs-with: convention.md
@@ -781,6 +781,15 @@ Flags:
 - `--force` — overwrite a non-identical existing destination.
 - `--quiet` — suppress success messages on stderr.
 
+Destination resolution. `--dest` is the single, agent-agnostic source of
+truth for where the skill lands — there is no agent auto-detection and no
+per-agent default map. When `--dest` is **omitted**, resolution is
+TTY-aware: on an interactive TTY the command **may** prompt for the
+destination, offering `~/.claude/skills/docs/` as the default (an empty
+response accepts the default); on a non-TTY (an agent), it **never** blocks
+on a prompt — it silently uses the default `~/.claude/skills/docs/` and
+exits 0. Passing `--dest` explicitly skips the prompt entirely.
+
 Idempotency. If `<dest>` already exists and every bundled file matches
 byte-for-byte, `install-skill` prints a no-op message and exits 0
 without writing.
@@ -790,6 +799,18 @@ and `--force` was not supplied — the existing tree is preserved
 unchanged in this case; or (b) `--symlink` was requested from a wheel
 install. In both cases the message describes the recovery path
 (`--force`, `--dest <DIR>`, or an editable install).
+
+Recorded destination. On any **successful** run — a copy, a symlink, or an
+already-identical no-op (all exit 0) — the resolved destination path is
+recorded to a small per-user state file at
+`${XDG_STATE_HOME:-~/.local/state}/docs-cli/install-skill.json` with the
+schema `{"dest": "<absolute-path>"}`. Only the **path** is recorded — never
+the skill's content, never a hash or a diff. Writes are **last-write-wins**
+and **fail-silent**: an unwritable or uncreatable state directory-or-file
+never changes the exit code or the command's output. A **refusal** (exit 2)
+records nothing. The recorded path is later **replayed verbatim** by the
+update-check skill-refresh hint (see [Update check](#update-check)) — it is
+never inspected, stat-ed, or diffed.
 
 Windows note. `--symlink` may require developer-mode or elevated
 privileges depending on the user's Windows-side configuration; the
@@ -1109,6 +1130,124 @@ total excluded count per top-level dir prefix
 - `--json` switches stdout to machine-readable; stderr unaffected.
 - Color is off when stdout is not a TTY.
 - All timestamps use the docs root's configured `[archive] date_format` (default `%Y-%m-%d`).
+- A best-effort PyPI update-check may emit one advisory line to stderr; it
+  never touches stdout and never changes the exit code (see
+  [Update check](#update-check)).
+
+## Update check
+
+`docs` performs a best-effort check for a newer `docs-cli` release on PyPI and,
+when one exists, emits a single advisory line nudging the user — or the agent
+driving the CLI — to update. This is the tool's first and only network surface;
+it is **fail-silent always** and **never** alters output or exit codes. The
+check runs **after** the command dispatch returns, so it never runs for
+`--version` or `-h` / `--help` (those exit inside argument parsing, before the
+hook is reached).
+
+**The notice.** When a strictly-newer released version is found, `docs` writes
+**one** line to **STDERR**, as the command's **last** stderr line (after the
+command's own stderr), newline-terminated, **at most once per 24h**:
+
+```
+docs: update available <current> -> <latest> — run: pip install -U docs-cli
+```
+
+(an em-dash `—` between `<latest>` and `run:`, an ASCII `->` between the two
+versions). A concrete example:
+
+```
+docs: update available 1.7.0 -> 1.7.1 — run: pip install -U docs-cli
+```
+
+The notice **never** appears on stdout and **never** changes the exit code —
+the `main()` hook returns the command's own exit code untouched (exit codes are
+a load-bearing contract; see *Exit codes (summary)*).
+
+**Network + cache.** The check performs one HTTPS GET to
+`https://pypi.org/pypi/docs-cli/json` (stdlib `urllib` only — no third-party
+dependency — with a **1.0s** timeout) and compares the response's
+`info.version` against the running `__version__` (the `importlib.metadata`
+source of truth). State is persisted to a per-user cache at
+`${XDG_CACHE_HOME:-~/.cache}/docs-cli/update-check.json` with **exactly three
+keys**:
+
+| Key | Type | Meaning |
+|---|---|---|
+| `last_check` | ISO-8601 UTC timestamp | When the network was last consulted — gates the network. |
+| `latest_version` | string | The most recent PyPI version seen. |
+| `last_notified` | ISO-8601 UTC timestamp | When a notice was last emitted — gates the notice. |
+
+Two **independent 24h throttles** gate the two effects: `last_check` gates the
+**network** (at most one GET per 24h), and `last_notified` gates the **notice**
+(at most one line per 24h). `last_notified` advances **only when a notice is
+actually emitted** — a run that warms the cache but suppresses the notice (see
+the suppression matrix) advances `last_check` but **not** `last_notified`.
+
+**Version comparison.** The comparison is a stdlib **numeric tuple-compare** on
+the dot-split release segments (no `packaging` dependency — the zero-dependency
+wheel is preserved), so `1.9.0` < `1.10.0` numerically (not lexically). It
+**fails closed** — emits no notice — whenever either side is a pre-release, a
+local version (e.g. the `0.0.0+local` fallback of an uninstalled checkout), or
+otherwise unparseable. Only a **strictly-greater released** version notifies.
+
+**Fail-silent.** Every error path degrades to **no notice, no traceback, and
+byte-identical output and exit code** vs the same invocation today: offline /
+DNS failure / timeout / non-200 response / malformed JSON / an unparseable
+version on either side / a corrupt or malformed cache file / an unwritable or
+uncreatable cache directory-or-file. The check never raises out of `main()`.
+
+**Non-TTY inversion.** Unlike `gh` / `npm` (which gate the notice on an
+interactive TTY), `docs` **shows the notice on non-TTY too**. The primary
+consumer is an agent that runs non-interactively and is itself the actor who
+performs the update (`pip install -U docs-cli`); gating on TTY would hide the
+nudge from the one consumer who can act on it. The stream-safety the TTY rule
+normally buys is instead bought by emitting only to **STDERR**, by **`--json`
+suppression** (so stdout stays byte-clean), and by the **env opt-outs** below —
+not by a TTY gate.
+
+**Suppression matrix.** Each row suppresses the notice; the rows marked *check
+too* additionally **skip the network call entirely**:
+
+| Trigger | Notice | Network | Notes |
+|---|---|---|---|
+| `--quiet` | suppressed | **still runs** (warms the cache) | only the notice is silenced |
+| `--json` (any verb in JSON mode) | suppressed | **still runs** (warms the cache) | stdout stays byte-clean JSON |
+| `CI` env set (any value) | suppressed | skipped *(check too)* | never nag in CI (npm / gh precedent) |
+| `DOCS_CLI_NO_UPDATE_CHECK` env set | suppressed | skipped *(check too)* | the project kill switch |
+| `DO_NOT_TRACK` env set | suppressed | skipped *(check too)* | the cross-tool convention (consoledonottrack.com) |
+
+`--quiet` and `--json` suppress **only** the notice and **still warm the cache**
+(advancing `last_check`, never `last_notified`); `CI`,
+`DOCS_CLI_NO_UPDATE_CHECK`, and `DO_NOT_TRACK` disable the feature outright (no
+network, no notice).
+
+A user-level **config opt-out is NOT part of v1.7.0** — the two env vars plus
+the `CI` skip cover every realistic per-user opt-out (OQ-5/5a). When a future
+milestone adds one it will be a user-level
+`${XDG_CONFIG_HOME:-~/.config}/docs-cli/config.toml`, never `.docs.toml`
+(which is per-tree, while this check is per-user).
+
+**Skill-refresh hint.** When a skill destination has been **recorded** by a
+prior `install-skill` run (see the [`install-skill`](#docs-install-skill---dest-dir---copy--symlink---force---quiet)
+recorded-destination note) **and** the CLI update notice above fires, a
+**second** STDERR line is appended immediately **after** the CLI line,
+pointing at the recorded destination:
+
+```
+docs: refresh the agent skill at <dest> — run: docs install-skill --dest <dest> --force
+```
+
+(an em-dash `—` before `run:`, parallel to the CLI notice; `--force` is
+included because a bundled-skill bump makes the installed copy differ, so a
+forceless re-run would refuse.) The hint rides the CLI notice's **exact**
+channel — the **same** suppression matrix and the **same** 24h
+`last_notified` throttle. It has **no independent trigger or throttle**: it
+is appended **only** when the CLI notice actually prints, and is silenced by
+every row of the suppression matrix along with the CLI line. The recorded
+path is replayed **verbatim** — there is **no** filesystem or existence
+check on it (record/replay a path; never inspect the installed skill). When
+**no** destination has been recorded, only the CLI line is emitted (the M21
+behaviour is unchanged).
 
 ## Exit codes (summary)
 

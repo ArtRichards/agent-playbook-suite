@@ -42,6 +42,16 @@ If no `.docs.toml` exists up-tree, `docs` silently falls back to the
 current directory as the implicit root. That cwd-fallback is convenient
 but easy to misuse — confirm with the user before any verb that writes.
 
+**Where to put `.docs.toml`.** A *project* is metadata (the `Project:`
+slug), **not a directory** — one root can hold many projects, and a
+single project needs no subdirectory. Put `.docs.toml` at the directory
+that will hold the docs so the root *is* the project: docs sit flat and
+the root-relative `Related:` paths stay clean. Don't create a parent
+root and nest a lone project one level down — every sibling reference
+then carries a **redundant** `<subdir>/` prefix. Group genuinely
+separate bodies of work by `Project:` metadata, not by folder. See
+[`references/convention.md`](references/convention.md) "Where to put".
+
 ## The verbs
 
 | Task | Verb | Key flags / behaviour |
@@ -97,6 +107,16 @@ before creating a quality log or report companion.
 Important: `docs check` proves the docs tree is mechanically clean. It does
 not prove behavior is correct, visible tests are adequate, hidden/
 generalization coverage exists, or risk gates passed.
+
+## Update notices
+
+`docs` checks PyPI at most once a day and, when a newer `docs-cli` release is
+available, prints **one** advisory line to **stderr** —
+`docs: update available <current> -> <latest> — run: pip install -U docs-cli`.
+It never touches stdout and never changes the exit code, so it is safe to leave
+on in scripts. To silence it: `--quiet` or `--json` suppress the line, and
+setting `CI`, `DOCS_CLI_NO_UPDATE_CHECK`, or `DO_NOT_TRACK` (any value) disables
+the check entirely. See [`references/cli.md`](references/cli.md) "Update check".
 
 ## Three things never to hand-edit
 
