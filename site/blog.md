@@ -58,10 +58,11 @@ The failures I hit running Claude Code on long projects were never about code ge
 
 The suite's bet is simple: anything that lives only in chat is lost when the session ends. So every decision, plan, phase result, and open question is forced into the docs tree as it happens. Resuming a project means reading three files — `status.md`, the current milestone doc, the implementation log — not scrolling transcripts. I built docs-cli itself this way; the full milestone trail is public in [its `docs/` directory](https://github.com/ArtRichards/docs-cli/tree/main/docs).
 
-Two more reasons the structure earns its keep:
+Three more reasons the structure earns its keep:
 
 - **Independent review.** `ship-milestone`'s review agents are spawned fresh, with nothing but the docs and the diff. A reviewer that did not write the code cannot rationalize it — and if it cannot reconstruct the change from what is on disk, that itself is a finding.
-- **Tests that check intent, not implementation.** Agent-written tests drift toward whatever is easiest to assert. The suite's quality model pushes the other way: tests focus on the primary use cases, prefer the least constraining check that gives real confidence, and never freeze incidental representation — no byte-exact goldens unless the bytes are the contract. Risk level decides how much validation runs beyond that.
+- **Tests with taste, not just tests.** Agent-written tests drift toward whatever is easiest to assert, which is usually the current implementation. The suite's quality model names this and pushes back. In Kent Beck's test-desiderata terms it wants tests that are behavioral and structure-insensitive: sensitive to changes in behavior, unmoved by refactors that keep behavior fixed. So it treats an overconstrained test — a byte-exact golden, an exhaustive snapshot, a change-detector that mirrors the code — as a defect to flag, exactly like an underconstrained one. The rule is to prefer the least constraining check that still gives real confidence, anchor those checks to the primary use cases, and never freeze incidental representation unless the exact bytes are the contract. Risk level decides how much validation runs beyond that.
+- **No dead artifacts.** Every doc, log, and phase output is supposed to have a live downstream consumer — a demand-driven chain the suite calls information liveness. A milestone contract feeds the test matrix; the status file feeds the next session; a decision note feeds the reviewer. An artifact nobody reads is not neutral, it is a smell: either it is missing a consumer or it should not exist. This is the same discipline that makes a week-later handoff cheap, applied to the docs themselves.
 
 ## What it costs
 

@@ -1,5 +1,5 @@
 <!-- docs:generated start -->
-_Generated 2026-07-02. 12 docs active, 0 archived._
+_Generated 2026-07-03. 12 docs active, 0 archived._
 
 ## Project — agent-playbook-suite
 
@@ -22,8 +22,8 @@ _Generated 2026-07-02. 12 docs active, 0 archived._
 
 ### Active — Notes
 
+- [blog-post.md](blog-post.md) — _notes_ — [Agent Playbook Suite](https://github.com/ArtRichards/agent-playbook-suite) is one plugin for Claude Code and Codex…. Updated 2026-07-03.
 - [CLAUDE.md](CLAUDE.md) — _notes_ — This project produces public documentation and marketplace package metadata for Agent Playbook Suite: one suite plugin…. Updated 2026-06-12.
-- [blog-post.md](blog-post.md) — _notes_ — [Agent Playbook Suite](https://github.com/ArtRichards/agent-playbook-suite) is one plugin for Claude Code and Codex…. Updated 2026-06-12.
 - [AGENTS.md](AGENTS.md) — _notes_ — This project produces public documentation and marketplace package metadata for Agent Playbook Suite: one suite plugin…. Updated 2026-06-02.
 - [briefing.md](briefing.md) — _notes_ — Five workflow skills plus the `docs` skill, published 2026-05-25 under [ArtRichards](https://github.com/ArtRichards),…. Updated 2026-06-02.
 
