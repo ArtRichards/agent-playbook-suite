@@ -13,8 +13,8 @@ _Generated 2026-07-03. 12 docs active, 0 archived._
 
 ### Active — Guide
 
+- [overview.md](overview.md) — _guide_ — This guide explains a public workflow built from six workflow skills and the supporting `docs` skill, distributed as…. Updated 2026-07-03.
 - [README.md](README.md) — _guide_ — Agent Playbook Suite is a single marketplace-distributed plugin for agent workflow skills. It packages the…. Updated 2026-07-02.
-- [overview.md](overview.md) — _guide_ — This guide explains a public workflow built from six workflow skills and the supporting `docs` skill, distributed as…. Updated 2026-07-02.
 - [marketplace-publishing-guide.md](marketplace-publishing-guide.md) — _guide_ — This guide is the maintainer checklist for publishing Agent Playbook Suite as one plugin marketplace package for Codex…. Updated 2026-06-12.
 - [docs/README.md](docs/README.md) — _guide_ — This directory holds internal project-management documentation for Agent Playbook Suite. Keep public entry points at…. Updated 2026-06-08.
 - [GITHUB-PAGES-PUBLISHING-GUIDE.md](GITHUB-PAGES-PUBLISHING-GUIDE.md) — _guide_ — This guide describes how to turn this folder into the public `agent-playbook-suite` GitHub repository and publish a…. Updated 2026-05-25.

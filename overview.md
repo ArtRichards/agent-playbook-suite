@@ -3,7 +3,7 @@
 Lifecycle: active
 Role: guide
 Project: agent-playbook-suite
-Updated: 2026-07-02
+Updated: 2026-07-03
 
 This guide explains a public workflow built from six workflow skills and the
 supporting `docs` skill, distributed as one suite plugin for Codex and Claude
@@ -118,8 +118,9 @@ behavior differ, but the operating model still works if the agent can read the
 same repo, project instruction file, docs tree, and commands.
 
 Always use the newest PyPI `docs-cli` release; recent releases add `Lifecycle:`
-metadata, agent-friendly authoring via `docs new --body-from`, and the newer
-adoption-workflow helpers. The suite plugin includes the `docs` skill, and that
+metadata, agent-friendly authoring via `docs new --body-from`, the newer
+adoption-workflow helpers, and a once-daily, fail-silent notice when a newer
+`docs-cli` has been published so you know when to upgrade. The suite plugin includes the `docs` skill, and that
 bundled skill is generated from `docs-cli` itself and kept in lockstep with the
 newest release, so the skill instructions always match the `docs` command they
 call. There is no separate older version floor to track. Run
