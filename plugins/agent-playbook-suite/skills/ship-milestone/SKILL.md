@@ -31,6 +31,8 @@ Companion skills (sub-agents invoke them by name):
 - `create-milestones` — read by Step 0's milestone-creation agent
   for conventions when scaffolding a missing task plan, implementation
   log, and test matrix.
+- `explore` — invoked conditionally for a clearly uncertain or genuinely novel
+  technical route, and for evidence-backed recovery from an invalidated route.
 - `docs` (the docs-cli skill) — used by every sub-agent for doc
   lifecycle and validation.
 - `sync-and-commit` — called by each implementation agent at the
@@ -54,7 +56,7 @@ This SKILL.md is intentionally short. The substance lives in:
   — the same-instance audit each implementation agent runs after
   the last phase of its step.
 - [`../_shared/references/agentic-quality-model.md`](../_shared/references/agentic-quality-model.md)
-  — the shared risk-aware quality model used by planning,
+  — the shared risk and solution-uncertainty model used by planning,
   implementation, review, and consistency checks.
 
 When you spawn a sub-agent, substitute every `{placeholder}` in the
@@ -95,6 +97,7 @@ code or docs. It only:
   implementation);
 - creates and checks out branches;
 - spawns fresh sub-agents and sequences them;
+- conditionally invokes `explore` and routes its disposition;
 - triages questions and findings, and runs `AskUserQuestion`;
 - runs read-only end-of-run verification.
 
@@ -128,7 +131,10 @@ merges the stack.
 Step 0, when needed, runs one **milestone-creation** agent.
 Steps 1 and 2 each run three fresh sub-agents in sequence:
 **planning → implementation → fresh-eyes review**. Step 3 runs
-one **simplify** agent.
+one **simplify** agent. When the stable contract and RED baseline exist and the
+shared quality model's high-threshold solution-uncertainty gates are met, an
+`explore` handoff runs before Step 2 implementation; it is not a routine fourth
+agent or mandatory step.
 
 ## Procedure
 
@@ -169,6 +175,11 @@ A run can be interrupted. Before starting:
   `<slug>/phases-1-4`, `<slug>/phases-5-10`, `<slug>/simplify`).
 - Read the milestone log's phase table for which phases are
   logged complete.
+- Read any recorded exploration registry and disposition so a resumed run does
+  not rediscover rejected or blocked mechanisms.
+- If the implementation log contains an open `CONTRACT CHANGE REQUIRED`
+  marker, run contract-change recovery before ordinary step/phase completion
+  detection; completed phases 1-4 do not override that marker.
 - Start at the first step that is not fully complete. If all
   are complete, report that and stop.
 - If a step is partially complete, pass its agents the phase
@@ -207,6 +218,90 @@ All three must be linked with `Related: pairs-with`.
 Step 0 gets no separate fresh-eyes review — Step 1's planning
 agent pressure-tests the milestone spec as part of its job.
 
+### Conditional exploration handoff
+
+The Step 1 planner stabilizes the contract and RED evidence; it does not trigger
+technical route exploration. The Step 2 planning agent returns an `EXPLORATION
+SIGNAL`. `NONE` continues the ordinary sequence. For a proposed signal, the
+conductor checks the shared quality model's automatic-trigger gates; ordinary
+unfamiliarity, low confidence, or a transient failed command does not qualify.
+
+When the gates are met:
+
+1. Spawn a fresh worker/general-purpose agent and instruct it to invoke the
+   `explore` skill with the planning agent's decision packet. Keep both agent
+   ids until the handoff is resolved. Exploration owns no production
+   implementation and keeps one writer for any durable record.
+2. Keep the full registry and evidence in the milestone implementation log;
+   put only the disposition and a link in the milestone's Decisions section.
+   Exploration may identify a behavior, scope, or fixed-constraint change as
+   the only unlock, but it does not edit the milestone contract or RED tests,
+   and that finding is not approval to change them. Add an open `CONTRACT
+   CHANGE REQUIRED` marker only after either a resumed planner returns it for a
+   `SELECTED` route or the contract owner explicitly approves the exact named
+   change after a `NO VIABLE ROUTE` gap.
+   Before routing any disposition, have the exploration agent run the docs
+   lifecycle/check commands and create an exploration checkpoint commit on the
+   current milestone branch. Do not run `sync-and-commit` or push; return only
+   after the working tree is clean.
+3. Route the disposition:
+   - `SELECTED` — resume the planning agent with the evidence-backed route and
+     the [planning resume message](references/agent-prompts.md#planning-resume-after-exploration).
+     If it returns `CONTRACT CHANGE REQUIRED`, resume the retained exploration
+     agent with the
+     [marker-checkpoint message](references/agent-prompts.md#contract-change-marker-checkpoint)
+     before starting contract-change recovery.
+   - `OPERATOR DECISION` — ask only for the product value or scope choice that
+     evidence cannot settle, then use the
+     [exploration resume message](references/agent-prompts.md#exploration-resume-after-an-operator-decision).
+     Require it to update the canonical records, run the docs lifecycle/check
+     commands, create a new exploration checkpoint commit, and return only with
+     a clean tree. Route its returned final disposition through this list
+     before taking any further action; only a returned `SELECTED` may resume
+     planning.
+   - `NO VIABLE ROUTE` — stop exploration and ordinary Step 2 planning. Surface
+     the route registry and exact blocking clause or fixed constraint to the
+     contract owner. If the owner preserves the contract or does not approve
+     the named change, stop the milestone. Only after the contract owner
+     explicitly approves changing the named clause or constraint, resume the
+     retained exploration agent with the marker-checkpoint message to record
+     the approval and open marker in a clean checkpoint, then enter
+     contract-change recovery.
+   - `INSUFFICIENT EVIDENCE` — stop and surface the registry, exact evidence
+     gap, and unlock condition. Do not enter contract-change recovery merely
+     because evidence is unavailable.
+4. Exploration never edits the milestone contract, fixed constraints, or RED
+   tests. It records evidence, dispositions, approvals, and the open marker;
+   contract-change recovery owns any resulting contract and test edits.
+
+If an implementation agent later returns a qualifying blocker dossier, require
+its distinct WIP/blocker checkpoint commit and a clean tree before invoking
+`explore` in `recovery` mode. The exploration checkpoint then contains only the
+canonical exploration records. A selected alternate route goes through a fresh
+planning pass that accounts for the WIP commit before a fresh implementation
+agent resumes; never discard partial work or repeat the failed mechanism without
+the new evidence required by its reopen rule.
+
+### Contract-change recovery
+
+An open `CONTRACT CHANGE REQUIRED` marker takes precedence over normal resume
+detection. Stay on the current phases-5-10 branch so the exploration checkpoint
+remains in its history, but do not begin production implementation:
+
+1. Spawn a fresh planning agent for phases 1-4 with the exploration handoff and
+   the exact contract gap. Triage any behavior or scope choice through the
+   operator as usual.
+2. Run the ordinary Step 1 implementation, fresh-eyes review, triage, and
+   risk-aware RED-baseline checkpoint on the corrected contract and tests. Log
+   these as contract-rework entries rather than erasing the earlier phase
+   history.
+3. Close the marker only after the corrected contract is stable, the RED
+   baseline fails for the intended reason, review findings are resolved, and
+   any High-risk approval is recorded.
+4. Spawn a fresh Step 2 planning agent and process its exploration signal from
+   the corrected artifacts. If interrupted before the marker closes, resume
+   this recovery sequence rather than skipping to implementation.
+
 ### Step 1 — Contract & RED baseline (phases 1–4)
 
 1. Create + check out `<slug>/phases-1-4` off
@@ -219,8 +314,8 @@ agent pressure-tests the milestone spec as part of its job.
    [Planning agent prompt](references/agent-prompts.md#planning-agent),
    `phase_range` = phases 1–4.
 3. The planning agent returns a plan and an `OPEN QUESTIONS`
-   list. **Triage** each question (see *Triage rules*):
-   auto-resolve doc/spec/conventional ones and record the
+   list. **Triage** each question (see *Triage rules*): auto-resolve
+   doc/spec/conventional ones and record the
    decision; for genuine requirement or scope forks, call
    `AskUserQuestion`.
 4. **Spawn the implementation agent** using the host's
@@ -274,7 +369,9 @@ agent pressure-tests the milestone spec as part of its job.
    `phase_range` = phases 5–10. The planning agent is freshly
    spawned — it has none of Step 1's context and rebuilds it
    from the milestone doc, the now-updated log (phases 1–4 are
-   logged), the specs, and the code on the branch.
+   logged), the specs, and the code on the branch. Keep its agent id and process
+   its `EXPLORATION SIGNAL` through the conditional handoff before spawning the
+   implementation agent.
 3. The fresh-eyes review for Step 2 judges correctness,
    completeness against the milestone's Deliverables/Success
    Criteria, and that the selected product tests plus configured
@@ -352,8 +449,10 @@ test — when:
 
 - the milestone cannot be resolved;
 - the working tree is dirty at pre-flight;
-- an implementation agent cannot reach the selected test state
-  (e.g. GREEN at phase 8);
+- an implementation agent cannot reach the selected test state and its blocker
+  is not a qualifying solution-uncertainty signal, or `explore` recovery returns
+  `NO VIABLE ROUTE` or `INSUFFICIENT EVIDENCE` that cannot be closed in the
+  current run;
 - a High-risk milestone has completed Step 1 and needs operator
   approval for the contract, visible tests, hidden/generalization
   plan, mock policy, and selected gates before Step 2;
@@ -362,7 +461,8 @@ test — when:
 - a taste finding is left untriaged — no fixed/waived-with-reason
   decision recorded (a High-risk waiver additionally needs
   operator approval);
-- an agent reports a blocker it cannot resolve.
+- exploration requires an operator-owned product decision (use
+  `AskUserQuestion`) or all route families share the same external blocker.
 
 ## Notes
 

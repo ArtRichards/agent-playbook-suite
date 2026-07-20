@@ -22,6 +22,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install metadata validator
+        run: python3 -m pip install "PyYAML==6.0.2"
+
       - name: Validate JSON manifests
         run: |
           python3 -m json.tool .agents/plugins/marketplace.json >/dev/null
@@ -37,6 +40,7 @@ jobs:
           expected = {
               "create-milestones",
               "docs",
+              "explore",
               "project-foundation",
               "ship-milestone",
               "simplify",
@@ -67,6 +71,47 @@ jobs:
               raise SystemExit(f"Nested .git dirs are not allowed: {nested_git}")
           PY
 
+      - name: Validate skill interface metadata
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import yaml
+
+          skills = Path("plugins/agent-playbook-suite/skills")
+          required = {"explore"}
+
+          for skill in required:
+              path = skills / skill / "agents" / "openai.yaml"
+              if not path.exists():
+                  raise SystemExit(f"Missing {path}")
+              data = yaml.safe_load(path.read_text(encoding="utf-8"))
+              if not isinstance(data, dict) or not isinstance(data.get("interface"), dict):
+                  raise SystemExit(f"{path} must contain an interface mapping")
+              interface = data["interface"]
+              for key in ("display_name", "short_description", "default_prompt"):
+                  value = interface.get(key)
+                  if not isinstance(value, str) or not value.strip():
+                      raise SystemExit(f"{path} missing non-empty interface.{key}")
+              if not 25 <= len(interface["short_description"]) <= 64:
+                  raise SystemExit(f"{path} short_description must be 25-64 characters")
+              if f"${skill}" not in interface["default_prompt"]:
+                  raise SystemExit(f"{path} default_prompt must mention ${skill}")
+              if skill == "explore":
+                  prompt = interface["default_prompt"].lower()
+                  required_terms = (
+                      "compare",
+                      "feasibility",
+                      "recovery",
+                      "evidence-backed",
+                      "exact unresolved gap",
+                  )
+                  missing = [term for term in required_terms if term not in prompt]
+                  if missing:
+                      raise SystemExit(
+                          f"{path} default_prompt missing explore modes/outcomes: {missing}"
+                      )
+          PY
+
       - name: Validate quality-model coverage
         run: |
           python3 - <<'PY'
@@ -86,11 +131,20 @@ jobs:
               "risk levels",
               "mock policy",
               "forbidden shortcuts",
+              "solution uncertainty",
           ):
               if term not in shared_text:
                   raise SystemExit(f"Shared quality model missing term: {term}")
 
           required = {
+              "explore": (
+                  "solution uncertainty",
+                  "pattern-preservation",
+                  "simplicity gate",
+                  "operator-owned product decision",
+                  "no viable route",
+                  "contract owner",
+              ),
               "project-foundation": ("hidden/generalization", "risk level", "mock"),
               "create-milestones": ("hidden/generalization", "mock", "mutation"),
               "ship-milestone": ("hidden/generalization", "mock", "mutation"),
@@ -127,11 +181,9 @@ jobs:
               raise SystemExit(f"Could not parse docs-cli version from: {version_output!r}")
           version = tuple(int(part) for part in match.groups())
 
-          # DOCS_CLI_VERSION is the single source of truth for the docs-cli
-          # release this suite is tested against and vendors the `docs` skill
-          # from. The bundled `docs` skill is generated from this same release,
-          # so the pin is the only version that matters: CI fails if the
-          # installed binary drifts from it.
+          # DOCS_CLI_VERSION is the source of truth for the docs-cli release
+          # tested here. The maintainer refresh process vendors the matching
+          # `docs` skill; this check fails when the installed binary drifts.
           pinned = tuple(int(part) for part in os.environ["DOCS_CLI_VERSION"].split("."))
           if version != pinned:
               raise SystemExit(
@@ -171,6 +223,12 @@ jobs:
                       "m4-*-test-matrix.md",
                       "task plan, implementation log, and test matrix",
                       "Related: pairs-with",
+                      "Conditional exploration handoff",
+                      "Contract-change recovery",
+                      "WIP/blocker checkpoint",
+                      "exploration checkpoint commit",
+                      "Step 2 planning agent",
+                      "INSUFFICIENT EVIDENCE",
                   ],
               ),
               (
@@ -179,7 +237,19 @@ jobs:
                       "milestone test matrix",
                       "<slug>-test-matrix.md",
                       "hidden/generalization categories",
+                      "Planning resume after exploration",
+                      "Contract-change marker checkpoint",
+                      "EXPLORATION SIGNAL: NONE",
+                      "BLOCKER DOSSIER",
                   ],
+              ),
+              (
+                  skills / "project-foundation" / "references" / "foundation-playbook.md",
+                  ["Invoke `explore`", "options-comparison.md"],
+              ),
+              (
+                  skills / "create-milestones" / "references" / "tdd-phases.md",
+                  ["Solution-uncertainty checkpoint", "implementation log"],
               ),
               (
                   skills / "sync-and-commit" / "SKILL.md",
@@ -212,6 +282,116 @@ jobs:
               missing = [needle for needle in required if needle not in text]
               if missing:
                   raise SystemExit(f"{path} missing workflow consistency terms: {missing}")
+
+          foundation_path = (
+              skills
+              / "project-foundation"
+              / "references"
+              / "foundation-playbook.md"
+          )
+          foundation = foundation_path.read_text(encoding="utf-8")
+          record_command = "`docs new decision options-comparison`"
+          comparison_step = "Use the ordinary comparison"
+          if foundation.count(record_command) != 1:
+              raise SystemExit(
+                  "Foundation must create options-comparison exactly once"
+              )
+          if not 0 <= foundation.find(record_command) < foundation.find(comparison_step):
+              raise SystemExit(
+                  "Foundation must create options-comparison before comparison"
+              )
+          for disposition in (
+              "`OPERATOR DECISION`",
+              "`NO VIABLE ROUTE`",
+              "`INSUFFICIENT EVIDENCE`",
+          ):
+              if disposition not in foundation or "leave it draft" not in foundation:
+                  raise SystemExit(
+                      "Unresolved foundation exploration must leave its record draft"
+                  )
+
+          def between(path, start, end):
+              text = path.read_text(encoding="utf-8")
+              try:
+                  return text.split(start, 1)[1].split(end, 1)[0]
+              except IndexError as exc:
+                  raise SystemExit(
+                      f"{path} missing section boundary: {start!r} / {end!r}"
+                  ) from exc
+
+          ship_path = skills / "ship-milestone" / "SKILL.md"
+          prompts_path = ship_path.parent / "references" / "agent-prompts.md"
+          section_checks = [
+              (
+                  between(
+                      ship_path,
+                      "### Conditional exploration handoff",
+                      "### Contract-change recovery",
+                  ),
+                  [
+                      "Route its returned final disposition through this list",
+                      "only a returned `SELECTED` may resume",
+                      "Only after the contract owner",
+                      "explicitly approves changing",
+                      "Exploration never edits the milestone contract",
+                  ],
+              ),
+              (
+                  between(
+                      prompts_path,
+                      "### Planning resume after exploration",
+                      "### Exploration resume after an operator decision",
+                  ),
+                  [
+                      "milestone behavior contract, fixed constraints, and",
+                      "If the handoff requires changing",
+                      "return `CONTRACT CHANGE REQUIRED`",
+                  ],
+              ),
+              (
+                  between(
+                      prompts_path,
+                      "### Exploration resume after an operator decision",
+                      "### Contract-change marker checkpoint",
+                  ),
+                  [
+                      "new docs-only",
+                      "exploration checkpoint commit",
+                      "Return only after the working tree is clean",
+                      "`Disposition:`",
+                      "`OPERATOR DECISION` again",
+                      "milestone behavior contract, fixed constraints, or RED tests",
+                  ],
+              ),
+              (
+                  between(
+                      prompts_path,
+                      "### Contract-change marker checkpoint",
+                      "## Implementation agent",
+                  ),
+                  [
+                      "explicitly approved the exact named clause",
+                      "contract-change recovery owns those edits",
+                  ],
+              ),
+          ]
+          for section_text, required in section_checks:
+              missing = [needle for needle in required if needle not in section_text]
+              if missing:
+                  raise SystemExit(
+                      f"ship-milestone exploration protocol missing: {missing}"
+                  )
+
+          tdd_phases = (
+              skills
+              / "create-milestones"
+              / "references"
+              / "tdd-phases.md"
+          ).read_text(encoding="utf-8")
+          if "Only after the owner explicitly approves the change" not in tdd_phases:
+              raise SystemExit(
+                  "Interactive exploration recovery must require contract-owner approval"
+              )
           PY
 
       - name: Validate docs tree

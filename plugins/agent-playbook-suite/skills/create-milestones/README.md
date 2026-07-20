@@ -27,6 +27,11 @@ Triggers on "create a milestone", "start M1", "next milestone", "begin implement
 
 For end-to-end autonomous milestone execution (planning + implementation + review + simplify in one go), use [`ship-milestone`](https://github.com/ArtRichards/ship-milestone) instead — it spawns fresh sub-agents per step and conducts the whole milestone.
 
+After the contract and RED baseline are stable, the suite invokes
+[`explore`](https://github.com/ArtRichards/agent-playbook-suite/tree/main/plugins/agent-playbook-suite/skills/explore)
+only when repository evidence leaves a genuinely uncertain implementation
+route or a selected route has been concretely invalidated.
+
 ## Install
 
 Install this skill through the Agent Playbook Suite marketplace plugin. The
@@ -37,7 +42,7 @@ direct skill-directory installs.
 ## Dependencies
 
 - [`docs-cli`](https://github.com/ArtRichards/docs-cli) — always use the newest release; required for `Lifecycle:`, `docs new --body-from`, and atomic multi-file `docs touch <file>...`. The skill calls `docs new`, `docs touch`, `docs index`, `docs check`, and `docs archive --cascade` throughout. Install with `pip install --upgrade docs-cli`.
-- Companion skills (recommended): [`project-foundation`](https://github.com/ArtRichards/project-foundation) (run first), [`ship-milestone`](https://github.com/ArtRichards/ship-milestone), [`sync-and-commit`](https://github.com/ArtRichards/sync-and-commit) (called at phase/step boundaries), [`simplify`](https://github.com/ArtRichards/simplify) (Phase 10).
+- Companion skills (recommended): [`project-foundation`](https://github.com/ArtRichards/project-foundation) (run first), conditional `explore`, [`ship-milestone`](https://github.com/ArtRichards/ship-milestone), [`sync-and-commit`](https://github.com/ArtRichards/sync-and-commit) (called at phase/step boundaries), [`simplify`](https://github.com/ArtRichards/simplify) (Phase 10).
 
 ## Convention
 

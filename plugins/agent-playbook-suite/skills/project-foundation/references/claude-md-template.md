@@ -72,6 +72,10 @@ This project is set up to use:
   foundation work (optional, but strongly preferred). Produces
   `use-cases.md`; milestone tests focus primarily on the primary
   use cases recorded there.
+- **`explore`** — bounded technical route exploration for a clearly
+  uncertain implementation or genuinely novel problem. Used selectively
+  during architecture choice, stable-contract route selection, or recovery
+  from an invalidated route; it does not implement production code.
 - **`create-milestones`** — milestone-level TDD work. Use to
   create, advance, or complete one milestone interactively.
 - **`ship-milestone`** — autonomous end-to-end milestone driver.

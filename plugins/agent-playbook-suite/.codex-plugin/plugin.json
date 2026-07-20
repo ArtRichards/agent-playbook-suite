@@ -1,7 +1,7 @@
 {
   "name": "agent-playbook-suite",
-  "version": "0.6.0",
-  "description": "A curated suite of agent workflow skills for docs-backed project planning, milestone delivery, verification, and simplification.",
+  "version": "0.7.0",
+  "description": "A curated suite of agent workflow skills for docs-backed project planning, technical exploration, milestone delivery, verification, and simplification.",
   "author": {
     "name": "Art Richards"
   },
@@ -11,18 +11,20 @@
   "keywords": [
     "agent-skills",
     "project-planning",
+    "technical-exploration",
     "tdd",
     "docs-cli"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Agent Playbook Suite",
-    "shortDescription": "Docs-backed workflow skills for agent-led software delivery.",
-    "longDescription": "Agent Playbook Suite bundles the docs, project-foundation, use-cases, create-milestones, ship-milestone, sync-and-commit, and simplify skills for running durable project planning and milestone delivery loops with Codex.",
+    "shortDescription": "Docs-backed planning, exploration, and delivery workflows.",
+    "longDescription": "Agent Playbook Suite bundles the docs, project-foundation, use-cases, explore, create-milestones, ship-milestone, sync-and-commit, and simplify skills for running durable project planning, technical exploration, and milestone delivery loops with Codex.",
     "developerName": "Art Richards",
     "category": "Productivity",
     "capabilities": [
       "Project planning",
+      "Technical exploration",
       "Milestone delivery",
       "Documentation maintenance",
       "Code review and cleanup"

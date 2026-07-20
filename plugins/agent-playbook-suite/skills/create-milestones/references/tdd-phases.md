@@ -168,6 +168,19 @@ and mock policy.
   visible tests, hidden/generalization plan, mock policy, and risk
   selected gates before Phase 5 starts, unless project policy explicitly
   allows automatic continuation.
+- **Solution-uncertainty checkpoint:** Risk and solution uncertainty are
+  separate. Before Phase 5, invoke `explore` only when the shared quality
+  model's automatic-trigger gates are met after direct inspection or a cheap
+  probe. Keep the route registry and evidence in the implementation log; record
+  only the disposition and link in the milestone's Decisions section. A
+  selected route informs Phases 5-7; an
+  operator-owned product decision is surfaced with evidence and tradeoffs; no
+  viable route or an exact unresolved gap stops progression. Exploration never
+  changes intended behavior or fixed constraints. If it identifies a contract
+  or constraint change as the only unlock, return that decision to the contract
+  owner. Only after the owner explicitly approves the change, return to Phase 1
+  and update the contract and RED tests rather than treating it as an
+  implementation choice.
 
 ## Phase 5 — Update Base Interfaces
 
@@ -376,16 +389,20 @@ If during a phase you discover the milestone plan needs
 substantial revision:
 
 1. Stop the phase. Do not press on with the wrong plan.
-2. Append a decision-log entry capturing what was discovered and
+2. If concrete evidence blocked or invalidated the selected technical route,
+   invoke `explore` in recovery mode before revising the plan. Do not repeat the
+   failed mechanism; consume the existing route record and reopen it only under
+   the shared quality model's reopen rules.
+3. Append a decision-log entry capturing what was discovered and
    what needs to change.
-3. Edit the milestone doc's relevant Phase section and Phase
+4. Edit the milestone doc's relevant Phase section and Phase
    Checklist to reflect the new shape.
-4. Update `<slug>-test-matrix.md` if contract clauses, visible
+5. Update `<slug>-test-matrix.md` if contract clauses, visible
    tests, hidden/generalization categories, adequacy checks, or
    mock policy changed.
-5. `docs touch <slug>.md <slug>-test-matrix.md` and the decision
+6. `docs touch <slug>.md <slug>-test-matrix.md` and the decision
    log.
-6. Resume the (now corrected) phase.
+7. Resume the (now corrected) phase.
 
 Plan revision is normal — every long-running milestone has at
 least one. The audit trail is what makes it safe.

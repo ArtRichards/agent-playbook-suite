@@ -3,7 +3,7 @@
 Lifecycle: draft
 Role: log
 Project: agent-playbook-suite
-Updated: 2026-06-12
+Updated: 2026-07-20
 
 ## Purpose
 
@@ -31,6 +31,38 @@ Related process: [Feedback Integration Process](process.md)
 ```
 
 ## Entries
+
+### 2026-07-11 — Create an explore skill for technical solution search
+
+- Source: operator feedback following review of OpenAI's Cycle Double Cover prompt.
+- Feedback: "Could we create an 'explore' skill to supplement the existing skills."
+- Example or evidence: the referenced prompt uses exact success contracts, independent approach families, an approach registry, explicit blocked-route and reopen rules, concrete evidence returns, repeated synthesis, and adversarial audit. The suite currently applies several of these ideas but does not have a standalone workflow for technical option search or failed-route recovery.
+- Discovery notes:
+  - 2026-07-11: initial routing check found that a standalone skill would be justified only if it is reusable across foundation architecture choices, pre-implementation technical uncertainty, and recovery after an implementation route is invalidated. If it serves only `ship-milestone` blocker recovery, that behavior belongs inside `ship-milestone` instead.
+  - 2026-07-11: the proposed boundary is technical solution exploration, not user-use-case discovery, requirements elicitation, ordinary repository inspection, debugging, or implementation.
+  - 2026-07-11: operator confirmed the skill should serve all three lifecycle moments: architecture choices during foundation, implementation-route selection after the milestone contract is stable, and recovery when a selected route becomes blocked or invalidated.
+  - 2026-07-11: operator defined the trigger as implementation uncertainty or a novel problem.
+  - 2026-07-11: operator approved automatic invocation by `project-foundation`, `create-milestones`, and `ship-milestone`, plus direct invocation, but only when uncertainty is clear or the problem is very novel. Ordinary unfamiliarity or weak agent confidence must not trigger the added workflow.
+  - 2026-07-11: operator approved formal automatic-trigger gates based on a named decision and consumer, an unresolved result after direct inspection or a cheap probe, and a hard signal such as an unverified acceptance-critical assumption, absence of an established applicable pattern, materially different plausible mechanisms without selection evidence, or concrete invalidation of the selected route.
+  - 2026-07-11: operator approved the term `operator-owned product decision` for value choices technical evidence cannot settle. `explore` may support those choices with evidence and tradeoffs but must not silently decide them.
+  - 2026-07-11: operator required proposed solutions to preserve existing code patterns and avoid over-complicating the codebase or implementation. Because literal certainty cannot be established by assertion, the proposed interpretation is a fail-closed pattern-preservation and simplicity gate backed by concrete repository evidence; discovery must confirm the exact gate behavior.
+  - 2026-07-11: operator confirmed deliberate deviation is allowed when evidence shows the existing pattern cannot satisfy the contract, but rejected a new explicit-approval requirement. `explore` should select the smallest justified deviation, record the evidence and rationale, and preserve any approvals already required by project policy or the suite's existing High-risk gates without inventing another checkpoint.
+  - 2026-07-11: operator approved reusing the existing owning artifact by default: foundation exploration writes into `options-comparison.md`, milestone exploration writes into the milestone decision/implementation records, and a separate exploration document is created only for standalone or genuinely multi-session investigation. This avoids duplicate or stale decision state.
+  - 2026-07-11: operator approved small disposable prototypes, benchmarks, and compatibility probes when inspection alone cannot resolve the decision. Probes must be isolated from the production worktree, reversible, and governed by a stated success/failure oracle; mergeable implementation, production-branch edits, and persistent dependency changes remain outside `explore`.
+  - 2026-07-11: operator approved adaptive orchestration rather than fixed agent or probe counts. `explore` independently develops materially different mechanism families, deduplicates semantically, and continues only while another probe could change the decision. It stops when a route passes the contract, pattern-preservation, simplicity, and adversarial gates; all routes are eliminated or externally blocked; an operator-owned decision remains; or further probes have diminishing decision value. An unresolved result reports the exact remaining gap.
+  - 2026-07-20: a pre-commit wrap-up audit found three cross-skill handoff defects: foundation invoked exploration before creating `options-comparison.md`; the `OPERATOR DECISION` resume path did not checkpoint its updated canonical record before planning resumed; and `NO VIABLE ROUTE` did not distinguish a stop from operator-approved contract-change recovery. The audit also found that the Codex UI prompt described only viable-route comparison.
+  - 2026-07-20: operator approved resolving the audit findings, committing the complete private `0.7.0` worktree, and then holding publication while a new feedback batch is gathered.
+  - 2026-07-20: a fresh read-only forward test exercised the required `NO VIABLE ROUTE` disposition. It proved that approved membership cannot be derived solely from current directory contents while also rejecting an unapproved but structurally identical skill: the same tree can represent an approved or unapproved addition, so the required result depends on policy evidence excluded by the contract. The handoff correctly named the constraints that must change.
+- Workflow moment: foundation option comparison, milestone planning after the behavior contract is stable, and blocked-route recovery; only when implementation is uncertain or the problem is novel.
+- Owning skill or artifact: new `explore` skill with shared solution-uncertainty policy and handoffs from `project-foundation`, `create-milestones`, and `ship-milestone`.
+- Adjacent skills or docs: `use-cases` trigger boundary, `_shared` quality model, project-foundation option comparison, milestone contracts and logs, ship-milestone conductor prompts, public suite docs, plugin manifests, publishing guide, and CI skill-payload validation.
+- Existing skill vs new skill decision: new skill. The operator confirmed a distinct, repeatable workflow spanning three existing lifecycle moments, triggered by uncertain implementation or novel problems; the remaining discovery must define invocation, output, and stopping behavior precisely.
+- Intent preservation check: a new public skill would add an optional workflow capability and change the suite's public skill count and handoffs; it must remain uncertainty-triggered rather than becoming a mandatory stage.
+- Implemented change: created the high-threshold `explore` skill with `compare`, `feasibility`, and `recovery` modes; added solution uncertainty separately from product risk; integrated narrow handoffs from foundation option comparison, the post-RED milestone boundary, and blocked-route recovery; added exact decision criteria, independent mechanism families, evidence and route registries, pattern-preservation and simplicity gates, adversarial challenge, reopen rules, isolated probes, canonical artifact routing, and honest dispositions. The wrap-up pass now creates the foundation record before exploration, checkpoints and reroutes post-operator dispositions, requires explicit contract-owner approval before contract-change recovery, supports response-local records for short direct runs, and uses neutral UI wording that allows an exact-gap result. Updated package metadata and the public workflow story for release 0.7.0.
+- Validation required: skill-creator initialization and validation; independent forward tests for technical option comparison, blocked-route recovery, no-viable-route reporting, and negative trigger separation from `use-cases`; suite CI, JSON, docs-tree, and site validation if implemented.
+- Validation results: skill-creator `quick_validate.py`, JSON and YAML parsing, suite payload/quality/handoff assertions, `git diff --check`, Claude marketplace validation, a staged `plugin-creator` validation excluding the intentional non-skill `_shared` directory, and a disposable Codex marketplace install all passed. Forward tests selected an evidence-backed comparison route, returned `NO VIABLE ROUTE` with clause-level elimination evidence, failed closed on interrupted adversarial recovery evidence, skipped full exploration for a routine README task, and routed user-workflow discovery to `use-cases`. The final installed Codex payload contains all eight skills plus `_shared`. The Jekyll site build was not run because Ruby/Bundler is unavailable locally.
+- Status: wrap-up findings resolved and validated as the private 0.7.0 pre-release baseline on 2026-07-20; public release held for another feedback batch. No publication performed.
+- Follow-up: gather and integrate the next feedback batch before public release. Dogfood `explore` on a novel implementation decision and a real blocked-route recovery; refine only from recorded evidence.
 
 ### 2026-06-12 — Foundation should be more interactive and investigatory
 

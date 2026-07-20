@@ -165,8 +165,87 @@ decision, underspecified requirement, or gap. End with an "OPEN QUESTIONS"
 section — each item: the question, why it matters, your recommended answer.
 Write "OPEN QUESTIONS: none" if there are none.
 
+End with `EXPLORATION SIGNAL: NONE` for phases 1-4: stabilize the contract and
+RED evidence first. For phases 5-10, write `EXPLORATION SIGNAL: NONE` unless
+direct repository inspection or a cheap probe leaves a named technical decision
+and downstream consumer unresolved, and at least one hard signal from the shared
+quality model's Solution uncertainty section applies. Agent unfamiliarity, low
+confidence, a transient failed command, or an operator-owned product decision
+alone does not qualify. For a qualifying Step 2 signal return:
+  - Mode: compare | feasibility | recovery
+  - Exact decision question and downstream consumer
+  - Affected contract clauses and non-solutions
+  - Hard trigger and evidence that direct inspection/probing did not resolve it
+  - Known facts, assumptions, prior routes, and evidence references
+  - Decision criteria, codebase pattern anchors, and expected simplicity bounds
+
 Return: (a) the phase-by-phase plan, (b) QUALITY PLAN, (c) OPEN QUESTIONS,
-(d) the critical files to read first for implementation.
+(d) the critical files to read first for implementation, and (e) EXPLORATION
+SIGNAL.
+```
+
+### Planning resume after exploration
+
+```text
+Exploration resolved the Step 2 technical decision below. Treat its fixed
+contract, selected route, pattern references, simplicity constraints,
+deviations, and verification steps as binding planning evidence.
+
+EXPLORATION HANDOFF:
+{exploration_handoff}
+
+Revise the phase-by-phase plan and QUALITY PLAN only where this evidence
+requires it. Preserve the milestone behavior contract, fixed constraints, and
+RED tests. Return the complete finalized plan, QUALITY PLAN, OPEN QUESTIONS,
+critical files, and `EXPLORATION SIGNAL: NONE`. If the handoff requires changing
+any of those, return `CONTRACT CHANGE REQUIRED` instead of finalizing an
+implementation plan.
+```
+
+### Exploration resume after an operator decision
+
+```text
+The operator answered the product value or scope question from your `OPERATOR
+DECISION` disposition.
+
+OPERATOR ANSWER (binding criterion):
+{operator_answer}
+
+Update the canonical registry and evidence record, the milestone Decisions
+summary/link, and finish the technical disposition under this criterion. Do not
+edit the milestone behavior contract, fixed constraints, or RED tests. If the
+answer implies one of those changes, identify the exact affected clauses in the
+handoff; do not apply the change.
+
+Run the required docs lifecycle and check commands, then create a new docs-only
+exploration checkpoint commit on the current milestone branch. Do not run
+sync-and-commit or push. Return only after the working tree is clean.
+
+Return the commit id and a complete exploration handoff whose `Disposition:` is
+one of `SELECTED`, `NO VIABLE ROUTE`, or `INSUFFICIENT EVIDENCE`. Do not return
+`OPERATOR DECISION` again or assume that the answer authorizes an unstated
+contract change. The conductor reroutes the result; do not assume planning
+resumes.
+```
+
+### Contract-change marker checkpoint
+
+```text
+Use this checkpoint only after either (a) the resumed planning agent returned
+`CONTRACT CHANGE REQUIRED` for a selected route, or (b) the contract owner
+explicitly approved the exact named clause or fixed-constraint change after `NO
+VIABLE ROUTE`.
+
+CHANGE AUTHORITY AND EXACT GAP:
+{contract_change_result}
+
+As the canonical exploration-record writer, append an open `CONTRACT CHANGE
+REQUIRED` marker with the exact affected clauses and reason to the implementation
+log. Update the milestone Decisions summary/link, run the required docs lifecycle
+and check commands, and create a docs-only checkpoint commit on the current
+milestone branch. Do not edit the milestone contract, fixed constraints, or RED
+tests; contract-change recovery owns those edits. Do not run sync-and-commit or
+push. Return the commit id and confirm the working tree is clean.
 ```
 
 ## Implementation agent
@@ -247,7 +326,18 @@ the test + quality-gate status. You will be resumed to handle fresh-eyes
 review feedback and run sync-and-commit.
 
 If you cannot reach the selected test state (e.g. GREEN at phase 8), STOP and
-return a clear description of the blocker. Never loop; never relax a test.
+return a `BLOCKER DOSSIER` containing: failed contract clause or gate, minimal
+reproduction and observed result, mechanism attempted, repository patterns
+followed, evidence, exact gap, hypotheses not yet tested, current commit and
+working-tree state, and the condition that would unlock or reopen the route.
+Before returning, append the dossier to the implementation log, run the docs
+lifecycle/check commands, and create a distinct WIP/blocker checkpoint commit
+containing the deliberate partial implementation plus its recorded failing
+state. Do not stash, discard, run sync-and-commit, or push. If hooks prevent the
+checkpoint, stop and report that exact blocker instead of starting exploration.
+Return only after the working tree is clean. Never loop; never relax a test. The
+conductor decides whether the dossier meets the high-threshold `explore`
+recovery gate.
 ```
 
 Resume message (SendMessage to the same implementation agent, after the

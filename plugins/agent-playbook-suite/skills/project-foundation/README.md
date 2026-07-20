@@ -26,7 +26,14 @@ tree to the skill ecosystem that will drive the project.
 
 Triggers on "start a project", "create a foundation", "scope a new project", "draft a charter", "plan a project from scratch".
 
-After this skill completes, hand off to [`create-milestones`](https://github.com/ArtRichards/create-milestones) to begin implementation, milestone by milestone.
+During architecture work, the suite may invoke
+[`explore`](https://github.com/ArtRichards/agent-playbook-suite/tree/main/plugins/agent-playbook-suite/skills/explore)
+when direct inspection leaves a genuinely uncertain technical route. After
+foundation completes, run
+[`use-cases`](https://github.com/ArtRichards/agent-playbook-suite/tree/main/plugins/agent-playbook-suite/skills/use-cases)
+to establish the user workflows that tests should anchor on, then
+hand off to [`create-milestones`](https://github.com/ArtRichards/create-milestones)
+to begin implementation milestone by milestone.
 
 ## Install
 
@@ -38,7 +45,7 @@ direct skill-directory installs.
 ## Dependencies
 
 - [`docs-cli`](https://github.com/ArtRichards/docs-cli) — always use the newest release; required for `Lifecycle:`, `docs new --body-from`, tree-wide `[exclude]` rules, and atomic multi-file `docs touch <file>...`. The skill calls `docs new`, `docs index`, `docs touch`, and `docs check` throughout. Install with `pip install --upgrade docs-cli`.
-- Companion skills (recommended): [`create-milestones`](https://github.com/ArtRichards/create-milestones), [`ship-milestone`](https://github.com/ArtRichards/ship-milestone), [`sync-and-commit`](https://github.com/ArtRichards/sync-and-commit), [`simplify`](https://github.com/ArtRichards/simplify).
+- Companion skills (recommended): `use-cases`, conditional `explore`, [`create-milestones`](https://github.com/ArtRichards/create-milestones), [`ship-milestone`](https://github.com/ArtRichards/ship-milestone), [`sync-and-commit`](https://github.com/ArtRichards/sync-and-commit), [`simplify`](https://github.com/ArtRichards/simplify).
 
 ## Convention
 

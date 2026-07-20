@@ -40,8 +40,8 @@ This SKILL.md is intentionally short. The full procedure lives in:
 - [`references/tdd-phases.md`](references/tdd-phases.md) — the
   10-phase reference with per-phase docs-CLI touchpoints.
 - [`../_shared/references/agentic-quality-model.md`](../_shared/references/agentic-quality-model.md)
-  — risk levels, visible/hidden test layers, adequacy checks,
-  hidden-test policy, and mock policy.
+  — risk levels, solution uncertainty, visible/hidden test layers,
+  adequacy checks, hidden-test policy, and mock policy.
 
 **Read the milestone playbook, phase guide, and shared quality
 model before driving any milestone.**
@@ -93,6 +93,13 @@ model before driving any milestone.**
    with `Lifecycle: archived` and a regenerated INDEX. Never
    hand-move files into `archive/` or hand-flip `Lifecycle:` to
    `archived`.
+10. **Explore only clear solution uncertainty.** Invoke the companion
+    `explore` skill automatically when the shared quality model's
+    high-threshold gates show that implementation is clearly uncertain or the
+    problem is genuinely novel, including recovery from a concretely
+    invalidated route. Do not invoke it for routine work or agent unfamiliarity.
+    Keep its full registry in the implementation log; record only the
+    disposition and a link in the milestone's Decisions section.
 
 ## Bootstrap requirements (what must exist)
 

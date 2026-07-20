@@ -3,18 +3,19 @@
 Lifecycle: active
 Role: guide
 Project: agent-playbook-suite
-Updated: 2026-07-02
+Updated: 2026-07-11
 
 Agent Playbook Suite is a single marketplace-distributed plugin for agent
-workflow skills. It packages the project-planning, milestone-delivery,
-verification, and cleanup skills that are used together for docs-backed
-software delivery.
+workflow skills. It packages the project planning, technical exploration,
+milestone delivery, verification, and cleanup skills that are used together for
+docs-backed software delivery.
 
 The suite plugin includes:
 
 - `docs`
 - `project-foundation`
 - `use-cases`
+- `explore`
 - `create-milestones`
 - `ship-milestone`
 - `sync-and-commit`
@@ -43,6 +44,11 @@ The suite treats tests as more than RED/GREEN examples. Each milestone records:
 
 This keeps the resumable artifact trail while reducing the chance that an
 implementation agent optimizes for visible tests instead of intended behavior.
+When implementation uncertainty is clear or a problem is genuinely novel,
+`explore` compares technical routes, tests acceptance-critical assumptions, and
+recovers from invalidated routes. It preserves established repository patterns,
+selects the simplest supported approach, and reports the exact remaining gap
+when evidence cannot support a route.
 The shared reference lives at
 `plugins/agent-playbook-suite/skills/_shared/references/agentic-quality-model.md`.
 
@@ -120,9 +126,9 @@ Gemini CLI and OpenCode do not consume the Codex or Claude plugin marketplace
 manifests directly. The portable skill payload lives at
 `plugins/agent-playbook-suite/skills/` for agents that support direct skill
 directories. For a manual install, check out this repository and point the agent
-at the relevant skill subdirectory. The six workflow skills are maintained here;
-the former standalone `ArtRichards/<skill>` repositories are archived and read
-only.
+at the relevant skill subdirectory. The seven workflow skills are maintained
+here. The five formerly standalone workflow-skill repositories are archived and
+read only; `use-cases` and `explore` originate in this suite.
 
 Use the marketplace flow above for Codex and Claude Code. Use direct skill
 directories only when an agent does not support these marketplace formats.
@@ -140,6 +146,7 @@ plugins/agent-playbook-suite/
     docs/
     project-foundation/
     use-cases/
+    explore/
     create-milestones/
     ship-milestone/
     sync-and-commit/

@@ -219,21 +219,40 @@ Ask:
 - What are the main modules/components?
 - How does data flow between them?
 
-Author three docs:
+Before comparing routes or invoking optional exploration, create the canonical
+decision record:
 
-1. `docs new decision options-comparison` —
-   `Lifecycle: draft` while the choice is open. Body:
-   **Context**, **Options considered** (one H3 per option, with
-   pros/cons), **Selected approach**, **Rationale**. Flips to
-   `active` once decided.
+1. `docs new decision options-comparison` — keep `Lifecycle: draft` while the
+   choice is open. Start the body with **Context**, **Options considered** (one
+   H3 per option, with pros/cons), **Selected approach**, and **Rationale**.
+
+Use the ordinary comparison for established solution shapes. Invoke `explore`
+automatically only when the shared quality model's solution-uncertainty gates
+are met: the architecture decision and its consumer are named, direct
+inspection or a cheap probe did not resolve it, and the problem is genuinely
+novel or an acceptance-critical route remains clearly uncertain. Do not invoke
+it for ordinary unfamiliarity. Keep the approach registry and evidence in the
+existing draft `options-comparison.md`; do not create a parallel exploration
+doc. A selected route feeds the architecture sketch, an operator-owned product
+decision is surfaced with its tradeoffs, and an unresolved acceptance-critical
+gap keeps the relevant Definition of Ready item unready. When an ordinary
+comparison settles the choice, or `explore` returns `SELECTED` (including after
+an operator answer is bound), finish the decision record's **Selected
+approach** and **Rationale** sections and make it active. `OPERATOR DECISION`,
+`NO VIABLE ROUTE`, and `INSUFFICIENT EVIDENCE` leave it draft with the exact
+gap and next owner/action recorded.
+
+Author the remaining two docs:
+
 2. `docs new sketch architecture` — `Lifecycle: draft`. Body:
    **Shape**, **Data flow**, **Integration points**. Add
    `Related: implements: charter.md`, `Related: pairs-with:
    options-comparison.md`. Graduates to `Role: reference` when
-   authoritative.
+   authoritative. If no route is selected, record only known constraints and
+   gaps and keep the sketch draft.
 3. `docs new log decision-log` — `Lifecycle: active`. Ongoing
-   log of choices made during the project; first entry
-   summarises the Phase 3 architecture choice. Append dated
+   log of choices made during the project; the first entry summarises the
+   Phase 3 disposition and, once settled, the architecture choice. Append dated
    `## YYYY-MM-DD — <one-line>` entries as decisions accumulate.
 
 ## Phase 4 — Delivery Strategy & Milestones

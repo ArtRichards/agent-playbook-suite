@@ -112,6 +112,42 @@ Default gate set:
 - explicit approval or an open entry in the project's follow-up log
   (`followup-log.md`) for skipped deep gates selected for the milestone.
 
+## Solution uncertainty
+
+Product risk controls verification depth. Solution uncertainty controls whether
+the workflow needs technical route exploration. Treat them independently: a
+high-risk change can follow a well-established route, while a low-impact novel
+problem can have high solution uncertainty.
+
+Do not invoke `explore` because an agent is merely unfamiliar with the code or
+lacks confidence. Automatic exploration requires a named technical decision and
+downstream consumer, an unresolved result after repository inspection or a cheap
+probe, and at least one hard signal:
+
+- an acceptance-critical technical assumption remains unverified;
+- no established repository or authoritative upstream pattern fits the core
+  mechanism of a genuinely novel problem;
+- materially different mechanisms remain plausible and current evidence cannot
+  justify a selection; or
+- concrete evidence blocked or invalidated the selected route.
+
+When a signal is present, use the `explore` skill before implementation or in
+recovery. Its route selection is fail-closed on **pattern-preservation** and a
+**simplicity gate**: cite reference modules and reusable project facilities,
+state the expected footprint and new concepts, compare the simplest viable
+route, and reject unnecessary dependencies, public surface, indirection, or
+abstraction. A route may deviate from an existing pattern only when evidence
+shows that pattern cannot satisfy the contract; select the smallest deviation
+and record the reason. This adds no approval beyond existing project and risk
+policy.
+
+Exploration may use isolated, reversible probes with a stated oracle, but it
+does not implement production code. Valid outcomes are a selected route, an
+**operator-owned product decision** with evidence and tradeoffs, **no viable
+route**, or an exact remaining gap. A blocked or rejected route reopens only for
+new evidence, a materially different mechanism, a changed constraint, or
+removal of its named external blocker.
+
 ## Taste model
 
 Correctness gates decide whether the work solves the problem; taste decides

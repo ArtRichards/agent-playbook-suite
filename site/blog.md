@@ -22,7 +22,9 @@ New project: run `project-foundation` and drive the first milestone with `create
 
 ## Using the playbook suite
 
-The suite is six skills that run in a fixed order.
+The suite provides seven workflow skills plus the supporting `docs` skill. Six
+form the ordinary delivery path; `explore` is an optional cross-cutting
+capability for the cases where the technical route is genuinely uncertain.
 
 **1. Start the project once with `project-foundation`.** The agent inspects the repo, then walks you through charter, scope, architecture, milestone plan, and test strategy — proposing answers from what it found, so you correct a draft instead of filling out a form. Risk levels are proposed with reasoning and default to Standard; the agent has to ask before it can call anything High. The output is a docs tree plus your `CLAUDE.md` or `AGENTS.md`, and two living logs: one for engineering follow-ups, one for feedback and ideas.
 
@@ -33,6 +35,20 @@ The suite is six skills that run in a fixed order.
 **4. Wrap every step with `sync-and-commit`.** It verifies the work against the milestone, syncs the docs tree to reality, and commits. It never bypasses git hooks and never pushes `main`. If the docs disagree with the code, the commit does not happen.
 
 **5. Close each milestone with `simplify`.** A behavior-preserving cleanup pass. If nothing genuinely simplifies, it changes nothing — the skill is not allowed to invent work.
+
+**Cross-cutting: use `explore` only for clear technical uncertainty.** It can
+compare architecture routes during foundation, select an implementation route
+after a milestone contract is stable, or recover after evidence invalidates a
+selected route. It is not a mandatory stage and does not trigger merely because
+the code is unfamiliar. Automatic handoff requires a named downstream consumer
+and a hard signal such as an unverified acceptance-critical assumption, no
+applicable pattern, unresolved mechanisms, or concrete route invalidation. The
+skill first maps the repository's existing patterns, then compares materially
+different mechanisms against the contract and the simplest viable
+implementation. It may run isolated disposable probes, but it does not write
+production implementation or persist dependency or configuration changes. If
+the evidence is not strong enough, it returns the exact gap or the
+operator-owned decision instead of presenting a guess as a solution.
 
 Two small conventions do a lot of the lifting. Anything that surfaces mid-flight — feedback, an idea, a deferred check — goes into the project logs, not into the tail of a milestone doc that is about to be archived. And new work slots between milestones by id (`m5a` runs between `m5` and `m6`) instead of renumbering, so filenames, branches, and history never break.
 
@@ -69,6 +85,7 @@ Three more reasons the structure earns its keep:
 - You learn a small, opinionated convention: one metadata block per file, a typed link graph, a generated index.
 - You work in milestone-sized slices. Drive-by edits do not fit.
 - The docs tree is part of the build. `sync-and-commit` blocks commits that diverge from it.
+- Genuinely novel work can spend extra agent and probe time in `explore`; ordinary work stays on the direct delivery path.
 
 For a one-file fix, this is over-engineered — keep the rationale in chat and move on. It pays off when restart cost is high: greenfield builds, multi-week features, any project a different agent will resume later.
 

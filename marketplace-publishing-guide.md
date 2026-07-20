@@ -3,7 +3,7 @@
 Lifecycle: active
 Role: guide
 Project: agent-playbook-suite
-Updated: 2026-06-12
+Updated: 2026-07-20
 
 This guide is the maintainer checklist for publishing Agent Playbook Suite as
 one plugin marketplace package for Codex and Claude Code.
@@ -20,6 +20,7 @@ The suite contains exactly these skills:
 - `docs`
 - `project-foundation`
 - `use-cases`
+- `explore`
 - `create-milestones`
 - `ship-milestone`
 - `sync-and-commit`
@@ -57,19 +58,19 @@ Then move the tested-version pin forward to the version you just vendored. The
 single source of truth is the `DOCS_CLI_VERSION` value in
 [`.github/workflows/validate.yml`](.github/workflows/validate.yml); update it to
 match `docs --version`. CI installs that exact version and fails if the installed
-binary drifts from the pin, so the pin and the vendored `docs` skill can never
-silently fall out of sync. Always bump the pin to the newest release rather than
-holding it back.
+binary drifts from the pin. The maintainer refresh step above, not a byte-for-byte
+CI comparison, keeps the vendored `docs` skill aligned with that release. Always
+bump the pin to the newest release rather than holding it back.
 
-The six workflow skills — `project-foundation`, `use-cases`,
+The seven workflow skills — `project-foundation`, `use-cases`, `explore`,
 `create-milestones`, `ship-milestone`, `sync-and-commit`, and `simplify` — are
 maintained directly in this repository under
 `plugins/agent-playbook-suite/skills/`. This repository is
-their source of truth: edit them in place. The standalone
-`ArtRichards/<skill>` repositories are archived and read-only; they exist only as
-historical pointers back here. Do not rsync or copy from them — their content
-predates the risk-aware upgrade, so pulling it in would silently revert the
-skills.
+their source of truth: edit them in place. The five formerly standalone
+workflow-skill repositories are archived and read-only; they exist only as
+historical pointers back here. `use-cases` and `explore` originate in this
+suite. Do not rsync or copy from the archived repositories — their content
+predates the risk-aware upgrade, so pulling it in would silently revert skills.
 
 Only the `docs` skill is vendored from an external source: the `docs-cli` PyPI
 package, via `docs install-skill` above.
@@ -82,7 +83,7 @@ find plugins/agent-playbook-suite/skills -mindepth 1 -maxdepth 1 -type d -printf
 find plugins/agent-playbook-suite/skills -name .git -print
 ```
 
-The first command should print the seven skill directories and, if present,
+The first command should print the eight skill directories and, if present,
 `_shared`. The second command should print nothing. Each skill directory must
 contain `SKILL.md`; `_shared` must only contain reusable references.
 
@@ -124,6 +125,7 @@ from pathlib import Path
 expected = {
     "create-milestones",
     "docs",
+    "explore",
     "project-foundation",
     "ship-milestone",
     "simplify",
@@ -148,6 +150,42 @@ if nested_git:
 PY
 ```
 
+Validate generated skill interface metadata with the same pinned parser as CI:
+
+```bash
+python3 -m pip install "PyYAML==6.0.2"
+python3 - <<'PY'
+from pathlib import Path
+import yaml
+
+skill = "explore"
+path = Path("plugins/agent-playbook-suite/skills") / skill / "agents" / "openai.yaml"
+data = yaml.safe_load(path.read_text(encoding="utf-8"))
+interface = data.get("interface") if isinstance(data, dict) else None
+if not isinstance(interface, dict):
+    raise SystemExit(f"{path} must contain an interface mapping")
+for key in ("display_name", "short_description", "default_prompt"):
+    value = interface.get(key)
+    if not isinstance(value, str) or not value.strip():
+        raise SystemExit(f"{path} missing non-empty interface.{key}")
+if not 25 <= len(interface["short_description"]) <= 64:
+    raise SystemExit(f"{path} short_description must be 25-64 characters")
+if f"${skill}" not in interface["default_prompt"]:
+    raise SystemExit(f"{path} default_prompt must mention ${skill}")
+prompt = interface["default_prompt"].lower()
+required_terms = (
+    "compare",
+    "feasibility",
+    "recovery",
+    "evidence-backed",
+    "exact unresolved gap",
+)
+missing = [term for term in required_terms if term not in prompt]
+if missing:
+    raise SystemExit(f"{path} default_prompt missing explore modes/outcomes: {missing}")
+PY
+```
+
 Validate quality-model coverage:
 
 ```bash
@@ -156,6 +194,14 @@ from pathlib import Path
 
 skills = Path("plugins/agent-playbook-suite/skills")
 required = {
+    "explore": (
+        "solution uncertainty",
+        "pattern-preservation",
+        "simplicity gate",
+        "operator-owned product decision",
+        "no viable route",
+        "contract owner",
+    ),
     "project-foundation": ("hidden/generalization", "risk level", "mock"),
     "create-milestones": ("hidden/generalization", "mock", "mutation"),
     "ship-milestone": ("hidden/generalization", "mock", "mutation"),
@@ -167,6 +213,19 @@ required = {
 shared = skills / "_shared" / "references" / "agentic-quality-model.md"
 if not shared.exists():
     raise SystemExit(f"Missing {shared}")
+shared_text = shared.read_text(encoding="utf-8").lower()
+for term in (
+    "contract layer",
+    "visible red tests",
+    "hidden/generalization",
+    "adequacy tests",
+    "risk levels",
+    "mock policy",
+    "forbidden shortcuts",
+    "solution uncertainty",
+):
+    if term not in shared_text:
+        raise SystemExit(f"Shared quality model missing term: {term}")
 for skill, terms in required.items():
     text = "\n".join(p.read_text(encoding="utf-8") for p in (skills / skill).rglob("*.md")).lower()
     missing = [term for term in terms if term not in text]
@@ -179,6 +238,21 @@ Validate the Claude marketplace and plugin:
 
 ```bash
 claude plugin validate .
+```
+
+The system `plugin-creator` validator treats every directory below `skills/` as
+a skill, while this bundle intentionally keeps non-skill references in
+`skills/_shared/`. When that validator is available, run it against a disposable
+staged copy without `_shared`; the actual-tree payload checks above and the
+marketplace smoke test still own the `_shared` invariant and installed-reference
+check:
+
+```bash
+tmp="$(mktemp -d)"
+cp -R plugins/agent-playbook-suite "$tmp/plugin"
+rm -rf "$tmp/plugin/skills/_shared"
+python3 "${CODEX_HOME:-$HOME/.codex}/skills/.system/plugin-creator/scripts/validate_plugin.py" "$tmp/plugin"
+rm -rf "$tmp"
 ```
 
 Refresh this docs tree:
@@ -217,11 +291,11 @@ claude plugin marketplace add ./
 claude plugin install agent-playbook-suite@agent-playbook-suite
 ```
 
-Restart the relevant agent and confirm the seven skills are discoverable.
+Restart the relevant agent and confirm the eight skills are discoverable.
 
 For both smoke tests, also confirm:
 
-- `docs`, `project-foundation`, `use-cases`, `create-milestones`,
+- `docs`, `project-foundation`, `use-cases`, `explore`, `create-milestones`,
   `ship-milestone`, `sync-and-commit`, and `simplify` are installed;
 - `_shared` is present only as a reference directory if installed;
 - the shared quality model is readable from installed workflow skills;
@@ -255,7 +329,7 @@ After the release commit is on `main` (whether by direct push or a merged PR),
 tag it to match the manifest version, and push the tag:
 
 ```bash
-VERSION=0.3.2   # must match the plugin manifests and the marketplace entry
+VERSION=0.7.0   # must match the plugin manifests and the marketplace entry
 git checkout main && git pull --ff-only
 git tag -a "v$VERSION" -m "Agent Playbook Suite v$VERSION"
 git push origin "v$VERSION"

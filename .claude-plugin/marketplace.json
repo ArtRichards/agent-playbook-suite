@@ -8,8 +8,8 @@
     {
       "name": "agent-playbook-suite",
       "source": "./plugins/agent-playbook-suite",
-      "description": "A curated suite of agent workflow skills for docs-backed project planning, milestone delivery, verification, and simplification.",
-      "version": "0.6.0",
+      "description": "A curated suite of agent workflow skills for docs-backed project planning, technical exploration, milestone delivery, verification, and simplification.",
+      "version": "0.7.0",
       "author": {
         "name": "Art Richards"
       },
@@ -17,6 +17,7 @@
       "tags": [
         "agent-skills",
         "project-planning",
+        "technical-exploration",
         "tdd",
         "docs-cli"
       ]

@@ -3,21 +3,22 @@
 Lifecycle: active
 Role: guide
 Project: agent-playbook-suite
-Updated: 2026-07-03
+Updated: 2026-07-11
 
-This guide explains a public workflow built from six workflow skills and the
+This guide explains a public workflow built from seven workflow skills and the
 supporting `docs` skill, distributed as one suite plugin for Codex and Claude
 Code, plus one supporting CLI:
 
 - [`project-foundation`](https://github.com/ArtRichards/project-foundation)
 - [`use-cases`](https://github.com/ArtRichards/agent-playbook-suite/tree/main/plugins/agent-playbook-suite/skills/use-cases)
+- [`explore`](https://github.com/ArtRichards/agent-playbook-suite/tree/main/plugins/agent-playbook-suite/skills/explore)
 - [`create-milestones`](https://github.com/ArtRichards/create-milestones)
 - [`ship-milestone`](https://github.com/ArtRichards/ship-milestone)
 - [`sync-and-commit`](https://github.com/ArtRichards/sync-and-commit)
 - [`simplify`](https://github.com/ArtRichards/simplify)
 - [`docs-cli`](https://github.com/ArtRichards/docs-cli)
 
-All seven are public. The six skills are MIT-licensed and together form an opinionated way to run a software project, or a broad feature-release effort, with an AI coding agent as the main build engine.
+Everything listed here is public. The seven workflow skills form an opinionated way to run a software project, or a broad feature-release effort, with an AI coding agent as the main build engine.
 
 ## What problem this solves
 
@@ -41,20 +42,32 @@ That matters because, in this workflow, documentation is not side paperwork. It 
 
 The convention is portable without the CLI, but the workflow assumes you use the CLI because that is what makes the process safe for repeated agent use.
 
-The six skills sit on top of that:
+The seven workflow skills sit on top of that:
 
 - `project-foundation` sets up the project front-half: charter, scope, architecture, milestone plan, definition of ready, status docs, and agent context (`CLAUDE.md`, `AGENTS.md`, or equivalent)
 - `use-cases` explores the project's primary use cases collaboratively after foundation work and records them in a doc that milestone test matrices map against — optional, but strongly preferred, because tests focus on these use cases first
+- `explore` is an optional technical solution search for genuinely uncertain or novel implementation routes; it compares evidence-backed approaches without turning exploration into production implementation
 - `create-milestones` creates and advances a milestone interactively through a fixed 10-phase TDD workflow
 - `ship-milestone` runs a milestone more autonomously by spawning fresh agents for planning, implementation, review, and simplification
 - `sync-and-commit` verifies the work, syncs the docs tree, reviews the diff, and commits safely
 - `simplify` handles the final cleanup pass by removing unnecessary complexity without changing behavior
 
-The workflow is sequential:
+The ordinary delivery path is sequential:
 
 `project-foundation` -> `use-cases` -> `create-milestones` or `ship-milestone` -> `sync-and-commit` -> `simplify`
 
 The `use-cases` stage runs automatically after foundation work and can be skipped, though skipping it is discouraged.
+
+`explore` is cross-cutting, not another required stage. It can support an
+architecture choice during foundation, select an implementation route after a
+milestone contract is stable, or recover when concrete evidence invalidates a
+selected route. The other skills invoke it automatically only when direct
+inspection or a cheap probe leaves a named, acceptance-relevant technical
+decision genuinely unresolved. It can also be invoked directly.
+The decision must have a named downstream consumer and at least one hard
+signal, such as an unverified acceptance-critical assumption, no applicable
+local or authoritative pattern, unresolved materially different mechanisms,
+or concrete route invalidation.
 
 ## What a user needs to do
 
@@ -93,9 +106,10 @@ Both catalogs point at the same suite plugin under
 
 Gemini CLI and OpenCode do not consume these Codex or Claude marketplace
 manifests directly. The suite still remains portable because the packaged skill
-payload lives in `plugins/agent-playbook-suite/skills/`, and the individual
-workflow skill repositories remain public for manual direct-skill installs when
-an agent does not support these marketplace formats.
+payload lives in `plugins/agent-playbook-suite/skills/`. The five formerly
+standalone workflow-skill repositories remain public as historical pointers;
+suite-only skills such as `use-cases` and `explore` are available from this
+repository's skill payload for manual direct-skill installs.
 
 Update Codex by refreshing the marketplace:
 
@@ -151,6 +165,12 @@ When you start a project with `project-foundation`, the system creates the worki
 When the `use-cases` stage runs after foundation work, it adds `use-cases.md` —
 the primary use cases, recorded as primary goals, that milestone test matrices
 map against.
+
+An exploration normally records its route comparison and evidence in the
+artifact that already owns the decision: `options-comparison.md` during
+foundation, or the milestone's decision and implementation records during
+delivery. A separate exploration document is reserved for standalone or
+genuinely multi-session investigations.
 
 When you start delivery work, each milestone gets its own milestone doc,
 implementation log, and test matrix; quality logs or generated report companions
@@ -238,6 +258,24 @@ re-scoped, or dropped.
 The point is not more process for its own sake. The artifact trail should show
 what was tested, what was intentionally not tested, and why the selected gate
 matches the risk.
+
+### Explore only when the technical route is uncertain
+
+`explore` starts from the existing codebase rather than a blank design space.
+Before it can recommend a route, it identifies the local modules, libraries,
+interfaces, and error-handling patterns the change should preserve; compares
+materially different mechanisms; and challenges the simplest viable candidate
+for contract fit and unnecessary complexity. A deviation is acceptable only
+when repository evidence shows the established pattern cannot satisfy the
+decision criteria, and then the skill selects the smallest justified change.
+
+When inspection is not enough, the skill may run a disposable benchmark,
+prototype, or compatibility probe in an isolated temporary copy or disposable
+worktree with an explicit success or failure oracle. It does not produce
+mergeable implementation or persist dependency or configuration changes. It
+returns `SELECTED` only when the evidence supports a route; otherwise it returns
+`OPERATOR DECISION`, `NO VIABLE ROUTE`, or `INSUFFICIENT EVIDENCE` with the exact
+remaining gap instead of manufacturing certainty.
 
 ### 4. Use fresh agents when autonomy matters
 
@@ -329,5 +367,9 @@ Budget planning depends on the agent, model, plan, codebase size, test cost, and
 ## The short version
 
 Install `docs-cli` from PyPI, then install the Agent Playbook Suite plugin from the Codex or Claude marketplace catalog in this repository. Run `project-foundation` once for the broad project or feature-release effort, and let `use-cases` capture how users will really work with the result. Break delivery into small technical milestones. Add new milestones with `create-milestones` as the release evolves. Use `create-milestones` or `ship-milestone` to drive active milestones through the 10 phases. Use `sync-and-commit` to keep code and docs aligned. Use `simplify` at the end.
+
+For a genuinely novel problem or a clearly uncertain implementation route,
+use `explore` to select an evidence-backed approach before production work
+continues. It is optional everywhere else.
 
 The result is a project that can be resumed by a fresh agent from artifacts on disk instead of reconstructed from chat history.

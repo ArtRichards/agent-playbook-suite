@@ -1,0 +1,4 @@
+interface:
+  display_name: "Explore"
+  short_description: "Investigate uncertain technical decisions and blocked routes"
+  default_prompt: "Use $explore to investigate this uncertain technical decision or blocked implementation route in compare, feasibility, or recovery mode, returning an evidence-backed disposition or the exact unresolved gap."

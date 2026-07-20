@@ -69,6 +69,11 @@ intent — list those in your return message for the operator.
 - The diff contains only this milestone's work — no unrelated changes. The
   diff footprint is in line with the plan's expected scope; note outsized
   patch bloat for the fresh-eyes reviewer rather than hiding it.
+- If `explore` selected the implementation route, the implementation follows
+  its recorded pattern-preservation and simplicity evidence. Any deviation is
+  the smallest one supported by evidence that the existing pattern could not
+  satisfy the contract; the reason is recorded without inventing a new
+  approval requirement.
 
 ## Tests & quality
 
@@ -121,8 +126,10 @@ intent — list those in your return message for the operator.
 
 ## Commits
 
-- One commit per phase on the step branch; messages follow the project's
-  convention (see project context and recent `git log`); no secrets staged.
+- One commit per phase on the step branch; exploration, contract-rework, and
+  WIP/blocker checkpoint commits are also allowed when their marker, evidence,
+  and non-green state are explicit. Messages follow the project's convention
+  (see project context and recent `git log`); no secrets staged.
 
 ## Return
 

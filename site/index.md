@@ -3,7 +3,10 @@ layout: home
 title: Agent Playbook Suite
 ---
 
-A marketplace-distributed suite plugin for making agent-led software projects resumable by keeping project state on disk instead of in chat.
+A marketplace-distributed suite plugin for making agent-led software projects
+resumable by keeping project state on disk instead of in chat, with optional
+evidence-backed technical exploration when an implementation route is genuinely
+uncertain.
 
 Start with the blog post:
 

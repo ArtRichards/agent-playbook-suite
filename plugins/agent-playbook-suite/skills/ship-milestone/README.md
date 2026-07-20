@@ -23,6 +23,14 @@ The conductor walks a milestone through four steps, each on its own branch:
 3. `<slug>/phases-5-10` — planning agent → implementation agent (implement, integrate, quality) → fresh-eyes review.
 4. `<slug>/simplify` — sole simplify agent ([`/simplify`](https://github.com/ArtRichards/simplify) skill), then [`sync-and-commit`](https://github.com/ArtRichards/sync-and-commit).
 
+Within the phases-5-10 step, between its planning and implementation agents,
+the conductor conditionally invokes
+[`explore`](https://github.com/ArtRichards/agent-playbook-suite/tree/main/plugins/agent-playbook-suite/skills/explore)
+only when a named technical decision still meets the suite's high-threshold
+solution-uncertainty gate. The same skill can recover from a concretely
+invalidated route. Every exploration result is checkpointed before planning or
+contract-change recovery continues.
+
 Every sub-agent runs the same-instance consistency / completeness / accuracy audit (see [`references/consistency-check.md`](references/consistency-check.md)) before returning to the conductor. The conductor surfaces open questions to the operator and resumes the sub-agent with answers.
 
 ## When to invoke
@@ -43,6 +51,8 @@ direct skill-directory installs.
   - [`create-milestones`](https://github.com/ArtRichards/create-milestones) (process + 10-phase TDD structure).
   - [`sync-and-commit`](https://github.com/ArtRichards/sync-and-commit) (called at every step boundary).
   - [`simplify`](https://github.com/ArtRichards/simplify) (Step 3).
+- Companion skill — conditional: `explore` (technical route selection and
+  evidence-backed recovery only when the activation gate passes).
 - Companion skill — recommended: [`project-foundation`](https://github.com/ArtRichards/project-foundation) (run once before the first milestone).
 - `CLAUDE.md`, `AGENTS.md`, or equivalent project context at the project root documenting the docs tree location, build/test/quality commands, risk gates, commit convention, and branch convention. Sub-agents read this to bootstrap context.
 

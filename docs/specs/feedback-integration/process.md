@@ -3,7 +3,7 @@
 Lifecycle: draft
 Role: spec
 Project: agent-playbook-suite
-Updated: 2026-06-12
+Updated: 2026-07-11
 
 ## Purpose
 
@@ -55,6 +55,7 @@ Start every feedback pass by answering these questions in order:
 1. Which workflow moment does this feedback concern?
 
    - Project foundation and front-half planning.
+   - Technical route comparison, feasibility, or blocked-route recovery.
    - Milestone creation, phase advancement, or milestone archival.
    - End-to-end autonomous milestone shipping.
    - Verification, docs sync, commit, or push behavior.
@@ -66,6 +67,7 @@ Start every feedback pass by answering these questions in order:
 2. Which existing skill owns that moment?
 
    - `project-foundation`: project charter, scope, architecture, milestone plan, risk strategy, Definition of Ready, root agent context.
+   - `explore`: bounded evidence gathering and route selection for a clearly uncertain implementation or genuinely novel technical problem; not use-case discovery or production implementation.
    - `create-milestones`: milestone docs, test matrices, phase-by-phase interactive TDD, milestone completion and archive.
    - `ship-milestone`: conductor flow, branch stack, fresh sub-agent prompts, same-instance audit, fresh-eyes review, end-to-end orchestration.
    - `sync-and-commit`: verification, docs sync, git safety, commits, pushes, final reports.
