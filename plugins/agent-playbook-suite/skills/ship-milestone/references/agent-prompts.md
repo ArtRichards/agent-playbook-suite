@@ -9,10 +9,10 @@ Use the shared risk-aware quality model at
 [`../../_shared/references/agentic-quality-model.md`](../../_shared/references/agentic-quality-model.md)
 where it exists.
 
-Sub-agents are always spawned on the strongest available model
-with an explicit deep-reasoning directive baked into each
-template. Prefer Codex `gpt-5.5` with `xhigh` where available, or
-Claude Opus with deep thinking on Claude Code.
+Sub-agents follow [The conductor model policy](../SKILL.md#the-conductor-model),
+with an explicit deep-reasoning directive baked into each template. Record the
+effective model when host policy or availability substitutes the requested
+target.
 
 ## Milestone-creation agent
 

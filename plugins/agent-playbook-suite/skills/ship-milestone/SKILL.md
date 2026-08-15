@@ -1,6 +1,6 @@
 ---
 name: ship-milestone
-description: Autonomously run a milestone through all ten TDD phases to completion. A lightweight conductor spawns fresh high-capability sub-agents — milestone creation (if needed), then per-step planning, implementation, and fresh-eyes review — commits each step to its own branch, runs the same-instance consistency audit and /simplify. Use when the operator wants a milestone built end-to-end. Invoke as `/ship-milestone <milestone-id>` or `/ship-milestone next milestone`.
+description: Autonomously run a milestone through all ten TDD phases to completion. A lightweight conductor spawns fresh high-capability sub-agents — milestone creation (if needed), then per-step planning, implementation, and fresh-eyes review — commits each step to its own branch, runs the same-instance consistency audit and /simplify. Use when the operator wants a milestone built end-to-end. Invoke as `/ship-milestone M1` or `/ship-milestone next milestone`.
 ---
 
 # ship-milestone
@@ -103,15 +103,16 @@ code or docs. It only:
 
 Every heavyweight unit of work — creating the milestone,
 planning, implementing, reviewing, simplifying — is a **fresh
-high-capability sub-agent**. In Codex, prefer the strongest
-available coding model with high or xhigh reasoning (for example
-`gpt-5.5` with `xhigh` when available). In Claude Code, use Opus
-with deep thinking. This keeps the conductor's context small and
-bounded across the entire run, and means each step's agents are
-automatically free of any prior step's context: they rebuild
-understanding from the specs, logs, and code on the branch.
+high-capability sub-agent**. In Codex, use `gpt-5.6-sol` with `xhigh`
+reasoning when available. In Claude Code, use the `opus` alias with `xhigh`;
+the alias tracks the newest supported Opus model. If host policy or
+availability substitutes a model, use the strongest permitted alternative and
+record the effective model instead of claiming the requested model ran. This
+keeps the conductor's context small and bounded across the entire run, and
+means each step's agents are automatically free of any prior step's context:
+they rebuild understanding from the specs, logs, and code on the branch.
 
-Run the conductor session on the strongest available model with
+Run the conductor session on the same per-host model target named above with
 high reasoning — its triage decisions need it.
 
 ## The steps
@@ -199,8 +200,7 @@ All three must be linked with `Related: pairs-with`.
    commit (or check out the existing branch if resuming).
 2. **Spawn the milestone-creation agent** using the host's
    worker/general-purpose sub-agent on the strongest available
-   model (Codex: `gpt-5.5` + `xhigh` when available; Claude:
-   Opus + deep thinking) with the
+   model under [The conductor model](#the-conductor-model) policy with the
    [Milestone-creation agent prompt](references/agent-prompts.md#milestone-creation-agent).
    Keep its agent id/name.
 3. It returns a draft milestone task plan, implementation log, test
@@ -228,9 +228,10 @@ unfamiliarity, low confidence, or a transient failed command does not qualify.
 
 When the gates are met:
 
-1. Spawn a fresh worker/general-purpose agent and instruct it to invoke the
-   `explore` skill with the planning agent's decision packet. Keep both agent
-   ids until the handoff is resolved. Exploration owns no production
+1. Spawn a fresh worker/general-purpose agent under
+   [The conductor model](#the-conductor-model) policy and instruct it to invoke
+   the `explore` skill with the planning agent's decision packet. Keep both
+   agent ids until the handoff is resolved. Exploration owns no production
    implementation and keeps one writer for any durable record.
 2. Keep the full registry and evidence in the milestone implementation log;
    put only the disposition and a link in the milestone's Decisions section.
@@ -309,8 +310,7 @@ remains in its history, but do not begin production implementation:
    start commit (or check out the existing branch if
    resuming).
 2. **Spawn the planning agent** using the host's planning-capable
-   sub-agent on the strongest available model with high reasoning
-   with the
+   sub-agent under [The conductor model](#the-conductor-model) policy with the
    [Planning agent prompt](references/agent-prompts.md#planning-agent),
    `phase_range` = phases 1–4.
 3. The planning agent returns a plan and an `OPEN QUESTIONS`
@@ -319,8 +319,8 @@ remains in its history, but do not begin production implementation:
    decision; for genuine requirement or scope forks, call
    `AskUserQuestion`.
 4. **Spawn the implementation agent** using the host's
-   worker/general-purpose sub-agent on the strongest available
-   model with high reasoning with the
+   worker/general-purpose sub-agent under
+   [The conductor model](#the-conductor-model) policy with the
    [Implementation agent prompt](references/agent-prompts.md#implementation-agent),
    the finalized plan, and the resolved answers. Keep its
    agent id/name. It implements phases 1–4, commits per phase,
@@ -328,8 +328,8 @@ remains in its history, but do not begin production implementation:
    [same-instance consistency audit](references/consistency-check.md),
    and returns a summary **without** running sync-and-commit.
 5. **Spawn the fresh-eyes review agent** using a fresh
-   worker/general-purpose sub-agent on the strongest available
-   model with high reasoning with the
+   worker/general-purpose sub-agent under
+   [The conductor model](#the-conductor-model) policy with the
    [Fresh-eyes review agent prompt](references/agent-prompts.md#fresh-eyes-review-agent),
    reviewing `<slug>/phases-1-4` against its base. For Step 1
    it must specifically judge whether the phase-2 product tests
@@ -383,8 +383,7 @@ remains in its history, but do not begin production implementation:
 1. Create + check out `<slug>/simplify` off
    `<slug>/phases-5-10`.
 2. **Spawn the simplify agent** using a fresh worker/general-purpose
-   sub-agent on the strongest available model with high reasoning
-   with the
+   sub-agent under [The conductor model](#the-conductor-model) policy with the
    [Simplify agent prompt](references/agent-prompts.md#simplify-agent),
    filling `{unresolved_taste_findings}` with the waived/deferred
    taste findings from Steps 1–2 reviews (or "none"). No planning
@@ -466,10 +465,9 @@ test — when:
 
 ## Notes
 
-- Sub-agents are always spawned on the strongest available model
-  with an explicit deep-reasoning directive in the prompt (built
-  into each template). Prefer Codex `gpt-5.5` with `xhigh` where
-  available, or Claude Opus with deep thinking on Claude Code.
+- Sub-agents are selected under [The conductor model](#the-conductor-model)
+  policy with an explicit deep-reasoning directive in the prompt (built into
+  each template). Record any substituted effective model.
 - The conductor owns all `AskUserQuestion` interaction;
   sub-agents surface questions by returning them, then are
   resumed (SendMessage) with the answers.

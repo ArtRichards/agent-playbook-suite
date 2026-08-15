@@ -8,8 +8,10 @@ creation (if needed), then per-step planning, implementation, and fresh-eyes
 review — commits each step to its own branch, and finishes with `/simplify`.
 Each sub-agent starts with a clean context, builds understanding from artifacts
 on disk, and returns a structured report; the conductor's job is triage, not
-implementation. Use Codex `gpt-5.5` with `xhigh` when available, or Claude Opus
-with deep thinking on Claude Code.
+implementation. Use Codex `gpt-5.6-sol` with `xhigh` reasoning when available.
+On Claude Code, use the `opus` alias with `xhigh`; the alias tracks the newest
+supported Opus model. Record any host or account model substitution instead of
+claiming the requested model ran.
 
 ## Step model
 

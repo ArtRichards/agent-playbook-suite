@@ -224,12 +224,13 @@ When no worker facility exists, run the prompts as separate coordinator passes:
    genuinely fresh, policy-authorized context and verify any material
    directions it returns. A sealed pass in the authoring coordinator's context
    is not a fresh advisor; record that limitation instead of asserting the
-   prompt's freshness preamble.
+   prompt's freshness preamble. If no such context is available while the
+   stagnation checkpoint remains unchanged, return `INSUFFICIENT EVIDENCE`.
 7. When preparing `SELECTED`, run the challenger prompt in a genuinely fresh
-   context focused on falsifying the actual leading route. Only its latest
-   `PASS` may authorize selection; remediate and rerun after any other result.
-   If no fresh context exists, return `INSUFFICIENT EVIDENCE`. Do not
-   manufacture a leading route for another disposition.
+   policy-authorized context focused on falsifying the actual leading route.
+   Only its latest `PASS` may authorize selection; remediate and rerun after
+   any other result. If no fresh context exists, return `INSUFFICIENT
+   EVIDENCE`. Do not manufacture a leading route for another disposition.
 
 Do not simulate independence by rewriting the same favored design with
 different names. If prior conclusions cannot be kept out of a sequential pass,

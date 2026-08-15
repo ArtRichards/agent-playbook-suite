@@ -550,7 +550,10 @@ security, dependency, or operator policy gate.
 ### Fresh challenge
 
 Give the actual leading route, decision contract, pattern baseline, route
-registry, and evidence ledger to a fresh challenger. Require it to search for:
+registry, and evidence ledger to a genuinely fresh, policy-authorized
+challenger. Before sending that packet to an external CLI or service, apply
+the same host, network, confidentiality, data-disclosure, credential, and cost
+authorization gate used for the advisor. Require the challenger to search for:
 
 - a missed existing pattern or simpler mechanism;
 - unsupported clause coverage;
@@ -673,13 +676,16 @@ Use the host's available worker mechanism without changing the protocol:
 
 - In Codex, use collaboration workers such as `spawn_agent` and collect their
   returned reports; use follow-up messaging only to request missing evidence.
-  Use a fresh high-capability worker as the advisor only at the escalation
-  point, not as a routine vote.
+  For the fresh advisor and challenger, use `gpt-5.6-sol` with `xhigh`
+  reasoning when available; record any substituted effective model. Use the
+  advisor only at the escalation point, not as a routine vote.
 - In Claude Code, use the available Agent/Task mechanism with fresh worker
-  context and collect reports before synthesis. A headless advisor call is also
-  acceptable only when policy authorizes sending the exact packet to that
-  service; it receives the same frozen packet and cannot edit the canonical
-  record.
+  context and collect reports before synthesis. For the fresh advisor and
+  challenger, use the `opus` alias with `xhigh`; the alias tracks the newest
+  supported Opus model. A headless advisor or challenger call is also
+  acceptable only when policy authorizes sending that role's exact packet to
+  the service; it receives the same frozen packet and cannot edit the
+  canonical record. Record any substituted effective model.
 - On another host with parallel workers, use its equivalent general-purpose or
   research workers and keep canonical-record writes with the coordinator.
 - With no worker support, run evidence and family passes sequentially. Start
