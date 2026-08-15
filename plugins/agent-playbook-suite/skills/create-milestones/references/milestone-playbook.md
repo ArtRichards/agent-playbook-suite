@@ -105,6 +105,15 @@ Three docs per milestone:
 - implementation log: `<slug>-impl.md`
 - test matrix: `<slug>-test-matrix.md`
 
+Treat the milestone's `Decisions` section and `<slug>-test-matrix.md` as the
+canonical homes for provenance. Nearby code comments or docs may also carry
+references. Make every reference resolve to its source without guessing, using
+the most readable path, link, or qualified identifier for the repository;
+qualify the project and milestone when bare decision numbers could collide.
+For tests written or actively modified during the milestone, keep display names
+behavior-first and keep milestone, decision, phase, step, review, and amendment
+references outside those names.
+
 ### 2a. Task plan — `Role: milestone`, `Lifecycle: draft`
 
 ```sh

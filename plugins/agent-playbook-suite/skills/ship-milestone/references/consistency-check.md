@@ -88,6 +88,11 @@ intent — list those in your return message for the operator.
   freezing incidental representation (byte-exact goldens or
   change-detector assertions without a contract reason). This is the
   highest-leverage check; every later step trusts these tests/checks.
+- New or actively modified test suites and cases have behavior-first names.
+  Test-runner output states the scenario and observable behavior. Milestone,
+  decision, phase, step, review, and amendment provenance stays outside display
+  names; when useful, it lives in the milestone Decisions section, test matrix,
+  or a nearby resolvable comment or doc. No reference syntax is required.
 
 ## Test adequacy
 

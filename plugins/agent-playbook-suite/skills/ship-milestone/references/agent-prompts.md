@@ -147,6 +147,12 @@ Quality-plan rules:
   - Planning, documentation, handoff, and workflow checks must be explicit
     non-product checks, not default-discovered product tests, unless they
     define shipped behavior.
+  - For Step 1, plan behavior-first names for new or actively modified test
+    suites and cases. Their test-runner output must state the scenario and
+    observable behavior. Keep milestone, decision, phase, step, review, and
+    amendment provenance out of display names. When useful, place resolvable
+    provenance in the milestone Decisions section, test matrix, or a nearby
+    comment or doc.
   - Carry the milestone doc's taste anchors (see the shared quality model's
     Taste model) into the QUALITY PLAN. If the milestone doc lacks them,
     propose anchors from the codebase — reference modules the change should
@@ -290,6 +296,12 @@ Rules:
   - Do not weaken, skip, delete, or rewrite tests or selected explicit checks
     merely to get green. Change them only when the contract changes and the
     decision is logged.
+  - Whenever tests are written or actively modified, give their suites and
+    cases behavior-first names: test-runner output must explain the scenario
+    and observable behavior. Keep milestone, decision, phase, step, review,
+    and amendment provenance out of display names. When useful, place it in
+    the milestone Decisions section, test matrix, or a nearby resolvable
+    comment or doc; no reference syntax is required.
   - Do not introduce a new dependency, a hand-rolled equivalent of an
     in-project library, or a pattern outside the taste anchors without
     logging the decision.
@@ -444,6 +456,10 @@ If taste is sound, say so plainly.
 ## Test adequacy
 
 - Do visible tests trace to contract clauses?
+- For new or actively modified tests, does runner output describe the scenario
+  and observable behavior? Are milestone, decision, phase, step, review, and
+  amendment references kept out of display names? If provenance is present
+  nearby, does it resolve to its source?
 - Are any tests trivial, tautological, or implementation-detail-only?
 - Are there likely hidden/generalization gaps?
 - Are property/stateful tests appropriate for this risk?

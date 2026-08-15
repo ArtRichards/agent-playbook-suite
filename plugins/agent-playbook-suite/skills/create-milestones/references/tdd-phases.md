@@ -109,7 +109,13 @@ and mock policy.
   the intended behavior — check semantic behavior first and do not
   freeze incidental representation (byte-exact goldens, exhaustive
   snapshots, change-detector assertions) unless the exact
-  representation is itself the contract;
+  representation is itself the contract; name new and actively
+  modified test suites and cases for the scenario and observable
+  behavior in plain domain language so test-runner output stands
+  alone; keep milestone, decision, phase, step, review, and amendment
+  provenance outside display names and, when useful, place it in the
+  milestone Decisions section, test matrix, or a nearby resolvable
+  comment or doc; do not require repository-wide renaming;
   add negative and boundary cases where they clarify the contract or
   cover meaningful risk; propose hidden/generalization categories
   separately; justify any new mocks.
@@ -125,6 +131,10 @@ and mock policy.
   - [ ] Checks constrain intended behavior, not incidental
         representation (no byte-exact goldens or change-detector
         assertions without a contract reason).
+  - [ ] New and actively modified test names make the scenario and
+        observable behavior clear from test-runner output alone; any
+        useful provenance lives outside the display name and resolves
+        without guessing.
   - [ ] Tests are expected to fail for missing behavior, not import/setup mistakes.
   - [ ] Hidden/generalization categories are recorded without leaking private cases.
   - [ ] New mocks are listed and justified.

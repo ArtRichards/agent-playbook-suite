@@ -54,6 +54,16 @@ Overconstrained tests are a defect for review to flag, just like
 under-constrained ones: they push complexity into the system instead of
 checking correctness.
 
+Name test suites and cases for the scenario and observable behavior in plain
+domain language. Make test-runner output understandable without opening a
+milestone or decision record. Keep milestone IDs, decision numbers, review
+labels, and similar provenance out of test display names. When provenance is
+useful, record it in the milestone Decisions section, test matrix, or a nearby
+comment or doc, and make every reference resolvable without guessing. Use
+whichever readable path, link, or qualified identifier fits the repository.
+Apply this rule to new tests and tests actively modified during the work; do
+not require a repository-wide rename.
+
 In Kent Beck's test-desiderata terms: good tests are behavioral —
 sensitive to changes in the behavior of the code under test — and
 structure-insensitive — their result does not change when only the
