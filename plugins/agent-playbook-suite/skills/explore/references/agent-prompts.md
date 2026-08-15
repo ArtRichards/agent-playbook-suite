@@ -2,15 +2,65 @@
 
 Use these prompts only after freezing the decision contract and repository
 pattern baseline. Replace every `{placeholder}` with a concrete value. Workers
-return reports to the exploration coordinator and must not edit the canonical
-record or production worktree.
+receive immutable packets, return reports to the exploration coordinator, and
+must not open the live canonical record or edit the production worktree unless
+a role below explicitly requires current synthesized evidence.
 
 ## Contents
 
-1. [Independent approach scout](#independent-approach-scout)
-2. [Probe executor](#probe-executor)
-3. [Fresh pattern and simplicity challenger](#fresh-pattern-and-simplicity-challenger)
-4. [Sequential fallback](#sequential-fallback)
+1. [Independent evidence scout](#independent-evidence-scout)
+2. [Independent approach scout](#independent-approach-scout)
+3. [Probe executor](#probe-executor)
+4. [Fresh pattern and simplicity challenger](#fresh-pattern-and-simplicity-challenger)
+5. [Sequential fallback](#sequential-fallback)
+
+## Independent evidence scout
+
+Use for a route-independent fact that can be investigated separately from the
+coordinator's minimum shared baseline. Assign one falsifiable evidence question
+per scout. Run several from the same frozen checkpoint when they do not depend
+on one another.
+
+```text
+You are an independent technical evidence scout. Work read-only in
+{project_root} at revision {revision}. Read {project_instructions} first.
+
+Decision contract:
+{decision_contract}
+
+Minimum shared repository baseline:
+{pattern_baseline}
+
+Investigate only this evidence question:
+{evidence_question}
+
+Relevant source boundary:
+{repository_surface_or_authoritative_sources}
+
+Frozen checkpoint ID: {checkpoint_id}
+
+Answer the evidence question without selecting, ranking, or inventing a
+technical route. Inspect the bounded repository surface, evaluator, artifacts,
+or primary authoritative sources needed to distinguish observation from
+interpretation. Do not edit files, run a mutable probe, read other workers'
+returns, open the live canonical record, or expand the decision contract.
+
+Return:
+1. QUESTION RESULT: answered, contradicted, unknown, or blocked.
+2. OBSERVATIONS: exact repository references, commands, artifacts, or primary
+   sources and what each directly shows.
+3. INTERPRETATION: the narrow inference supported by those observations.
+4. CLAUSE EFFECT: affected C-xx; the coordinator maps observations to routes.
+5. LIMITATIONS: relevant domain, environment, recency, or coverage gaps.
+6. CANDIDATE EVIDENCE ROWS: observation and interpretation kept separate.
+7. CONTRACT ISSUE: any clause that is unmeasurable, impossible, or
+   underspecified as written, with evidence; do not reinterpret it. Otherwise
+   `none`.
+8. NEXT QUESTION: only if one smaller follow-up could materially change the
+   decision; otherwise `none`.
+
+Do not use model recall, confidence, agreement, or popularity as evidence.
+```
 
 ## Independent approach scout
 
@@ -30,13 +80,14 @@ Repository pattern baseline:
 Investigate only this mechanism family:
 {approach_family}
 
-Canonical record (read-only to you): {canonical_record}
+Frozen checkpoint ID: {checkpoint_id}
 
 Determine whether this family can satisfy every cited contract clause while
 preserving the repository's established patterns and minimizing implementation
 complexity. Inspect relevant code, tests, configuration, manifests, and
 authoritative sources. Do not edit files, run a mutable probe, invent
-requirements, or compare against conclusions from other scouts.
+requirements, open the live canonical record, or compare against conclusions
+from other scouts.
 
 Return:
 1. MECHANISM: a concrete description, not a slogan.
@@ -50,7 +101,11 @@ Return:
 7. EVIDENCE: candidate E-xx rows separating observation from interpretation.
 8. EXACT GAPS: only decision-changing unknowns, each with the smallest useful
    probe or source.
-9. ROUTE RECOMMENDATION: viable, rejected, blocked, or deferred, with reason.
+9. CONTRACT ISSUE: any clause that is unmeasurable, impossible, or
+   underspecified as written, with evidence; do not reinterpret it. Otherwise
+   `none`.
+10. ROUTE RECOMMENDATION: viable, rejected, blocked, or deferred, with reason;
+    this is advisory and only the coordinator changes registry status.
 
 Do not use confidence language as evidence. If repository evidence is
 insufficient to establish pattern fit, say so explicitly.
@@ -75,10 +130,11 @@ Route: {route_record}
 Probe card:
 {probe_card}
 
-Before running anything, verify that the environment is isolated, the stated
-success and failure observations are distinguishable, and all planned
-mutations fit the card. If any check fails, stop and return BLOCKED with the
-exact mismatch.
+Before running anything, verify that the environment is isolated, including
+any parent-repository or external state; that the stated success and failure
+observations are distinguishable; that the oracle's declared calibration and
+domain support this probe; and that all planned mutations fit the card. If any
+check fails, stop and return BLOCKED with the exact mismatch.
 
 Run only the bounded probe. Do not alter the production worktree, shared data,
 persistent services, project lockfiles/configuration, or the canonical record.
@@ -91,10 +147,12 @@ Return:
 3. OBSERVATIONS: raw result needed for the decision; distinguish it from
    interpretation.
 4. ORACLE RESULT: success, failure, inconclusive, or blocked.
-5. DECISION EFFECT: route status and clause impact dictated by the probe card.
+5. CANDIDATE DECISION EFFECT: clause impact dictated by the probe card; do not
+   assign route status.
 6. LIMITATIONS: what this probe did not establish.
 7. EVIDENCE ROWS: candidate E-xx entries.
-8. CLEANUP: action and verified result.
+8. CLEANUP: action and verified result, including parent-repository or external
+   state created by setup.
 
 If cleanup cannot be verified, flag it prominently. Do not recommend merging
 any probe artifact.
@@ -102,8 +160,9 @@ any probe artifact.
 
 ## Fresh pattern and simplicity challenger
 
-Run this after synthesis on the actual leading route. Use a fresh worker that
-did not author or scout the route when possible.
+Run this after synthesis on the actual leading route. Use a genuinely fresh
+worker or context that did not author or scout the route. This is mandatory for
+`SELECTED`; if it is unavailable, return `INSUFFICIENT EVIDENCE`.
 
 ```text
 You are the fresh adversarial reviewer for a technical route selection. Work
@@ -143,21 +202,34 @@ Return findings in severity order. For each finding include:
 
 Then return one gate result: PASS, FAIL, or INSUFFICIENT EVIDENCE. PASS means no
 material contract, pattern-preservation, or simplicity gate gap remains; it is
-not a statement of certainty. Do not propose unrelated improvements or
-implement fixes.
+not a statement of certainty. Only PASS may authorize SELECTED. FAIL or
+INSUFFICIENT EVIDENCE remains blocking; if the coordinator changes the
+candidate, another fresh challenge must review that final candidate. Do not
+propose unrelated improvements or implement fixes.
 ```
 
 ## Sequential fallback
 
 When no worker facility exists, run the prompts as separate coordinator passes:
 
-1. Freeze the shared inputs in the canonical record.
-2. Start a fresh scratch note for one family and read only the contract,
-   baseline, and that family assignment.
-3. Complete and seal the raw return before reading another family's return.
-4. Repeat only for materially different families.
-5. Synthesize the sealed returns in the canonical record.
-6. Run the challenger prompt as a separate pass focused on falsification.
+1. Freeze the shared inputs and inquiry checkpoint in the canonical record.
+2. Start a fresh scratch note for one evidence question or family and read only
+   the contract, baseline, and that assignment.
+3. Complete and seal the raw return before reading another pass's return.
+4. Repeat only for independent evidence questions or materially different
+   families.
+5. Synthesize the sealed returns once and update the frontier.
+6. If the checkpoint establishes stagnation, use the
+   [Fresh Frontier Advisor Prompt](fresh-frontier-advisor.md) only in a
+   genuinely fresh, policy-authorized context and verify any material
+   directions it returns. A sealed pass in the authoring coordinator's context
+   is not a fresh advisor; record that limitation instead of asserting the
+   prompt's freshness preamble.
+7. When preparing `SELECTED`, run the challenger prompt in a genuinely fresh
+   context focused on falsifying the actual leading route. Only its latest
+   `PASS` may authorize selection; remediate and rerun after any other result.
+   If no fresh context exists, return `INSUFFICIENT EVIDENCE`. Do not
+   manufacture a leading route for another disposition.
 
 Do not simulate independence by rewriting the same favored design with
 different names. If prior conclusions cannot be kept out of a sequential pass,

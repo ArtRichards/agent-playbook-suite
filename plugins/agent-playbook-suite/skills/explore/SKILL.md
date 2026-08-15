@@ -8,16 +8,19 @@ description: "Investigate clear solution uncertainty or novel technical implemen
 Resolve one bounded technical decision with repository evidence. Return an
 implementation-ready route only when it preserves established patterns,
 satisfies the decision contract, and is the simplest evidenced option.
-Otherwise return the exact unresolved gap.
+Otherwise return the exact unresolved gap. Keep the irreducibly serial work of
+framing, synthesis, and disposition small; organize the rest as independent
+evidence work from shared checkpoints.
 
 ## Read first
 
 - Read [`references/exploration-playbook.md`](references/exploration-playbook.md)
   in full before running an exploration.
-- When independent workers are available, also read
-  [`references/agent-prompts.md`](references/agent-prompts.md) and use its
-  host-neutral prompts. Without workers, run the same passes sequentially
-  with separate notes and an evidence firewall between approach families.
+- Read [`references/agent-prompts.md`](references/agent-prompts.md) before
+  assigning independent workers or using the sealed sequential fallback. A
+  single direct coordinator pass does not require it.
+- Read [`references/fresh-frontier-advisor.md`](references/fresh-frontier-advisor.md)
+  only after the playbook's Advisor escalation gate fires.
 - Read the repository's `AGENTS.md`, `CLAUDE.md`, or equivalent instructions
   before inspecting or probing the project.
 
@@ -73,39 +76,69 @@ leave production implementation to the milestone workflow.
    pattern only when evidence shows it cannot satisfy a contract clause. Choose
    the smallest sufficient deviation and record its rationale and footprint.
    Preserve any approvals already required by project policy; invent none.
-5. **Evidence outranks consensus.** Keep approach families initially
+5. **Keep the serial core small.** Serialize at least contract and baseline
+   changes, probe authorization, evidence merge, route status, and final
+   disposition, plus any work that cannot be safely isolated. Batch independent
+   reconnaissance, route analysis, and safe probes from the same checkpoint; do
+   not make one independent pass wait for or inherit another pass's conclusion.
+6. **Preserve a frontier, not one incumbent.** Keep materially different viable
+   and decision-relevant near-miss families alive until evidence retires them.
+   Do not reject a mechanism family because one implementation variant failed,
+   and do not preserve a route without a named learning or next action.
+7. **Evidence outranks consensus.** Keep approach families initially
    independent, deduplicate them by mechanism, and require artifacts, commands,
    observations, or authoritative sources for material claims.
-6. **Probes are disposable.** Permit small prototypes, benchmarks, or
+8. **Probes are disposable.** Permit small prototypes, benchmarks, or
    compatibility checks only in an isolated temporary copy or disposable
    worktree with a predeclared oracle. Do not edit production code, create
    mergeable implementation, or persist dependency changes.
-7. **One canonical record.** Keep the full registry and evidence in one existing
+9. **One canonical record.** Keep the full registry and evidence in one existing
    owning artifact by default; other artifacts carry only a compact disposition
    and link. Create a separate exploration document only for a standalone or
    genuinely multi-session investigation.
-8. **Fail closed.** Do not return `SELECTED` when contract, pattern,
-   simplicity, evidence, or adversarial checks are incomplete. State the exact
-   gap instead of projecting certainty.
+10. **Fail closed.** Do not return `SELECTED` when contract, pattern,
+   simplicity, evidence, or adversarial checks are incomplete. The latest
+   fresh challenge of the final candidate must return `PASS`; a `FAIL` or
+   `INSUFFICIENT EVIDENCE` remains blocking until remediation and another
+   challenge. State the exact gap instead of projecting certainty.
 
 ## Procedure
 
 1. **Frame the decision.** Choose the mode and write the exact decision
    contract with stable clause IDs.
-2. **Build the baseline.** Inspect the relevant code and record the applicable
-   patterns, simplest viable baseline, and unresolved uncertainty.
-3. **Open the record.** Initialize the route registry and evidence ledger in
-   the owning artifact. Record each synthesis checkpoint immediately.
-4. **Explore independent families.** Assign or run materially different
-   mechanisms without sharing a favored answer. Do not create alternatives to
-   meet a quota.
-5. **Probe only decision-changing gaps.** State the oracle and isolation plan
-   first; record the command, artifact, observation, and limitation afterward.
-6. **Synthesize and challenge.** Compare clause coverage, pattern fit, diff
-   footprint, new concepts, operational consequences, and evidence quality.
-   Subject the actual leading route to a fresh adversarial pattern-and-
-   simplicity review.
-7. **Stop and hand off.** Continue only while another bounded probe could
+2. **Build the minimum shared baseline.** Inspect the relevant code and record
+   the applicable patterns, simplest viable baseline, unresolved uncertainty,
+   and evidence sources every worker needs. Delegate separable reconnaissance
+   rather than expanding the coordinator's serial analysis.
+3. **Open the record and checkpoint.** Initialize the route registry, evidence
+   ledger, current frontier, and inquiry checkpoint in the owning artifact.
+4. **Run a bounded pass or evidence wave.** Use one direct pass for one
+   decision-changing task; use a wave for independent reconnaissance,
+   materially different mechanism families, or safely isolated probes from the
+   same checkpoint. State every probe's oracle and isolation plan first. Check
+   dependencies, side effects, shared resources, rate limits, credentials, data
+   disclosure, and cost before parallel work. Do not create alternatives to meet
+   a quota or leak a favored answer across passes.
+5. **Merge once and update the frontier.** After the pass or wave, separate
+   observation from interpretation, deduplicate mechanisms, compare clause
+   coverage, pattern fit, footprint, new concepts, operational consequences,
+   and evidence quality, then record route status changes and the next decision
+   bottleneck.
+6. **Ask the checkpoint questions.** Identify what is actually limiting the
+   disposition, what information is missing, what the latest evidence changed,
+   whether proposed work is only another local variant, whether the oracle could
+   reward a non-solution, whether a missed pattern or adjacent-domain mechanism
+   could change the frontier, and which bounded action has the highest decision
+   value.
+7. **Escalate for fresh ideas only when warranted.** If the frontier stagnates
+   or a named clause gap suggests missing mechanisms or evidence, give a fresh
+   advisor an unranked frozen packet and the exact bottleneck. Use its return to
+   open testable questions or genuinely different families, never as selection
+   evidence. Escalate once per unchanged bottleneck; require new evidence or a
+   materially changed checkpoint before repeating it. Subject the eventual
+   leading route to a separate fresh adversarial pattern-and-simplicity review;
+   only that review's latest `PASS` can authorize `SELECTED`.
+8. **Stop and hand off.** Continue only while another bounded action could
    change the disposition. Persist the final registry, evidence, deviations,
    remaining assumptions, and exact next action for the downstream consumer.
 
@@ -115,10 +148,14 @@ conditions in the exploration playbook.
 ## Dispositions
 
 - `SELECTED` - one route passes every contract, pattern-preservation,
-  simplicity, evidence, and adversarial gate.
+  simplicity, evidence, and adversarial gate, its final candidate has a latest
+  fresh-challenge result of `PASS`, and no unresolved surviving route could
+  materially change the selection.
 - `OPERATOR DECISION` - viable routes remain separated by a value or product
-  priority that existing project criteria do not resolve. Supply technical
-  consequences and the smallest decision required; do not choose silently.
+  priority that existing project criteria do not resolve, or the contract owner
+  must clarify an underspecified acceptance criterion before routes can be
+  evaluated. Supply technical consequences and the smallest decision required;
+  do not choose silently or invent the missing criterion.
 - `NO VIABLE ROUTE` - evidence eliminates every route within the fixed
   contract and constraints. Identify the clauses and constraints responsible
   and return them to the contract owner. Do not reopen search under changed

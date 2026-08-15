@@ -3,18 +3,25 @@
 Lifecycle: active
 Role: notes
 Project: agent-playbook-suite
-Updated: 2026-06-02
+Updated: 2026-08-15
+
+Historical scope: this briefing captures the original five-workflow-skill
+model used to draft the first overview and blog post. It is not the current
+installation inventory. Use `README.md`, `marketplace-publishing-guide.md`, and
+the local `plugins/agent-playbook-suite/skills/` payload as the current sources
+of truth for the expanded suite.
 
 ## What this is
 
-Five workflow skills plus the `docs` skill, published 2026-05-25 under
-[ArtRichards](https://github.com/ArtRichards), that together form an
-opinionated workflow for running a software project — from blank slate to
-shipped milestones. The suite is distributed as one plugin marketplace package
-for Codex and Claude Code. Gemini CLI and OpenCode can still use the packaged
-skill payload directly where they support skill directories. The suite builds
-on [docs-cli](https://github.com/ArtRichards/docs-cli), which provides a
-controlled-vocabulary convention for prescriptive Markdown documentation trees.
+At the time of this briefing, five workflow skills plus the `docs` skill were
+published by [ArtRichards](https://github.com/ArtRichards). Together they formed
+an opinionated workflow for running a software project — from blank slate to
+shipped milestones. The suite was distributed as one plugin marketplace
+package for Codex and Claude Code. Gemini CLI and OpenCode could use the
+packaged skill payload directly where they supported skill directories. The
+suite built on [docs-cli](https://github.com/ArtRichards/docs-cli), which
+provided a controlled-vocabulary convention for prescriptive Markdown
+documentation trees.
 
 The five skills:
 
@@ -136,7 +143,8 @@ claude plugin marketplace add ArtRichards/agent-playbook-suite
 claude plugin install agent-playbook-suite@agent-playbook-suite
 ```
 
-The marketplace plugin packages the six public skills together: `docs`,
+In this historical version, the marketplace plugin packaged six public skills:
+`docs`,
 `project-foundation`, `create-milestones`, `ship-milestone`, `sync-and-commit`,
 and `simplify`. Gemini CLI and OpenCode do not consume these marketplace
 manifests directly, but the shared skill payload under

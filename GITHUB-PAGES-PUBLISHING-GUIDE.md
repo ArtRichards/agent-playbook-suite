@@ -3,9 +3,15 @@
 Lifecycle: active
 Role: guide
 Project: agent-playbook-suite
-Updated: 2026-05-25
+Updated: 2026-08-15
 
 This guide describes how to turn this folder into the public `agent-playbook-suite` GitHub repository and publish a GitHub Pages site from it, while keeping the Markdown files in the repository as public technical reference material.
+
+Current status: the repository, `site/` tree, and Pages workflows now exist.
+Treat Steps 1–5 as the historical bootstrap procedure. For current installation
+instructions use `README.md`; for release maintenance use
+`marketplace-publishing-guide.md`. Step 7 remains the ongoing Pages publishing
+flow.
 
 ## Goal
 
@@ -164,7 +170,7 @@ title: Agent Playbook Suite
 
 # Agent Playbook Suite
 
-A five-skill workflow for making Claude Code projects resumable by keeping project state on disk instead of in chat.
+A workflow suite for making agent-led projects resumable by keeping project state on disk instead of in chat.
 
 Start with the blog post:
 

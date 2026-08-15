@@ -3,9 +3,13 @@
 Lifecycle: active
 Role: guide
 Project: agent-playbook-suite
-Updated: 2026-05-25
+Updated: 2026-08-15
 
 This guide is based on a reading pass over a small sample of popular Hacker News technical posts from roughly the last year. The sample is not a scientific ranking. It is a practical corpus of articles that clearly resonated with HN readers and are strong style references for blog posts and technical articles.
+
+The article sample and Hacker News counts are a 2026-05-25 snapshot; the style
+guidance is intentionally maintained as a stable writing reference rather than
+a live ranking.
 
 ## Sample used
 
