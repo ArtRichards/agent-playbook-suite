@@ -9,7 +9,7 @@ Implement Offline/Core Path → Update Tool/Wrapper Layer → Run Tests GREEN �
 Integrate / Accept / Dogfood → Quality/Docs/Refactor). Authors a `<slug>.md` task plan, `<slug>-impl.md`
 implementation log, and `<slug>-test-matrix.md` companion per milestone via
 [`docs new`](https://github.com/ArtRichards/docs-cli), and atomically archives
-the set with `docs archive --cascade` on completion.
+the set with `docs archive <slug>.md --cascade-only '<slug>*'` on completion.
 
 ## What it produces
 
@@ -19,7 +19,7 @@ the set with `docs archive --cascade` on completion.
   tests or explicit non-product checks, hidden/generalization categories,
   adequacy checks, and mock-audit notes.
 - A `status.md` updated to reflect the current in-flight milestone and phase.
-- An archived milestone set on completion — task plan, log, and test matrix moved together under `archive/YYYY-MM-DD/` via `docs archive --cascade`.
+- An archived milestone set on completion — task plan, log, and test matrix moved together under `archive/YYYY-MM-DD/` via `docs archive <slug>.md --cascade-only '<slug>*'`.
 
 ## When to invoke
 
@@ -41,7 +41,7 @@ direct skill-directory installs.
 
 ## Dependencies
 
-- [`docs-cli`](https://github.com/ArtRichards/docs-cli) — always use the newest release; required for `Lifecycle:`, `docs new --body-from`, and atomic multi-file `docs touch <file>...`. The skill calls `docs new`, `docs touch`, `docs index`, `docs check`, and `docs archive --cascade` throughout. Install with `pip install --upgrade docs-cli`.
+- [`docs-cli`](https://github.com/ArtRichards/docs-cli) — always use the newest release; required for `Lifecycle:`, `docs new --body-from`, and atomic multi-file `docs touch <file>...`. The skill calls `docs new`, `docs touch`, `docs index`, `docs check`, and `docs archive <file> --cascade-only '<glob>'` throughout. Install with `pip install --upgrade docs-cli`.
 - Companion skills (recommended): [`project-foundation`](https://github.com/ArtRichards/project-foundation) (run first), conditional `explore`, [`ship-milestone`](https://github.com/ArtRichards/ship-milestone), [`sync-and-commit`](https://github.com/ArtRichards/sync-and-commit) (called at phase/step boundaries), [`simplify`](https://github.com/ArtRichards/simplify) (Phase 10).
 
 ## Convention

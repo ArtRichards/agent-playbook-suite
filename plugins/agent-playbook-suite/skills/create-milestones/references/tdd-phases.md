@@ -342,7 +342,7 @@ and mock policy.
   outputs ledgered or removed; inbound ledger entries closed or
   challenged); skipped selected deep gates have explicit approval
   or an open `followup-log.md` entry; handoff notes written. Ready for
-  `docs archive <slug>.md --cascade --reason "<reason>"`.
+  `docs archive <slug>.md --cascade-only '<slug>*' --reason "<reason>"`.
 - **Docs touchpoints:**
   - Append "Milestone-completion summary" sections to both
     `<slug>.md` and `<slug>-impl.md`.

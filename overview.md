@@ -204,7 +204,7 @@ Use `create-milestones` for interactive operator-driven work, or `ship-milestone
 For each milestone, `create-milestones` creates a milestone task-plan doc, a
 paired implementation log, and a paired test matrix. The milestone moves through
 the TDD phases in those artifacts, then the artifact set is archived together
-with `docs archive --cascade` when the work is complete.
+with `docs archive <slug>.md --cascade-only '<slug>*'` when the work is complete.
 
 Every milestone follows the same TDD-shaped phases:
 

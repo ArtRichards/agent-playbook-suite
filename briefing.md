@@ -67,9 +67,9 @@ Related:
 - `Lifecycle:` and `Role:` are controlled vocabularies (extensible per-project, additive only).
 - `Related:` is a typed-edge graph: `pairs-with`, `child-of`/`parent-of`, `implements`, `spec-of`, `supersedes`/`superseded-by`, `blocked-by`, `decision`, `references`.
 - `INDEX.md` is **derived** from the metadata, never hand-maintained.
-- `docs check` validates the tree; `docs archive --cascade` walks the graph one hop and atomically archives related files together.
+- `docs check` validates the tree; `docs archive <file> --cascade-only '<glob>'` walks the graph one hop and atomically archives the related files the glob selects.
 
-The suite skills never have to think about indexes, broken cross-references, or lifecycle drift — they call `docs new`, `docs touch`, `docs index`, `docs check`, `docs archive --cascade` and the tree stays correct.
+The suite skills never have to think about indexes, broken cross-references, or lifecycle drift — they call `docs new`, `docs touch`, `docs index`, `docs check`, `docs archive <file> --cascade-only '<glob>'` and the tree stays correct.
 
 ## The 10-phase TDD methodology
 

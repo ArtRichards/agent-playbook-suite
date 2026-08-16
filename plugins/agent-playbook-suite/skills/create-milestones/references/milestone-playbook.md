@@ -28,8 +28,13 @@ Ready doc is `Lifecycle: active`).
    Output must include `definition-of-ready.md`. If it shows
    `draft` or is missing → redirect to `project-foundation`.
 3. **Verify mechanical hygiene.** `docs check <root> --stale 14`
-   must exit 0 or 1. Exit 2 = lifecycle drift or broken refs in
-   the foundation; fix before adding milestone work.
+   must exit 0 or 1. Exit 2 is any hard error — lifecycle drift,
+   broken refs, and as of docs 2.0 also `missing-inverse`,
+   `broken-body-link`, `outside-root-body-link`, `duplicate-field`
+   and `archive-date-drift`. Fix before adding milestone work. A
+   tree upgraded from docs 1.x can surface pre-existing damage here
+   on its first run; that is the point, and the docs-cli CHANGELOG's
+   *Upgrading from 1.x* section carries a repair recipe per rule.
 4. **Read the milestone-plan.**
    `docs list --root <root> --project <p> --role plan --lifecycle active`
    should show `milestone-plan.md`. Read it for M1..Mn.
@@ -442,9 +447,28 @@ To `<slug>-test-matrix.md`:
 - `pairs-with: <slug>.md`
 - `pairs-with: <slug>-impl.md`
 
-`docs archive --cascade` follows `pairs-with` and `child-of` one
-hop. Ensure the milestone doc has `pairs-with` links to both
-companions before relying on cascade at completion.
+Candidate discovery follows `pairs-with` and `child-of` one hop —
+never transitively, and never the reciprocal verbs
+(`precedes`/`follows`, `depends-on`/`required-by`,
+`blocks`/`blocked-by`), because sequence and dependency do not imply
+archive membership. Ensure the milestone doc has `pairs-with` links
+to both companions before relying on the cascade scope at completion.
+
+**The `child-of` refusal is directional.** At docs 2.0 the archive
+verb refuses, at exit 2 with zero bytes written, when a still-active
+document **outside the plan** declares `child-of` a document **the
+plan would archive** — the "parent archived out from under a live
+child" case. Only that direction refuses. The milestone doc's own
+`child-of: milestone-plan.md` edge is unaffected and should stay: the
+child is the thing being archived and the parent lives on, which is
+the normal shape.
+
+What to avoid is the reverse: giving a document that **deliberately
+outlives** the milestone — a long-lived release or publish log kept at
+the tree root — a `child-of` edge to the milestone doc. Make it a
+**pair** instead. Note that `pairs-with` alone does not keep it out of
+the write: it makes the document a *candidate*, and the glob decides.
+Choose a slug the milestone glob does not match, or narrow the glob.
 
 ### 2e. Flip the milestone docs to active
 
@@ -535,18 +559,44 @@ When Phase 10 wraps up:
    dated entry, and any unaddressed feedback or idea into
    `feedback-log.md`. Drop milestone-doc mentions of log entries
    this milestone incorporated. `docs touch` the logs.
-5. **Archive with cascade:**
+5. **Preview the exact plan, then archive it:**
    ```sh
-   docs archive <slug>.md --reason "Milestone <M<N>> complete" --cascade
+   docs archive <slug>.md --cascade-dry-run --cascade-only '<slug>*'
+   docs archive <slug>.md --cascade-only '<slug>*' --reason "Milestone <M<N>> complete"
    ```
-   `--cascade` walks `Related: pairs-with` and `Related:
-   child-of` one hop and prompts for each. Accept for the
-   impl log (`<slug>-impl.md`) and the test matrix
-   (`<slug>-test-matrix.md`); decline for long-lived parents
-   (`milestone-plan.md`, `charter.md`).
+   Pass the **same glob** to the dry run. `--cascade-dry-run` on its
+   own lists the candidate neighbourhood with nothing selected, so it
+   rehearses a different operation than the one you are about to run.
+
+   Candidate discovery walks `Related: pairs-with` and `Related:
+   child-of` one hop; the glob then decides which of those candidates
+   are actually written. `'<slug>*'` reaches the impl log
+   (`<slug>-impl.md`) and the test matrix
+   (`<slug>-test-matrix.md`), and cannot reach `milestone-plan.md`
+   or `charter.md` — the job the interactive prompt used to do.
+   It is **not** a guarantee that those two are the only matches:
+   the glob has no slash, so it matches the basename at any depth,
+   and a `<slug>-release-log.md` or `quality/<slug>-quality-log.md`
+   would match as well. Read the preview; narrow the glob if it
+   selected a document meant to stay active.
+
+   **Bare `--cascade` is retired at docs 2.0**: it refuses at
+   exit 2, writes nothing, and prints the replacement recipe.
+   `--interactive` is retired the same way, so there is no
+   prompt to answer any more — read the preview instead.
+
+   Read the preview before writing. It also reports every
+   still-active document that will be left pointing at the newly
+   archived set (`strands`), which is information, not an error.
+   Among **strand** outcomes the write refuses only for the "live
+   child" case above; other preflight failures (an unreadable or
+   malformed member, a bad `--date`, an already-archived primary)
+   refuse on their own terms.
 
    Result: all milestone docs move to `<root>/archive/<today>/`,
-   with `Lifecycle: archived`, INDEX regenerated.
+   with `Lifecycle: archived`, an `Archived:` date recorded on
+   every moved document, referring links rebased, and INDEX
+   regenerated.
 6. **Update `status.md`:**
    - "Current milestone" → next milestone (or "Project
      complete").
@@ -751,16 +801,25 @@ the task plan and impl log, and finalizes the test matrix.
 ### Milestone completion
 
 ```sh
-docs archive m1-fetch-and-parse.md \
-  --reason "Milestone M1 complete; fixture site crawled in 3.2s, 100% detection" \
-  --cascade
+docs archive m1-fetch-and-parse.md --cascade-dry-run --cascade-only 'm1-fetch-and-parse*'
 ```
 
-Cascade prompt: archive `m1-fetch-and-parse-impl.md`
-(`pairs-with` target)? Yes. Archive
-`m1-fetch-and-parse-test-matrix.md`? Yes. All milestone docs
-move to `archive/2026-06-12/`; all have
-`Lifecycle: archived`; INDEX regenerated.
+The preview lists **three** candidates and writes nothing:
+`m1-fetch-and-parse-impl.md` and `m1-fetch-and-parse-test-matrix.md`,
+both `pairs-with` targets and both **selected** by the glob, plus
+`milestone-plan.md`, reached by the milestone doc's own `child-of`
+edge and reported **not selected** — which is exactly the outcome the
+glob exists to produce. Then:
+
+```sh
+docs archive m1-fetch-and-parse.md \
+  --reason "Milestone M1 complete; fixture site crawled in 3.2s, 100% detection" \
+  --cascade-only 'm1-fetch-and-parse*'
+```
+
+All three milestone docs move to `archive/2026-06-12/`; all have
+`Lifecycle: archived` and an `Archived: 2026-06-12` line; links
+that pointed at them are rebased; INDEX regenerated.
 
 Update `status.md`:
 

@@ -1,6 +1,6 @@
 ---
 name: create-milestones
-description: Create, advance, and complete milestones for a project whose foundation work is done. Drives the risk-aware, adequacy-checked 10-phase TDD methodology (Define Contract, Write Tests RED, Create Data/Fixtures, Run Tests RED Baseline, Update Base Interfaces, Implement Offline/Core Path, Update Tool/Wrapper Layer, Run Tests GREEN, Integrate/Accept/Dogfood, Quality/Docs). Authors milestone, impl-log, and test-matrix docs via `docs new` and atomically archives them via `docs archive --cascade` on completion. Triggers on "create a milestone", "start M1", "next milestone", "begin implementation", "advance the project". Use after `project-foundation` has set up the docs tree.
+description: Create, advance, and complete milestones for a project whose foundation work is done. Drives the risk-aware, adequacy-checked 10-phase TDD methodology (Define Contract, Write Tests RED, Create Data/Fixtures, Run Tests RED Baseline, Update Base Interfaces, Implement Offline/Core Path, Update Tool/Wrapper Layer, Run Tests GREEN, Integrate/Accept/Dogfood, Quality/Docs). Authors milestone, impl-log, and test-matrix docs via `docs new` and atomically archives them via `docs archive <slug>.md --cascade-only '<slug>*'` on completion. Triggers on "create a milestone", "start M1", "next milestone", "begin implementation", "advance the project". Use after `project-foundation` has set up the docs tree.
 ---
 
 # create-milestones
@@ -9,7 +9,7 @@ Drive milestone-level TDD work on a project whose foundation
 artifacts already exist as docs-managed Markdown files. Each
 milestone is a task plan, implementation log, and test-matrix
 companion progressing through ten TDD phases, archived together
-with `docs archive --cascade` on completion.
+with `docs archive <slug>.md --cascade-only '<slug>*'` on completion.
 
 Requires [`docs-cli`](https://github.com/ArtRichards/docs-cli) — always
 run the newest release. The workflow relies on the
@@ -65,8 +65,18 @@ model before driving any milestone.**
 4. **`Related:` edges link the milestone artifacts.** The
    milestone doc carries `pairs-with` links to its impl log and
    test matrix. Optional `parent-of` links can express hierarchy,
-   but `docs archive --cascade` follows `pairs-with` and
-   `child-of`, so do not rely on `parent-of` alone for cascade.
+   but candidate discovery follows `pairs-with` and `child-of`
+   only — one hop, no transitive cascade — so do not rely on
+   `parent-of` alone. The milestone doc's own
+   `child-of: milestone-plan.md` edge stays as it is. What to
+   avoid is the reverse direction: a document that
+   **deliberately outlives** the milestone must not declare
+   `child-of` the milestone doc, because at docs 2.0 a
+   still-active document declaring `child-of` a document the
+   archive plan would move makes `docs archive` refuse at exit 2,
+   naming both ends and writing nothing. Make such a document a
+   **pair** and give it a slug the completion glob does not
+   match.
 5. **One phase at a time.** Drive a single phase per exchange
    with the user; never batch. After each phase: append to the
    impl log, tick the checklist, `docs touch`, `docs check`,
@@ -87,12 +97,32 @@ model before driving any milestone.**
 8. **`docs check <root> --stale 14`** runs at every phase
    boundary. Exit 2 blocks progression; exit 1 reviewed;
    exit 0 passes.
-9. **Milestone completion uses `docs archive <slug>.md --cascade
-   --reason "<reason>"`** — one atomic call that lands both
-   task plan, impl log, and test matrix under `archive/<today>/`
-   with `Lifecycle: archived` and a regenerated INDEX. Never
-   hand-move files into `archive/` or hand-flip `Lifecycle:` to
-   `archived`.
+9. **Milestone completion is preview, then explicit scope.**
+   Bare `--cascade` is **retired at docs 2.0** — it refuses at
+   exit 2 and writes nothing. Preview the neighbourhood, then
+   write exactly the scope you meant:
+
+   ```sh
+   docs archive <slug>.md --cascade-dry-run --cascade-only '<slug>*'
+   docs archive <slug>.md --cascade-only '<slug>*' --reason "<reason>"
+   ```
+
+   **Preview the plan you are about to write** — pass the same
+   `--cascade-only` glob to the dry run. A bare `--cascade-dry-run`
+   lists the candidate neighbourhood but selects nothing, so it does
+   not rehearse the scoped write.
+
+   `'<slug>*'` reaches the milestone's own companions — impl log and
+   test matrix — and cannot reach `milestone-plan.md` or `charter.md`,
+   which is the job the interactive prompt used to do. It is **not** a
+   guarantee that those are the only matches: a slashless glob matches
+   the basename at any depth, so a `<slug>-release-log.md` or a
+   `quality/<slug>-quality-log.md` matches too. Read the preview and
+   narrow the glob if it selected something you meant to keep active.
+   The write is one atomic call landing the set under
+   `archive/<today>/` with `Lifecycle: archived` and a regenerated
+   INDEX. Never hand-move files into `archive/` or hand-flip
+   `Lifecycle:` to `archived`.
 10. **Explore only clear solution uncertainty.** Invoke the companion
     `explore` skill automatically when the shared quality model's
     high-threshold gates show that implementation is clearly uncertain or the
@@ -169,10 +199,13 @@ When Phase 10 is done:
       milestone as consumer are closed or challenged.
 - [ ] Selected quality gate green: configured project commands +
       `docs check`.
-- [ ] `docs archive <slug>.md --reason "Milestone <M<N>>
-      complete" --cascade` — accept the cascade prompt for the
-      impl log and test matrix; decline for long-lived parents
-      like `milestone-plan.md` and `charter.md`.
+- [ ] `docs archive <slug>.md --cascade-dry-run --cascade-only
+      '<slug>*'` to preview the exact plan, then the same command
+      with `--reason "Milestone <M<N>> complete"` and without
+      `--cascade-dry-run` to write it. The glob takes the impl log
+      and test matrix and cannot reach `milestone-plan.md` or
+      `charter.md`; check the preview for anything else it matched.
+      There is no prompt to answer at docs 2.0.
 - [ ] `status.md` updated: "Current milestone" advances; the
       milestone-progress row marked complete with the archive
       date.

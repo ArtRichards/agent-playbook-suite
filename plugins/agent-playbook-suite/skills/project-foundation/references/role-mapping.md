@@ -58,7 +58,7 @@ See the `create-milestones` playbook for the convention.
 
 | Slug pattern | Role | Starts as | Graduates to | Notes |
 |---|---|---|---|---|
-| `m<N>` (or `m<N>-<topic>`) | `milestone` | `draft` | `active` while in flight; `archived` via `docs archive --cascade` when complete | One per milestone in the milestone-plan. |
+| `m<N>` (or `m<N>-<topic>`) | `milestone` | `draft` | `active` while in flight; `archived` via `docs archive <slug>.md --cascade-only '<slug>*'` when complete | One per milestone in the milestone-plan. |
 | `m<N>-impl` | `log` | `active` | `archived` (cascaded with its milestone) | Phase-by-phase TDD log. Paired via `Related: pairs-with`. |
 | `m<N>-test-matrix` | `spec` | `active` | `archived` (cascaded with its milestone) | Contract-to-test matrix covering risk level, visible tests, hidden/generalization categories, adequacy checks, mock audit, gate commands, and result summaries. Paired via `Related: pairs-with`. |
 | `quality/m<N>-quality-log` | `log` | `active` | project-specific | Optional companion for generated quality reports and benchmark/mutation/security summaries. Deferred deep-gate follow-ups live in `followup-log.md`, not here. Link generated reports with `Related:` when they live inside the docs tree. |
@@ -69,7 +69,7 @@ See the `create-milestones` playbook for the convention.
 |---|---|
 | `draft` | Being written; not authoritative. |
 | `active` | Current; in use; source of truth. |
-| `blocked` | Paused on an external dependency. Pair with `Related: blocked-by: …`. |
+| `blocked` | Paused on an external dependency. Pair with `Related: blocked-by: …`, written via `docs relate add` so the reciprocal `blocks` half lands too. |
 | `done` | Complete; intentionally kept in the active tree as evergreen reference. Rarely needed in foundation work (most graduate to `active`). |
 | `archived` | Complete and moved under `archive/<date>/` by `docs archive`. |
 | `superseded` | Replaced by another doc. Pair with `Related: superseded-by: …`. |
@@ -87,9 +87,20 @@ docs root.
 | `implements` | This doc realises that spec/charter (architecture `implements` charter). |
 | `spec-of` | This doc specifies that thing (rare in foundation work). |
 | `supersedes` / `superseded-by` | Replacement (a new DoR `supersedes` the old one). |
-| `blocked-by` | Pause causation (a doc `blocked-by` an open question). |
+| `blocks` / `blocked-by` | Pause causation (a doc `blocked-by` an open question). |
 | `decision` | Points at the decision doc that justifies this one. |
 | `references` | Weakest form — "see also." |
+
+**Three verb pairs are reciprocal at docs 2.0** — `precedes`/`follows`,
+`depends-on`/`required-by`, and `blocks`/`blocked-by`. Each half must be
+declared on both endpoints; a one-sided edge is a hard `missing-inverse`
+error and `docs check` exits 2. Write them with
+`docs relate add <source> <verb> <target>`, which edits both ends in one
+call, and remove them with `docs relate remove` — hand-editing one side
+is what produces the error. The other verbs in the table above
+(`pairs-with`, `child-of`/`parent-of`, `supersedes`/`superseded-by`,
+`implements`, `spec-of`, `decision`, `references`) stay free-form with no
+reciprocal validation.
 
 ## Role graduation
 

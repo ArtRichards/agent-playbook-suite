@@ -3,7 +3,7 @@
 Lifecycle: active
 Role: spec
 Project: docs
-Updated: 2026-06-24
+Updated: 2026-08-16
 
 Related:
 - pairs-with: cli.md
@@ -58,6 +58,21 @@ Related:
 
 The block terminates at the first blank line whose next non-empty line is *not* a bare-label multi-value group. An inline `Label: value` line after a blank line is body content, not metadata — this preserves the rule that anything looking like an isolated `Label: value` outside the block is opaque to the parser.
 
+**Each label appears at most once (M25 — D7).** A metadata block must not
+repeat a label. Repeatability lives in the **bullets** under a bare label,
+never in a second copy of the label: `Related:` carries any number of
+`- <verb>: <path>` bullets and `Revision:` any number of dated entries, but
+each of those labels may occur only **once** in the block. The same holds
+for every inline label — one `Updated:`, one `Role:`, one `Owner:`.
+
+This is structural, not stylistic. The parser builds a dict from the block,
+so a second copy of a label **replaces** the first and every value under the
+earlier one is silently discarded — before any validation, INDEX
+generation, or `Related:` resolution can see it. `docs check` therefore
+treats a repeated label as a hard error (rule `duplicate-field`, exit 2);
+see `cli.md` › `docs check` › *Duplicate metadata labels*. The repair is to
+merge the entries under one label by hand.
+
 ### Required fields
 
 | Field | Type | Meaning |
@@ -86,6 +101,9 @@ The block terminates at the first blank line whose next non-empty line is *not* 
 |---|---|---|
 | `Project` | kebab-case slug | project this doc belongs to; defaults to `project.name` in `.docs.toml` if absent. The CLI surface `docs project rename` rewrites this slug in lockstep across the sidecar and every doc that names it (M12). |
 | `Related` | list of `<verb>: <path>` | typed cross-references to other docs |
+| `Archived` | date, in the tree's `[archive] date_format` | the archive-date witness (M28a — D1). Written by `docs archive` to **every** document the operation moves, carrying the same date that names the dated archive directory. `docs check` corroborates it against the document's location (rule `archive-date-drift`); see *Archive subtree*. Never written by any other verb, and never backfilled. |
+| `Archived-reason` | free-form | why *this* archive was requested. Written by `docs archive --reason` to the named **primary only**, never to a cascaded candidate (M26 — D1). Harvested but uninterpreted. |
+| `Revision` | list of `<YYYY-MM-DD>: <one-line entry>` | repeatable dated audit record. Written by `docs relate` on an **archived** endpoint only, one bullet per real mutation, appended chronologically at the end of the metadata block (M25 — D4). Never written to an active doc — its history is the repository's. |
 | `Owner` | free-form | the human or team accountable for this doc |
 | `Tags` | comma-separated | free-form tags for filtering |
 | `Status` | free-form | a human-readable progress sentence (M7 — preserved, not vocab-checked) |
@@ -100,7 +118,7 @@ Any additional `Label:` fields are harvested and exposed under `docs list --json
 |---|---|
 | `draft` | Being written, not ready for use. |
 | `active` | Current, in use, source of truth. |
-| `blocked` | Paused, waiting on something external. Pair with `Related: blocked-by: …`. |
+| `blocked` | Paused, waiting on something external. A `Related: blocked-by: …` edge is a natural companion, but from M25 `blocks`/`blocked-by` is a **validated reciprocal pair** — writing `blocked-by` obliges the other doc to carry `blocks` back (use `docs relate add`, never a hand-edit of one side). The two are otherwise **uncoupled**: `Lifecycle: blocked` neither requires nor is implied by a `blocked-by` edge, and `docs check` never derives one from the other. |
 | `done` | Complete; intentionally kept in the active tree (evergreen reference). |
 | `archived` | Complete and moved to the archive subtree. |
 | `superseded` | Replaced by another doc. Pair with `Related: superseded-by: …`. |
@@ -157,8 +175,12 @@ is `Capital:`, so `owner:` is malformed and rejected by the parser
 upstream). The rule is opt-in: an absent or empty `add_fields`
 switches the `unknown-field` warning OFF entirely. The built-in
 always-allowed metadata labels (`Lifecycle`, `Role`, `Project`,
-`Updated`, `Related`, `Archived-reason`) are never affected by
-`add_fields` — they are always permitted.
+`Updated`, `Related`, `Archived`, `Archived-reason`, `Revision`) are
+never affected by `add_fields` — they are always permitted.
+(`Revision` joins the set in M25 and `Archived` in M28a, for one
+reason: `docs relate` and `docs archive` write those labels
+themselves, and a label the tool writes must never trip the tool's
+own allowlist warning.)
 
 Scope: `add_fields` widens the `unknown-field` check's allowlist
 only; it does **not** change `docs list --json` or INDEX rendering
@@ -250,9 +272,149 @@ stale_days = 30                          # M19: default --stale window for this 
 
 `docs check` does not validate verbs (free-form), but it does validate that every `Related:` path resolves to a file under the docs root. The target file does **not** need to be a `.md` doc — it may be any file (YAML data, HTML report, spreadsheet, generated artifact). The tool checks existence, not file type. This lets specs cross-reference canonical data files, reviewer worksheets, or other artifacts that live in the same tree without forcing them through `docs`'s Markdown convention.
 
+### Reciprocal relationship verbs (M25)
+
+Six of those verbs — and **only** these six — form three recognized
+reciprocal pairs. Each carries a distinct meaning; none implies the other,
+and none grants archive membership:
+
+| Forward | Inverse | Meaning |
+|---|---|---|
+| `precedes` | `follows` | Adjacent execution order. |
+| `depends-on` | `required-by` | A durable planned prerequisite. |
+| `blocks` | `blocked-by` | A current inability to proceed. |
+
+The map is **symmetric**: each member's inverse is the other, so either
+spelling of a pair is equally primary. Matching is **case-sensitive exact
+match** — `Precedes:` is a different, free-form verb.
+
+**A recognized edge without its exact inverse is a hard `docs check`
+error** (rule `missing-inverse`, exit 2), reported against the doc that
+declares the un-reciprocated edge. It fires only when both endpoints are
+included by the effective exclusion predicate, the target resolves to a
+managed Markdown doc in the tree, both endpoint texts parse, and the target
+is **not the declaring document itself** — a self-referential recognized
+edge is exempt, because there is no second document to complete and
+`docs relate` refuses to write one. The existing `broken-ref`, exclusion,
+and `malformed` rules keep ownership of their own cases. See `cli.md` ›
+`docs check` for the exact message and the full applicability list.
+
+Paths are compared **canonically**, not textually: both the edge's target
+and the candidate inverse bullet are resolved to their root-relative POSIX
+form before matching (the same resolution the existing `Related:`
+existence check performs). `precedes: ./b.md`, `precedes: sub/../b.md`, and
+`precedes: b.md` are one edge, and an inverse written `follows: ./a.md`
+satisfies it. Writing the plain root-relative form remains the
+recommendation — `docs relate` always writes it — but a tree that spells a
+path differently is not thereby broken.
+
+Every other verb stays **free-form and unvalidated**: `pairs-with`,
+`child-of` / `parent-of`, `supersedes` / `superseded-by`, `implements`,
+`spec-of`, `decision`, `references`, and any verb a tree invents. Do not
+infer symmetry from a verb's shape — `supersedes` / `superseded-by` and
+`child-of` / `parent-of` *look* like inverse pairs and are deliberately
+**not** members of the recognized set. Adding them would retroactively
+break existing trees for no navigational gain; the recognized six were
+chosen because an agent reading one milestone needs sequence, prerequisite,
+and blocker context in both directions.
+
+**Repair with `docs relate`, not by hand.** `docs relate add|remove SOURCE
+VERB TARGET` writes or unwrites both halves of a pair as one coordinated,
+idempotent operation, including — with an explicit `--reason` and a dated
+`Revision:` audit bullet — when an endpoint is archived. See `cli.md` ›
+`docs relate`.
+
+**Upgrading from a pre-M25 tree.** Trees carrying one-sided recognized
+edges begin failing `docs check` after the upgrade. There is **no**
+automatic conversion and no opt-out knob: the finding names the source,
+verb, target, and exact missing inverse, and the agent decides whether to
+complete the pair or delete the edge. The most likely legacy offender is a
+bare `blocked-by:` — this spec previously recommended pairing
+`Lifecycle: blocked` with a one-sided `blocked-by` edge, and that
+recommendation is withdrawn (see the Lifecycle table).
+
+## Body links (M27)
+
+Prose links are part of the navigation layer, not decoration. From M27 `docs`
+validates the local Markdown links in a document's **body**, alongside the
+`Related:` edges in its metadata block. Two rules follow for authors.
+
+**Invariant: a local Markdown body link stays inside the tree root; anything
+outside the tree is a URL.** A docs tree has to be **portable**. The same
+bytes get read in a git clone, inside a container, vendored as a subtree, and
+unpacked from a release archive — and a link that resolves only because of
+what happens to sit *beside* the checkout resolves in one of those places and
+dangles in the others. Worse, the tool cannot even tell you which: a check
+whose answer depends on the tree's surroundings is not a check. So a body-link
+destination that climbs out of the root with `..` is a convention violation
+regardless of whether the file it names happens to exist on the machine
+running the check, and the repair is to name the target by URL instead. This
+is the same boundary the tool draws for itself: `docs check` never stats,
+opens, or follows anything outside the root it was pointed at.
+
+**Fence code samples that contain link syntax.** A body link is recognised
+wherever it appears in prose, and the only code the tool recognises is a
+**fenced** block (```` ``` ```` or `~~~`) or an **inline code span**
+(backticks). There is deliberately no 4-space-indented-code rule, because in
+real documents a four-space-indented link is almost always a genuine link
+inside a blockquote or a list continuation, not a code sample. So: put link
+syntax you do **not** want validated inside a fence or backticks — which is
+already the house style — and use a backslash escape (`` `\[label](target.md)` ``)
+when you need to opt a single span out inline.
+
+Resolution differs from `Related:` in exactly one way, and it is the important
+one: a `Related:` path is **root-relative**, while a body-link destination is
+resolved **from the directory of the document that contains it**. So `..` is
+normal and expected in a body link and never appears in a `Related:` bullet.
+Beyond that the two agree: any existing filesystem entry satisfies a
+destination — file **or** directory, any extension — and a `#fragment` is
+preserved but never validated, since `docs` does not read headings.
+
+External destinations are never touched: a URL, a `mailto:`, a
+protocol-relative `//host/path`, a root-absolute `/path`, an image, an
+autolink, and raw HTML all produce nothing at all. See `cli.md` ›
+*Markdown body-link validation* for the exact recognised grammar and both
+finding messages.
+
+**A coordinated move keeps supported links resolving (M28).** From M28 the
+two verbs that move a document — `docs mv` and `docs archive` — rebase the
+supported body links that move makes stale, in the same operation that
+moves the file, so a rename or a milestone closeout ends with `docs check`
+clean rather than with prose links to repair by hand. Two rules follow for
+authors.
+
+**Write the link; do not work around it.** A destination whose target moved
+is repointed. A destination inside a document that itself moved is rebased
+from that document's new directory. A destination whose *meaning* the move
+did not change keeps the spelling its author gave it, byte for byte —
+`./x.md` is never normalised to `x.md`, and a legitimate `sub/../x.md` is
+never re-spelled — so the diff of a move contains only what the move
+actually made stale. What the tool cannot repair it never touches: an
+external URL, an image, an autolink, raw HTML, a bare filename in a
+sentence, anything inside a fence or backticks, and a destination that was
+already **escaping** before the move are all byte-identical afterwards. A
+destination that was already **broken** is never *repaired* and never
+*re-aimed* either — but it is rebased like any other when its referrer
+moves, to the same, still-broken target, because the tool resolves paths
+without ever asking the filesystem what exists and rebasing is what keeps
+the link pointing where its author aimed it. Either way the finding
+survives the move: `docs check` owns pre-existing damage, and repairing it
+is never a precondition for a rename. Documents that `[exclude]` or
+`.docsignore` keeps out of the walk are not rewritten either — the
+exclusion decides what is *read*, never what a destination may point at.
+
+**A move can refuse, and it refuses before it writes.** Archiving a
+document that a still-active document outside the operation declares itself
+`child-of` refuses outright, naming both ends and changing zero bytes: a
+parent is not archived out from under a live child. Every *other*
+still-active reference into the newly-archived set — any other verb, and
+every body link — is reported rather than refused, because a closeout is
+supposed to leave the tracker and the plan pointing at the work it
+completed. That report is the operation's consequence, not a defect list.
+
 ## Archive subtree
 
-Completed work moves to an archive subtree. Default subdir name: `archive/`. Convention: `archive/YYYY-MM-DD/` per archive event. Configurable via `[archive] dir` in `.docs.toml`.
+Completed work moves to an archive subtree. Default subdir name: `archive/`. Convention: `archive/YYYY-MM-DD/` per archive event. Configurable via `[archive] dir` in `.docs.toml`. `[archive] dir` must be a **single path segment**, and `[archive] date_format` must render as one too — a format containing `/` would make the dated directory two segments deep, which every archive-subtree rule in this convention reads as one.
 
 Lifecycle/location consistency rules:
 
@@ -262,7 +424,23 @@ Lifecycle/location consistency rules:
 
 `done` vs `archived`: `done` stays in the active tree (evergreen reference); `archived` is moved to the archive subtree. Use `done` when the doc is finished but still referenced day-to-day.
 
-**Archive-subtree edge integrity (M18).** Archive-subtree `Related:` edges are maintained across moves. When a doc moves into the archive, both its OWN intra-archive edges (bullets pointing at another doc moving in the same operation) and any already-archived referrers' edges to it are repointed to the new `archive/YYYY-MM-DD/` paths, so they keep resolving. The M3 "archive is read-only" stance is preserved for everything else — only these move-driven edge rewrites touch archived docs; prose, other metadata, and edges to docs that did not move are left byte-identical.
+**The archive-date witness (M28a — D1 / D3 / D6).** `docs archive` records the archive date as an `Archived:` metadata line on **every** document the operation moves, carrying the same date that names the dated directory. `docs check` then asks whether the document's location corroborates it: the first segment under the archive dir must parse, in the tree's `[archive] date_format`, to the recorded date. It does not, and the document is a hard error — rule `archive-date-drift`, exit 2, one finding per document. Three things bound the rule:
+
+- **Present-only.** A document that carries no `Archived:` line produces nothing, ever. Every document archived before 2.0.0 stays silent forever, so a tree upgrading from 1.x gains zero findings from this rule. There is no backfill, and no CLI verb performs one.
+- **The tool never requires a dated directory.** The rule reports a document whose *own recorded date* is not corroborated, never a tree whose layout it dislikes. An undated subdirectory under the archive subtree stays permitted, and a document sitting in one that carries no witness stays silent.
+- **It is independent of `status-drift`.** The two report different facts — a lifecycle that disagrees with a location, and a recorded date that does — and both may fire on one document.
+
+**Cross-dated archived relocations refuse (M28a — D5).** The dated directory is the only record of when a document was archived, so `docs mv` **refuses** a move whose source and destination are two *different* dated archive directories — decided from the two paths alone, before any byte is written, at exit 2, in every mode. It refuses for every archived document, whether or not it carries the witness, which is what protects the population archived before 2.0.0. Four neighbouring moves are permitted and unaffected: a rename within one dated directory, a move with one end outside the archive subtree, a move whose two segments do not both parse as dates, and two spellings of one date (`archive/2026-01-01/` to `archive/2026-1-1/`), because the comparison is on parsed dates rather than raw strings. **The escape stays open**: to correct a genuinely mis-dated archive, move the file by hand, correct its `Archived:` line to match its new directory, and re-run `docs check`, which then confirms the two agree. The refusal blocks the silent path, not the deliberate one.
+
+**Archive-subtree edge integrity (M18, widened by M28 — D5).** Archive-subtree `Related:` edges **and local Markdown body-link destinations** are maintained across moves. When a doc moves into the archive, both its OWN intra-archive references (bullets and destinations pointing at another doc moving in the same operation) and any already-archived referrers' references to it are repointed to the new `archive/YYYY-MM-DD/` paths, so they keep resolving. The M3 "archive is read-only" stance is preserved for everything else — only these move-driven rewrites touch archived docs; prose, other metadata, and references to docs that did not move are left byte-identical. `Archived:` and `Archived-reason:` are named explicitly on that byte-identical side (M28a — D9): both record entry into the archive, and a move-driven rewrite of some *other* document's destination is not an archive event.
+
+M28 **widens this one exception along its own axis** rather than granting a new one: the trigger is unchanged (a reference pointing at a doc moving in *this* operation), the operation is the same, the write is the same single atomic write, and the blast radius grows by exactly the destination token beside the bullet. In particular the widened exception carries **no audit metadata**: an archived referrer whose destination is repointed gets no `Updated:` bump and no `Revision:` bullet, because it still points at the same target in a different spelling and asserts nothing new — and because an `Updated:` value that recorded some *other* doc's move would be a lie about the doc that carries it. An active referrer is treated the same way, as it always has been.
+
+**Audited relationship repair (M25 — D4).** A **second** narrow exception, beside M18's. Because archived docs are walked, they are reciprocity-checked too, so a one-sided recognized edge with an archived endpoint would otherwise be an unfixable `docs check` error. `docs relate add|remove` may therefore touch an archived endpoint — but only when the operator asks explicitly and says why: `--reason TEXT` (a single non-empty line) is **required** whenever either named endpoint is under the archive subtree, and an invocation that would change nothing still requires it. Exactly three things may change in an archived doc: **(1)** the one recognized `Related:` bullet added or removed, **(2)** the `Updated:` value, **(3)** the `Revision:` group — created, or one dated bullet appended recording that document's own change and the reason. `Lifecycle: archived`, the original `Archived:` and `Archived-reason:` (which record entry into the archive, never a later repair), `Role:`, `Project:`, every other `Related:` bullet, every other metadata field, the H1, the prose, the file's location, and its trailing-newline state stay byte-identical. `Revision:` is written to archived endpoints only; an active endpoint gets the edge and the `Updated:` bump and nothing more. This is not general archived-document editing — no other verb and no other field is in scope.
+
+**One-time body-link migration (M27 — D6).** A **third** narrow exception, beside M18's and M25 — D4's, and the last one this convention grants — a count M28 leaves at three, because M28 — D5 widens M18's move-driven exception along its own axis instead of adding a fourth. Because body links are validated uniformly — in archived documents exactly as in active ones, the same reach `broken-ref` and `missing-inverse` already have — a document that an older `docs` moved into `archive/YYYY-MM-DD/` without rebasing its prose links carries damage that is now a hard `docs check` error and would otherwise be unrepairable. This repository's own archive was repaired once, on **2026-08-14**, with a **stated blast radius**: only **destination tokens**, the `Updated:` value, and one dated `Revision:` bullet may change, in **29** named archived documents; `Lifecycle:`, `Archived:`, `Archived-reason:`, `Role:`, `Project:`, every `Related:` bullet, the H1, and all other prose stay byte-identical. `Revision:` is written to archived documents only — an active document repaired in the same pass gets the destination change and its `Updated:` bump and nothing more (M25 — D4). This is **not** a general licence to edit archived prose, and **no CLI verb performs it**: there is no `docs fix-links`. An adopter upgrading to 2.0 gets the recipe (`cli.md` › *Upgrading from 1.x*), not the migration.
+
+**Safe explicit archive selection (M26 — D1).** Entry into the archive subtree is authorized **explicitly**, never by relationship. A relationship verb supplies the *candidate set* a preview names; it never grants permission to move a document. `docs archive FILE` archives that one document. `docs archive FILE --cascade-dry-run` names every one-hop `pairs-with` / `child-of` candidate as selected, not selected, or ineligible and writes nothing. Only `docs archive FILE --cascade-only GLOB` writes a related document, and then exactly the candidates the glob selects — one complete plan, validated before the first byte moves, refusing outright rather than writing part of it. The 1.x bare `--cascade` and `--interactive` flags are retired and refuse. Two rules follow for authors: a document already under the archive subtree is **never** re-archived — neither as a candidate (it is reported ineligible) nor as the named primary (that is a refusal) — so a later archive event never changes an archived doc's location, `Updated:` value, `Lifecycle:`, `Archived:`, `Archived-reason:`, H1, or prose, and changes no `Related:` bullet of its except one pointing at a document moving in that same operation, which M18's edge integrity repoints so it keeps resolving; and an `Archived-reason:` line records why *that* document was archived, so it is written to the named primary only, never to a cascaded candidate.
 
 ## Subdirectories
 
@@ -360,7 +538,7 @@ A docs root frequently contains files that aren't Markdown — HTML review packe
 - They do not need a metadata block.
 - They do not appear as entries in `INDEX.md`.
 - Their absence of metadata is not an error.
-- They may be referenced from `.md` docs via `Related:` (see "Relationship verbs") or via prose links in the body. `Related:` will check that the referenced file exists, regardless of its extension.
+- They may be referenced from `.md` docs via `Related:` (see "Relationship verbs") or via prose links in the body. `Related:` will check that the referenced file exists, regardless of its extension — and from M27 a local **body link** is checked the same way, inheriting the same rule: any existing entry under the root satisfies it, file or directory, whatever the extension (see "Body links"). The two differ only in their resolution base — a `Related:` path is root-relative, a body-link destination is relative to the referring document.
 
 This keeps `docs` focused on the Markdown navigation layer while letting authors keep canonical data, presentation artifacts, and generated outputs co-located with the specs that describe them. The Markdown layer is the navigable map; everything else lives alongside it.
 
@@ -381,5 +559,5 @@ Names are free-form. The metadata block carries the load; the filename is for hu
 ## What `docs` does not promise
 
 - No automatic `Updated:` bumping on every write. Use `docs touch` or hand-edit.
-- No link-graph traversal. `Related:` is metadata, not a query target in v1.
-- No content validation beyond metadata. The body of a doc is opaque to the tool.
+- No link-graph traversal. `Related:` is metadata, not a query target. From M25 the tool validates **one-hop reciprocity** of the six recognized verbs (and repairs a single pair via `docs relate`) — that is the whole of its graph awareness. There is still no graph query, no multi-hop traversal, no cycle or conflict detection, and no rendering.
+- No content validation beyond metadata **and local body-link destinations** (M27). The tool reads a document's body for exactly one purpose — resolving the local Markdown links in it (see "Body links") — and is otherwise indifferent to it: no rendering, no heading or anchor validation, no style, spelling, structure, or well-formedness rules, and no link-graph traversal built out of body links.
