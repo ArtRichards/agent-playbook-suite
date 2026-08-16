@@ -3,10 +3,10 @@
 Lifecycle: active
 Role: notes
 Project: agent-playbook-suite
-Updated: 2026-07-11
+Updated: 2026-08-16
 
 This project produces public documentation and marketplace package metadata for
-Agent Playbook Suite: one suite plugin that bundles seven workflow skills plus
+Agent Playbook Suite: one suite plugin that bundles eight workflow skills plus
 the `docs` skill. The runtime CLI is `docs-cli`, published on PyPI.
 
 ## Your input
@@ -23,7 +23,8 @@ Treat the briefing as historical source material for the workflow model, not as
 the current install source of truth. `README.md` is the public install guide,
 and `marketplace-publishing-guide.md` is the maintainer publishing guide.
 The local `plugins/agent-playbook-suite/skills/` payload is authoritative for
-suite-only skills such as `use-cases` and `explore`.
+suite-only skills such as `use-cases`, `explore`, and
+`manage-milestone-tracker`.
 
 ## Your deliverables
 
@@ -70,6 +71,5 @@ or fetch the raw URL.
 
 ## When done
 
-Update the relevant docs and run `docs touch <changed docs> --check` (touch,
-reindex, and tree-wide check in one step; the stale window comes from
-`.docs.toml [check] stale_days`). No need to commit unless the operator asks.
+Update the relevant docs and run `docs index` plus `docs check .`. No need to
+commit unless the operator asks.

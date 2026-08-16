@@ -3,7 +3,7 @@
 Lifecycle: active
 Role: notes
 Project: agent-playbook-suite
-Updated: 2026-08-15
+Updated: 2026-08-16
 
 Historical scope: this briefing captures the original five-workflow-skill
 model used to draft the first overview and blog post. It is not the current
@@ -28,7 +28,7 @@ The five skills:
 | Repo | Role in the workflow |
 |---|---|
 | [project-foundation](https://github.com/ArtRichards/project-foundation) | Bootstrap a new project's front-half: charter, scope, architecture, milestones, definition-of-ready. Sets up the docs tree and agent context (`CLAUDE.md`, `AGENTS.md`, or equivalent). Run once per project. |
-| [create-milestones](https://github.com/ArtRichards/create-milestones) | Create / advance / complete milestones using a 10-phase TDD methodology. Authors milestone+impl-log pairs; atomically archives them on completion. Interactive: operator-driven. |
+| [create-milestones](https://github.com/ArtRichards/create-milestones) | Create / advance / complete milestones using a 10-phase TDD methodology. Authors milestone artifacts and archives an explicitly previewed milestone-only scope on completion. Interactive: operator-driven. |
 | [ship-milestone](https://github.com/ArtRichards/ship-milestone) | Autonomous milestone driver. A lightweight conductor spawns fresh Opus sub-agents per step (plan → implement → fresh-eyes review → simplify), commits each step to its own branch, surfaces only operator-decision points. |
 | [sync-and-commit](https://github.com/ArtRichards/sync-and-commit) | End-of-step wrap-up. Verify the work, sync the docs tree to reality, commit, and push (when safe). Reads project context, runs the project quality gate. Never bypasses git hooks; never pushes to `main`. |
 | [simplify](https://github.com/ArtRichards/simplify) | Post-implementation simplify mode for TDD Phase 10. Reduces complexity while preserving behavior — replaces clever with obvious, drops unearned abstractions. Makes no changes if nothing genuinely simplifies. |
@@ -67,7 +67,7 @@ Related:
 - `Lifecycle:` and `Role:` are controlled vocabularies (extensible per-project, additive only).
 - `Related:` is a typed-edge graph: `pairs-with`, `child-of`/`parent-of`, `implements`, `spec-of`, `supersedes`/`superseded-by`, `blocked-by`, `decision`, `references`.
 - `INDEX.md` is **derived** from the metadata, never hand-maintained.
-- `docs check` validates the tree; `docs archive <file> --cascade-only '<glob>'` walks the graph one hop and atomically archives the related files the glob selects.
+- `docs check` validates the tree; `docs archive <file> --cascade-dry-run --cascade-only '<glob>'` previews a bounded one-hop selection, and applying the identical explicit scope moves only those selected candidates with the primary.
 
 The suite skills never have to think about indexes, broken cross-references, or lifecycle drift — they call `docs new`, `docs touch`, `docs index`, `docs check`, `docs archive <file> --cascade-only '<glob>'` and the tree stays correct.
 
@@ -156,7 +156,7 @@ directory installs.
 1. **"Five skills, one workflow"** — a tour of the suite, ending with the conductor pattern as the punchline.
 2. **"State lives on disk, not in chat"** — the philosophical bet, with docs-cli as the substrate and the skills as the workflow.
 3. **"Fresh context as a feature"** — why ship-milestone spawns new agents instead of one long-running one; the cost of rationalization and the value of independent review.
-4. **"From charter to ship"** — walk one hypothetical project through `project-foundation` → `ship-milestone M1` → archived milestone, showing what each skill produces.
+4. **"From charter to ship"** — walk one hypothetical project through `project-foundation` → `ship-milestone fetch-and-parse` → archived milestone, showing what each skill produces.
 
 ## Pointers for deeper reading
 

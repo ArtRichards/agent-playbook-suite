@@ -31,6 +31,21 @@ jobs:
           python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
           python3 -m json.tool plugins/agent-playbook-suite/.codex-plugin/plugin.json >/dev/null
           python3 -m json.tool plugins/agent-playbook-suite/.claude-plugin/plugin.json >/dev/null
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          codex = json.loads(Path("plugins/agent-playbook-suite/.codex-plugin/plugin.json").read_text())
+          claude = json.loads(Path("plugins/agent-playbook-suite/.claude-plugin/plugin.json").read_text())
+          marketplace = json.loads(Path(".claude-plugin/marketplace.json").read_text())
+          versions = {
+              "Codex plugin": codex["version"],
+              "Claude plugin": claude["version"],
+              "Claude marketplace": marketplace["plugins"][0]["version"],
+          }
+          if len(set(versions.values())) != 1:
+              raise SystemExit(f"Plugin version mismatch: {versions}")
+          PY
 
       - name: Validate skill payload shape
         run: |
@@ -41,6 +56,7 @@ jobs:
               "create-milestones",
               "docs",
               "explore",
+              "manage-milestone-tracker",
               "project-foundation",
               "ship-milestone",
               "simplify",
@@ -78,7 +94,7 @@ jobs:
           import yaml
 
           skills = Path("plugins/agent-playbook-suite/skills")
-          required = {"explore"}
+          required = {"explore", "manage-milestone-tracker"}
 
           for skill in required:
               path = skills / skill / "agents" / "openai.yaml"
@@ -163,6 +179,444 @@ jobs:
                   raise SystemExit(f"{skill} missing quality-model terms: {missing}")
           PY
 
+      - name: Validate operator-interaction and step-review protocols
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          skills = Path("plugins/agent-playbook-suite/skills")
+          ship = skills / "ship-milestone"
+
+          def require(path, *terms):
+              if not path.exists():
+                  raise SystemExit(f"Missing required workflow file: {path}")
+              text = " ".join(path.read_text(encoding="utf-8").split())
+              missing = [term for term in terms if term not in text]
+              if missing:
+                  raise SystemExit(f"{path} missing workflow terms: {missing}")
+
+          require(
+              skills / "_shared" / "references" / "operator-interaction.md",
+              "where the question came from",
+              "why the answer is needed now",
+              "practical effect",
+              "Include at least one example in every request",
+              "no strong recommendation",
+              "fixed template or length",
+          )
+          require(
+              skills / "project-foundation" / "references" / "claude-md-template.md",
+              "## Operator questions and decisions",
+              "Include a concise project-grounded example",
+              "Operator questions and decisions | substring match",
+          )
+          require(
+              ship / "references" / "review-protocol.md",
+              "exact base commit SHA",
+              "one fresh Claude-family reviewer and one fresh GPT-family reviewer",
+              "run the attempts sequentially",
+              "use that report as the one GPT review",
+              "second reviewer from the available family",
+              "`fixed`",
+              "`disproven`",
+              "`operator decision`",
+              "Do not run a routine second review",
+              "correcting checkpoint cannot contain its own commit hash",
+              "append-only review sequence",
+              "review-pass-001 -> contract-rework-001 -> review-pass-002",
+              "exact current review-pass location",
+              "qualified implementation-log path plus that unique heading anchor",
+          )
+          require(
+              ship / "references" / "agent-prompts.md",
+              "git diff {base_sha}...{review_sha}",
+              "do not substitute its current tip",
+              "internal decision packet",
+              "grounded current-project example or clearly labeled hypothetical",
+              "A commit is never required to contain its own hash",
+              "Step 1 contract-rework ledger sequence",
+              "{prior_review_ledger_location}",
+              "exact current review-pass location",
+              "CURRENT REVIEW PASS (qualified path plus unique heading anchor)",
+          )
+          require(
+              ship / "references" / "consistency-check.md",
+              "append-only review history",
+              "immediately preceding entry is the newly closed `contract-rework`",
+              "qualified implementation-log path plus its unique heading anchor",
+          )
+          require(
+              skills / "sync-and-commit" / "SKILL.md",
+              "caller explicitly passes all three",
+              "at least one provider-family review returned",
+              "expected product-test state is the reviewed Phase 4 RED baseline",
+              "Step 1 review-closure sync may record the reviewed RED evidence",
+              "`final-sync` is `ready`",
+          )
+
+          link = "../_shared/references/operator-interaction.md"
+          for name in (
+              "project-foundation", "use-cases", "explore",
+              "manage-milestone-tracker", "create-milestones", "ship-milestone",
+              "sync-and-commit", "simplify",
+          ):
+              require(skills / name / "SKILL.md", link)
+
+          ship_text = (ship / "SKILL.md").read_text(encoding="utf-8")
+          ship_normalized = " ".join(ship_text.split())
+
+          def section(text, start, end):
+              try:
+                  return text.split(start, 1)[1].split(end, 1)[0]
+              except IndexError as exc:
+                  raise SystemExit(
+                      f"Missing ship section boundary: {start!r} / {end!r}"
+                  ) from exc
+
+          step_sections = (
+              section(ship_text, "### Step 0", "### Conditional exploration"),
+              section(ship_text, "### Step 1", "### Step 2"),
+              section(ship_text, "### Step 2", "### Step 3"),
+          )
+          for number, text in enumerate(step_sections):
+              if "references/review-protocol.md" not in text:
+                  raise SystemExit(
+                      f"ship-milestone Step {number} does not route through "
+                      "the shared review protocol"
+                  )
+
+          resume_text = section(ship_text, "### Resume detection", "### Step 0")
+          for term in (
+              "predated this ship run",
+              "<slug>/milestone-setup",
+              "final-sync",
+              "clean branch `HEAD`",
+          ):
+              if term not in resume_text:
+                  raise SystemExit(f"Step 0 resume gate missing term: {term}")
+          if "Artifacts alone never close an in-flight Step 0" not in ship_text:
+              raise SystemExit("Preflight must not skip an in-flight Step 0")
+          if "forensically verified" not in ship_text or "interrupted Step 3 closeout" not in ship_text:
+              raise SystemExit("Step 3 recovery must admit only its verified closeout diff")
+          for term in (
+              "before rejecting terminal state",
+              "A `complete` row is terminal unless read-only inspection proves",
+              "with a `complete` row and incomplete final sync routes to docs verification and final sync",
+              "Never rerun archive",
+              "<project-path><artifact-stem>-*",
+              "Normal mode freezes paths/date/reason",
+              "verified interruption recovery, never preview/archive",
+              "if already `complete`, preserve it",
+              "Step 3 context, evidence mode",
+          ):
+              if term not in ship_normalized:
+                  raise SystemExit(f"Step 3 terminal/recovery gate missing term: {term}")
+          if ship_normalized.index("before rejecting terminal state") > ship_normalized.index(
+              "A `complete` row is terminal unless read-only inspection proves"
+          ):
+              raise SystemExit("Ship terminal rejection precedes closeout recovery inspection")
+          if "planning and implementation sequence" not in step_sections[2]:
+              raise SystemExit("Step 2 must run planning and implementation once")
+
+          for stale in (
+              "Step 0 gets no separate fresh-eyes review",
+              "same three-agent sequence",
+              "review agent returns no blockers",
+              "planning, implementation, and review sequence",
+          ):
+              if stale in ship_text:
+                  raise SystemExit(f"Stale single-review assumption: {stale}")
+
+          require(Path("overview.md"), "two initial independent review calls")
+          require(Path("blog-post.md"), "two initial review calls")
+          require(Path("site/blog.md"), "two initial review calls")
+          require(ship / "README.md", "If exactly one provider mechanism")
+          PY
+
+      - name: Validate semantic milestone tracker contract
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          skills = Path("plugins/agent-playbook-suite/skills")
+
+          def require(path, *terms):
+              text = " ".join(path.read_text(encoding="utf-8").split())
+              missing = [term for term in terms if term not in text]
+              if missing:
+                  raise SystemExit(f"{path} missing tracker terms: {missing}")
+
+          contract = skills / "_shared" / "references" / "milestone-tracker.md"
+          require(
+              contract,
+              "Order | Milestone | State | Depends on | Notes",
+              "lexicographically first eligible slug",
+              "planned -> active -> complete",
+              "docs relate add/remove",
+              "do not skip to a later cohort",
+              "Proposal-first migration",
+              "Cycle analysis and broader scheduling optimization are deliberately excluded",
+              "`<artifact-stem>`",
+              "`<project>-<slug>`",
+              "root-globally",
+              "Docs-cli flattens all three basenames",
+              "`<project-branch-prefix>`",
+              "Initialization and migration explicitly own the status-body normalization",
+          )
+          require(
+              skills / "manage-milestone-tracker" / "SKILL.md",
+              "inspect, initialize or migrate",
+              "Re-read immediately before writing",
+              "Do not claim unless",
+              "Rename only a `planned` identity",
+              "create mandatory stubs, a tracker utility",
+              "Never leave a newly initialized tracker draft",
+              "remove independent schedule/next claims",
+              "initialization and migration must touch the qualified tracker and status paths together",
+          )
+
+          require(
+              skills / "create-milestones" / "SKILL.md",
+              "Resume completion from evidence, never by replaying archive",
+              "resume at tracker/status completion without running archive again",
+              "If the same verified set already has a `complete` row",
+              "Any mixed live/archived set",
+              "<project-path><artifact-stem>-*",
+          )
+          require(
+              skills / "create-milestones" / "references" / "milestone-playbook.md",
+              "completion-state checkpoint before any write",
+              "skip items 1-6 and resume at item 7",
+              "do not replay items 1-9",
+              "Anything else",
+              "stop fail-closed",
+          )
+          require(
+              skills / "create-milestones" / "references" / "tdd-phases.md",
+              "Run every displayed docs-cli command from `<docs-root>`",
+              "`<slug>` remains semantic tracker identity only",
+              "docs touch <milestone-path> <impl-path> <matrix-path> <status-path>",
+              "docs index .",
+              "docs check .",
+          )
+          require(
+              skills / "use-cases" / "references" / "use-cases-playbook.md",
+              "Resolve the docs root and the owning project's concrete `<project-path>`",
+              "docs new spec <project-path>use-cases",
+              "docs touch <project-path>use-cases.md",
+              "docs check .",
+          )
+          require(
+              skills / "explore" / "references" / "exploration-playbook.md",
+              "docs new idea <project-path><topic>-exploration",
+              "run docs-cli from that root",
+              "never derive its filename from a semantic slug",
+          )
+          require(
+              skills / "ship-milestone" / "references" / "consistency-check.md",
+              "change the working directory to it before every docs-cli operation",
+              "<project-path><artifact-stem>-test-matrix.md",
+              "<project-path>followup-log.md",
+              "docs check .",
+          )
+          require(
+              skills / "simplify" / "SKILL.md",
+              "<project-path><artifact-stem>-impl.md",
+              "change the working directory to it before any",
+              "docs index .",
+              "docs check .",
+          )
+
+          link = "../_shared/references/milestone-tracker.md"
+          for name in (
+              "project-foundation",
+              "create-milestones",
+              "ship-milestone",
+              "sync-and-commit",
+              "manage-milestone-tracker",
+          ):
+              require(
+                  skills / name / "SKILL.md",
+                  link,
+                  "installation is incomplete",
+                  "Never reconstruct the contract",
+              )
+
+          for path in (
+              Path("README.md"),
+              Path("overview.md"),
+              Path("blog-post.md"),
+              Path("site/blog.md"),
+              Path("marketplace-publishing-guide.md"),
+          ):
+              require(path, "manage-milestone-tracker")
+
+          for path in (
+              skills / "create-milestones" / "SKILL.md",
+              skills / "create-milestones" / "README.md",
+          ):
+              require(path, "docs-cli", "2.0 or newer")
+
+          runtime_paths = [
+              p for p in skills.rglob("*.md")
+              if "/docs/" not in p.as_posix()
+          ]
+          runtime = "\n".join(p.read_text(encoding="utf-8") for p in runtime_paths)
+          for stale in (
+              "first in id order",
+              "m5 < m5a < m5a1",
+              "--cascade-only '<slug>*'",
+              "reports the derived next eligible milestone",
+              "any already-declared slug-owned companion",
+              "status.md`'s \"Current Phase\"",
+          ):
+              if stale in runtime:
+                  raise SystemExit(f"Stale milestone identity/archive guidance: {stale}")
+          PY
+
+      - name: Validate archive closeout execution contract
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          skills = Path("plugins/agent-playbook-suite/skills")
+          ship = skills / "ship-milestone"
+          prompts_path = ship / "references" / "agent-prompts.md"
+          ship_path = ship / "SKILL.md"
+          sync_path = skills / "sync-and-commit" / "SKILL.md"
+          prompts = prompts_path.read_text(encoding="utf-8")
+          ship_text = ship_path.read_text(encoding="utf-8")
+          sync = sync_path.read_text(encoding="utf-8")
+
+          def section(text, start, end, path):
+              try:
+                  tail = text.split(start, 1)[1]
+                  return tail if end is None else tail.split(end, 1)[0]
+              except IndexError as exc:
+                  raise SystemExit(
+                      f"{path} missing section boundary: {start!r} / {end!r}"
+                  ) from exc
+
+          def require(text, path, *terms):
+              normalized = " ".join(text.split())
+              missing = [term for term in terms if term not in normalized]
+              if missing:
+                  raise SystemExit(f"{path} missing archive-closeout terms: {missing}")
+
+          closeout = section(
+              sync,
+              "### Ship-milestone Step 3 archive closeout",
+              "### Verification report",
+              sync_path,
+          )
+          require(
+              closeout,
+              sync_path,
+              "workflow: ship-milestone",
+              "step: 3",
+              "evidence mode: `normal` or `verified interruption recovery`",
+              "owning project, concrete project path, artifact stem, semantic slug, semantic branch root, and exact `<project-path>`-qualified tracker and status paths",
+              "canonical root-relative expected artifact set and final archive destinations",
+              "immutable Step 2 base SHA; clean pre-archive checkpoint SHA/tree; code-change classification; and tree-bound review, operator approval, or justified `not required`",
+              "`normal` requires the exact preview/apply commands and docs-cli JSON",
+              "`verified interruption recovery` is allowed only after the exact three-file move",
+              "Never invent missing commands/JSON",
+              "frozen archive scope, date, and reason",
+              "final tracker row and docs-check result",
+              "in `normal` mode, preview used `--cascade-dry-run`",
+              "in `verified interruption recovery` mode, the established simplify-branch diff",
+              "apply moved exactly that previewed set",
+              "diff reconstructs selection and movement as exactly the declared three-file set",
+              "no unexplained state or rerun",
+              "semantic slug alone is never an archive operand",
+              "docs-cli flattens archive destinations",
+              "no archived milestone path was edited or touched after the apply",
+              "docs check .` from the resolved docs root exits 0",
+              "pre-sync `HEAD` equals the supplied checkpoint/tree",
+              "current diff/status has no code/unrelated-doc change",
+              "recompute base-to-checkpoint path classification",
+              "High-risk code changes need exact-tree approval",
+              "never re-preview, rerun archive, or edit/touch archived docs",
+          )
+          require(
+              prompts,
+              prompts_path,
+              "change the working directory with `cd -- \"{docs_root}\"`",
+              "evidence mode: `normal` or `verified interruption recovery`",
+              "never claim missing JSON exists",
+          )
+          require(
+              sync,
+              sync_path,
+              "Never run `docs archive` from this skill",
+              "Never edit or `docs touch` an archived milestone document",
+              "do not edit or touch the now-archived task plan, implementation log, test matrix",
+          )
+
+          # sync-and-commit may name the archive verb only as a prohibition. A
+          # backticked command with arguments would turn this verifier into a
+          # second archive writer and must fail CI.
+          archive_code_spans = re.findall(r"`(docs\s+archive[^`]*)`", sync)
+          executable_sync_archives = [
+              command for command in archive_code_spans
+              if command.strip() != "docs archive"
+          ]
+          if executable_sync_archives:
+              raise SystemExit(
+                  "sync-and-commit prescribes an archive command: "
+                  f"{executable_sync_archives}"
+              )
+
+          simplify = section(
+              prompts,
+              "## Simplify agent",
+              None,
+              prompts_path,
+          )
+          require(
+              simplify,
+              prompts_path,
+              "STEP 2 BASE HEAD (immutable): {step2_head}",
+              "freeze `simplify_tree_sha` with `git write-tree`",
+              "For a High-risk milestone with code changes",
+              "use one fresh reviewer",
+              "otherwise it asks the operator under the shared interaction policy",
+              "commit the exact staged tree",
+              "simplify_checkpoint_sha=HEAD",
+              "require a clean working tree",
+          )
+          normalized_simplify = " ".join(simplify.split())
+          if normalized_simplify.index("commit the exact staged tree") > normalized_simplify.index(
+              "docs archive {milestone_doc} --cascade-dry-run"
+          ):
+              raise SystemExit("Simplify checkpoint must precede the first archive command")
+          require(
+              ship_text,
+              ship_path,
+              "There is no planner or routine Step 0–2 dual-provider review",
+              "If High-risk simplification changes code",
+              "clean pre-archive simplify checkpoint",
+          )
+          prompt_archive_commands = re.findall(
+              r"`(docs archive [^`\n]+)`",
+              simplify,
+          )
+          expected_commands = [
+              "docs archive {milestone_doc} --cascade-dry-run "
+              "--cascade-only '{archive_scope}' --date {archive_date} "
+              '--reason "{archive_reason}" --json',
+              "docs archive {milestone_doc} --cascade-only "
+              "'{archive_scope}' --date {archive_date} "
+              '--reason "{archive_reason}" --json',
+          ]
+          if prompt_archive_commands != expected_commands:
+              raise SystemExit(
+                  "Simplify closeout must contain exactly the canonical preview/apply "
+                  f"commands; got {prompt_archive_commands}"
+              )
+          PY
+
       - name: Install docs-cli (pinned tested version)
         run: python3 -m pip install "docs-cli==${DOCS_CLI_VERSION}"
 
@@ -206,6 +660,436 @@ jobs:
                       encoding="utf-8",
                   )
               subprocess.check_call(["docs", "touch", "a.md", "b.md"], cwd=root)
+          PY
+
+      - name: Validate bounded milestone archive behavior
+        run: |
+          python3 - <<'PY'
+          import json
+          import subprocess
+          import tempfile
+          from pathlib import Path
+
+          def write_doc(root, name, role, body="", related=(), project="ci"):
+              lines = [
+                  f"# {name}",
+                  "",
+                  "Lifecycle: active",
+                  f"Role: {role}",
+                  f"Project: {project}",
+                  "Updated: 2026-08-16",
+              ]
+              if related:
+                  lines.append("Related:")
+                  lines.extend(f"- {edge}" for edge in related)
+              lines.extend(("", body, ""))
+              path = root / name
+              path.parent.mkdir(parents=True, exist_ok=True)
+              path.write_text("\n".join(lines), encoding="utf-8")
+
+          def snapshot(root):
+              return {
+                  p.relative_to(root).as_posix(): p.read_bytes()
+                  for p in root.rglob("*")
+                  if p.is_file()
+              }
+
+          with tempfile.TemporaryDirectory() as tmp:
+              root = Path(tmp)
+              (root / ".docs.toml").write_text(
+                  '[project]\nname = "ci"\n\n[archive]\ndir = "archive"\n',
+                  encoding="utf-8",
+              )
+              write_doc(
+                  root,
+                  "milestone-plan.md",
+                  "plan",
+                  "| Order | Milestone | State | Depends on | Notes |\n"
+                  "|---:|---|---|---|---|\n"
+                  "| 100 | [fetch](fetch.md) | active | — | — |\n"
+                  "| 200 | [next-step](next-step.md) | planned | fetch | — |\n"
+                  "| 200 | [paused-work](paused-work.md) | paused | — | Waiting for operator data |",
+              )
+              write_doc(
+                  root,
+                  "fetch.md",
+                  "milestone",
+                  "[Next](next-step.md)\n[Impl](fetch-impl.md)",
+                  (
+                      "pairs-with: fetch-impl.md",
+                      "pairs-with: fetch-test-matrix.md",
+                      "pairs-with: fetching.md",
+                      "pairs-with: next-step.md",
+                      "pairs-with: paused-work.md",
+                      "pairs-with: exploration.md",
+                      "child-of: milestone-plan.md",
+                  ),
+              )
+              write_doc(
+                  root,
+                  "fetch-impl.md",
+                  "log",
+                  "[Plan](fetch.md)",
+                  ("pairs-with: fetch.md", "pairs-with: fetch-test-matrix.md"),
+              )
+              write_doc(
+                  root,
+                  "fetch-test-matrix.md",
+                  "spec",
+                  "[Plan](fetch.md)",
+                  ("pairs-with: fetch.md", "pairs-with: fetch-impl.md"),
+              )
+              write_doc(root, "fetching.md", "milestone", "Prefix neighbour.", ("pairs-with: fetch.md",))
+              write_doc(
+                  root,
+                  "next-step.md",
+                  "milestone",
+                  "[Previous](fetch.md)",
+                  ("pairs-with: fetch.md",),
+              )
+              write_doc(
+                  root,
+                  "paused-work.md",
+                  "milestone",
+                  "Paused work remains active.",
+                  ("pairs-with: fetch.md",),
+              )
+              write_doc(
+                  root,
+                  "exploration.md",
+                  "idea",
+                  "Exploration remains active.",
+                  ("pairs-with: fetch.md",),
+              )
+              write_doc(
+                  root,
+                  "status.md",
+                  "status",
+                  "Fetch is active. See [the tracker](milestone-plan.md).",
+              )
+
+              for command in (
+                  ["docs", "relate", "add", "fetch.md", "precedes", "next-step.md"],
+                  ["docs", "relate", "add", "next-step.md", "depends-on", "fetch.md"],
+              ):
+                  subprocess.run(
+                      command, cwd=root, check=True, capture_output=True, text=True
+                  )
+              subprocess.run(["docs", "check", "."], cwd=root, check=True, capture_output=True)
+
+              # Model a real code-changing simplification and commit the exact
+              # clean tree before archive. A post-apply interruption must then
+              # contain only closeout paths relative to this checkpoint.
+              code_path = root / "implementation.py"
+              code_path.write_text(
+                  "def normalize(value):\n    result = value.strip()\n    return result\n",
+                  encoding="utf-8",
+              )
+              subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+              subprocess.run(
+                  ["git", "config", "user.email", "ci@example.invalid"],
+                  cwd=root, check=True,
+              )
+              subprocess.run(
+                  ["git", "config", "user.name", "Suite CI"], cwd=root, check=True
+              )
+              subprocess.run(["git", "add", "."], cwd=root, check=True)
+              subprocess.run(
+                  ["git", "commit", "-q", "-m", "Step 2 complete"],
+                  cwd=root, check=True,
+              )
+              step2_head = subprocess.check_output(
+                  ["git", "rev-parse", "HEAD"], cwd=root, text=True
+              ).strip()
+
+              code_path.write_text(
+                  "def normalize(value):\n    return value.strip()\n",
+                  encoding="utf-8",
+              )
+              impl_path = root / "fetch-impl.md"
+              impl_path.write_text(
+                  impl_path.read_text(encoding="utf-8")
+                  + "\nSimplification kept behavior and removed a temporary.\n",
+                  encoding="utf-8",
+              )
+              subprocess.run(
+                  ["docs", "touch", "fetch-impl.md"], cwd=root, check=True,
+                  capture_output=True, text=True,
+              )
+              subprocess.run(
+                  ["docs", "index", "."], cwd=root, check=True,
+                  capture_output=True, text=True,
+              )
+              subprocess.run(
+                  ["docs", "check", "."], cwd=root, check=True,
+                  capture_output=True, text=True,
+              )
+              subprocess.run(["git", "add", "."], cwd=root, check=True)
+              simplify_tree = subprocess.check_output(
+                  ["git", "write-tree"], cwd=root, text=True
+              ).strip()
+              subprocess.run(
+                  [
+                      "git", "commit", "-q", "-m",
+                      "Simplify before closeout\n\n"
+                      f"Ship-Milestone-Simplify-Tree: {simplify_tree}\n"
+                      "Ship-Milestone-Simplify-Gate: fixture-approved",
+                  ],
+                  cwd=root, check=True,
+              )
+              simplify_checkpoint = subprocess.check_output(
+                  ["git", "rev-parse", "HEAD"], cwd=root, text=True
+              ).strip()
+              checkpoint_tree = subprocess.check_output(
+                  ["git", "rev-parse", "HEAD^{tree}"], cwd=root, text=True
+              ).strip()
+              checkpoint_parent = subprocess.check_output(
+                  ["git", "rev-parse", "HEAD^"], cwd=root, text=True
+              ).strip()
+              if (
+                  checkpoint_tree != simplify_tree
+                  or checkpoint_parent != step2_head
+                  or simplify_checkpoint == step2_head
+                  or subprocess.check_output(
+                      ["git", "status", "--porcelain"], cwd=root, text=True
+                  )
+              ):
+                  raise SystemExit("Pre-archive simplify checkpoint is not exact and clean")
+
+              preview_command = [
+                  "docs", "archive", "fetch.md", "--cascade-dry-run",
+                  "--cascade-only", "fetch-*", "--date", "2030-01-02",
+                  "--reason", "Milestone complete", "--json",
+              ]
+              apply_command = [
+                  "docs", "archive", "fetch.md", "--cascade-only", "fetch-*",
+                  "--date", "2030-01-02", "--reason", "Milestone complete", "--json",
+              ]
+              before = snapshot(root)
+              preview = json.loads(
+                  subprocess.check_output(preview_command, cwd=root, text=True)
+              )
+              if snapshot(root) != before or preview["applied"] or not preview["dry_run"]:
+                  raise SystemExit("Archive preview wrote bytes or reported an apply")
+              selected = {c["path"] for c in preview["candidates"] if c["selected"]}
+              if selected != {"fetch-impl.md", "fetch-test-matrix.md"}:
+                  raise SystemExit(f"Unexpected archive selection: {sorted(selected)}")
+              unselected = {c["path"] for c in preview["candidates"] if not c["selected"]}
+              protected = {
+                  "fetching.md",
+                  "milestone-plan.md",
+                  "next-step.md",
+                  "paused-work.md",
+                  "exploration.md",
+              }
+              if unselected != protected:
+                  raise SystemExit(f"Unexpected protected candidates: {sorted(unselected)}")
+
+              applied = json.loads(
+                  subprocess.check_output(apply_command, cwd=root, text=True)
+              )
+              plan_fields = (
+                  "primary", "date", "scope", "reason",
+                  "candidates", "rewrites", "strands",
+              )
+              if (
+                  not applied["applied"]
+                  or applied["dry_run"]
+                  or any(applied[key] != preview[key] for key in plan_fields)
+              ):
+                  raise SystemExit("Archive apply did not use the exact previewed plan")
+
+              archive = root / "archive" / "2030-01-02"
+              moved = {p.name for p in archive.glob("*.md")}
+              if moved != {"fetch.md", "fetch-impl.md", "fetch-test-matrix.md"}:
+                  raise SystemExit(f"Unexpected archived files: {sorted(moved)}")
+              for name in moved:
+                  text = (archive / name).read_text(encoding="utf-8")
+                  if "Archived: 2030-01-02" not in text:
+                      raise SystemExit(f"Missing archive witness: {name}")
+                  has_reason = "Archived-reason: Milestone complete" in text
+                  if has_reason != (name == "fetch.md"):
+                      raise SystemExit(f"Archive reason on wrong document: {name}")
+
+              for name in (
+                  "fetching.md", "next-step.md", "paused-work.md",
+                  "exploration.md", "milestone-plan.md", "status.md",
+              ):
+                  if not (root / name).exists():
+                      raise SystemExit(f"Active document was moved: {name}")
+              plan = (root / "milestone-plan.md").read_text(encoding="utf-8")
+              if "archive/2030-01-02/fetch.md" not in plan:
+                  raise SystemExit("Tracker body link was not rebased")
+              next_text = (root / "next-step.md").read_text(encoding="utf-8")
+              if next_text.count("archive/2030-01-02/fetch.md") < 3:
+                  raise SystemExit("Inbound body/relationship links were not rebased")
+              archived_primary = (archive / "fetch.md").read_text(encoding="utf-8")
+              if "../../next-step.md" not in archived_primary:
+                  raise SystemExit("Moved document's outbound body link was not rebased")
+
+              # Complete only active tracker/status state after apply, exactly
+              # as the retained closeout writer must. The archived set is an
+              # immutable witness for sync-and-commit's Step 3 verifier.
+              archived_after_apply = snapshot(archive)
+              completed_plan = plan.replace(
+                  "| 100 | [fetch](archive/2030-01-02/fetch.md) | active |",
+                  "| 100 | [fetch](archive/2030-01-02/fetch.md) | complete |",
+                  1,
+              )
+              if completed_plan == plan:
+                  raise SystemExit("Could not complete the active tracker row")
+              (root / "milestone-plan.md").write_text(completed_plan, encoding="utf-8")
+              status_path = root / "status.md"
+              status_path.write_text(
+                  status_path.read_text(encoding="utf-8").replace(
+                      "Fetch is active.",
+                      "Fetch is complete.",
+                      1,
+                  ),
+                  encoding="utf-8",
+              )
+              for command in (
+                  ["docs", "touch", "milestone-plan.md", "status.md"],
+                  ["docs", "index", "."],
+              ):
+                  subprocess.run(
+                      command, cwd=root, check=True, capture_output=True, text=True
+                  )
+              findings = json.loads(
+                  subprocess.check_output(["docs", "check", ".", "--json"], cwd=root, text=True)
+              )
+              if findings:
+                  raise SystemExit(f"Post-archive docs findings: {findings}")
+              if snapshot(archive) != archived_after_apply:
+                  raise SystemExit("Post-archive closeout edited or touched an archived document")
+              post_checkpoint_paths = set(
+                  subprocess.check_output(
+                      ["git", "diff", "--name-only", simplify_checkpoint],
+                      cwd=root, text=True,
+                  ).splitlines()
+              )
+              if "implementation.py" in post_checkpoint_paths:
+                  raise SystemExit("Post-checkpoint closeout contains a code change")
+              code_diff = subprocess.run(
+                  ["git", "diff", "--quiet", simplify_checkpoint, "--", "implementation.py"],
+                  cwd=root,
+              )
+              if code_diff.returncode != 0:
+                  raise SystemExit("Interrupted closeout cannot prove checkpointed code is unchanged")
+
+          # In a shared docs root, semantic identity remains project-scoped,
+          # while a project-qualified physical stem keeps docs-cli's flat
+          # archive destinations root-globally unique. Both projects may call
+          # the milestone `fetch` and close it on the same date.
+          with tempfile.TemporaryDirectory() as tmp:
+              root = Path(tmp)
+              (root / ".docs.toml").write_text(
+                  '[project]\nname = "shared"\n\n[archive]\ndir = "archive"\n',
+                  encoding="utf-8",
+              )
+              for project in ("alpha", "beta"):
+                  project_path = f"specs/{project}/"
+                  artifact_stem = f"{project}-fetch"
+                  primary = f"{project_path}{artifact_stem}.md"
+                  impl = f"{project_path}{artifact_stem}-impl.md"
+                  matrix = f"{project_path}{artifact_stem}-test-matrix.md"
+                  write_doc(
+                      root,
+                      primary,
+                      "milestone",
+                      f"[Impl]({artifact_stem}-impl.md)",
+                      (f"pairs-with: {impl}", f"pairs-with: {matrix}"),
+                      project,
+                  )
+                  write_doc(
+                      root,
+                      impl,
+                      "log",
+                      f"[Plan]({artifact_stem}.md)",
+                      (f"pairs-with: {primary}", f"pairs-with: {matrix}"),
+                      project,
+                  )
+                  write_doc(
+                      root,
+                      matrix,
+                      "spec",
+                      f"[Plan]({artifact_stem}.md)",
+                      (f"pairs-with: {primary}", f"pairs-with: {impl}"),
+                      project,
+                  )
+
+              subprocess.run(
+                  ["docs", "check", "."], cwd=root, check=True,
+                  capture_output=True, text=True,
+              )
+              for project in ("alpha", "beta"):
+                  project_path = f"specs/{project}/"
+                  artifact_stem = f"{project}-fetch"
+                  primary = f"{project_path}{artifact_stem}.md"
+                  scope = f"{project_path}{artifact_stem}-*"
+                  preview_command = [
+                      "docs", "archive", primary, "--cascade-dry-run",
+                      "--cascade-only", scope, "--date", "2030-01-02",
+                      "--reason", "Milestone fetch complete", "--json",
+                  ]
+                  apply_command = [
+                      "docs", "archive", primary, "--cascade-only", scope,
+                      "--date", "2030-01-02", "--reason",
+                      "Milestone fetch complete", "--json",
+                  ]
+                  preview = json.loads(
+                      subprocess.check_output(preview_command, cwd=root, text=True)
+                  )
+                  applied = json.loads(
+                      subprocess.check_output(apply_command, cwd=root, text=True)
+                  )
+                  if any(
+                      applied[key] != preview[key]
+                      for key in (
+                          "primary", "date", "scope", "reason",
+                          "candidates", "rewrites", "strands",
+                      )
+                  ):
+                      raise SystemExit(
+                          f"Shared-root {project} apply drifted from its preview"
+                      )
+
+              archive = root / "archive" / "2030-01-02"
+              expected = {
+                  f"{project}-fetch{suffix}.md"
+                  for project in ("alpha", "beta")
+                  for suffix in ("", "-impl", "-test-matrix")
+              }
+              actual = {path.name for path in archive.glob("*.md")}
+              if actual != expected:
+                  raise SystemExit(
+                      "Project-qualified physical stems did not preserve both "
+                      f"same-slug milestone sets: {sorted(actual)}"
+                  )
+              findings = json.loads(
+                  subprocess.check_output(
+                      ["docs", "check", ".", "--json"], cwd=root, text=True
+                  )
+              )
+              if findings:
+                  raise SystemExit(
+                      f"Shared-root same-slug archive findings: {findings}"
+                  )
+
+          with tempfile.TemporaryDirectory() as tmp:
+              root = Path(tmp)
+              (root / ".docs.toml").write_text('[project]\nname = "ci"\n', encoding="utf-8")
+              write_doc(root, "parent.md", "milestone", "Parent")
+              write_doc(root, "live-child.md", "spec", "Child", ("child-of: parent.md",))
+              before = snapshot(root)
+              refused = subprocess.run(
+                  ["docs", "archive", "parent.md", "--date", "2030-01-02", "--json"],
+                  cwd=root,
+                  capture_output=True,
+                  text=True,
+              )
+              if refused.returncode != 2 or snapshot(root) != before:
+                  raise SystemExit("Live-child archive refusal did not fail with zero writes")
           PY
 
       - name: Validate no retired docs-cli flags are prescribed
@@ -333,7 +1217,7 @@ jobs:
               (
                   skills / "ship-milestone" / "SKILL.md",
                   [
-                      "m4-*-test-matrix.md",
+                      "<project-path><artifact-stem>-*",
                       "task plan, implementation log, and test matrix",
                       "Related: pairs-with",
                       "Conditional exploration handoff",
@@ -348,12 +1232,14 @@ jobs:
                   skills / "ship-milestone" / "references" / "agent-prompts.md",
                   [
                       "milestone test matrix",
-                      "<slug>-test-matrix.md",
+                      "{project_path}{artifact_stem}-test-matrix.md",
                       "hidden/generalization categories",
                       "Planning resume after exploration",
                       "Contract-change marker checkpoint",
                       "EXPLORATION SIGNAL: NONE",
                       "BLOCKER DOSSIER",
+                      "three-document set",
+                      "do not rerun simplification or archive",
                   ],
               ),
               (
@@ -374,7 +1260,10 @@ jobs:
               ),
               (
                   skills / "project-foundation" / "references" / "role-mapping.md",
-                  ["m<N>-test-matrix", "quality/m<N>-quality-log"],
+                  [
+                      "<project-path><artifact-stem>-test-matrix",
+                      "<project-path>quality/quality-log-<artifact-stem>",
+                  ],
               ),
               (
                   root / "overview.md",
@@ -403,7 +1292,7 @@ jobs:
               / "foundation-playbook.md"
           )
           foundation = foundation_path.read_text(encoding="utf-8")
-          record_command = "`docs new decision options-comparison`"
+          record_command = "`docs new decision <project-path>options-comparison`"
           comparison_step = "Use the ordinary comparison"
           if foundation.count(record_command) != 1:
               raise SystemExit(
@@ -489,7 +1378,8 @@ jobs:
               ),
           ]
           for section_text, required in section_checks:
-              missing = [needle for needle in required if needle not in section_text]
+              normalized = " ".join(section_text.split())
+              missing = [needle for needle in required if needle not in normalized]
               if missing:
                   raise SystemExit(
                       f"ship-milestone exploration protocol missing: {missing}"
@@ -504,6 +1394,23 @@ jobs:
           if "Only after the owner explicitly approves the change" not in tdd_phases:
               raise SystemExit(
                   "Interactive exploration recovery must require contract-owner approval"
+              )
+
+          collision_prone_quality_log = "quality/<milestone-slug>-quality-log"
+          stale_quality_log_paths = []
+          for path in sorted(root.rglob("*.md")):
+              rel = path.as_posix()
+              if rel.startswith((
+                  "plugins/agent-playbook-suite/skills/docs/",
+                  "docs/",
+              )):
+                  continue
+              if collision_prone_quality_log in path.read_text(encoding="utf-8"):
+                  stale_quality_log_paths.append(rel)
+          if stale_quality_log_paths:
+              raise SystemExit(
+                  "Collision-prone quality-log convention remains outside the "
+                  f"vendored docs payload: {stale_quality_log_paths}"
               )
           PY
 

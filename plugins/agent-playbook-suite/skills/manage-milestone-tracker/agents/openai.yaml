@@ -1,0 +1,4 @@
+interface:
+  display_name: "Manage Milestone Tracker"
+  short_description: "Order and manage semantic project milestones"
+  default_prompt: "Use $manage-milestone-tracker to inspect, reorder, or update this project's semantic milestone tracker."

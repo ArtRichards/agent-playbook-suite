@@ -13,6 +13,20 @@ Use the shared quality model at
 for risk levels, hidden/generalization policy, adequacy checks,
 and mock policy.
 
+Use the shared milestone tracker contract at
+[`../../_shared/references/milestone-tracker.md`](../../_shared/references/milestone-tracker.md)
+for semantic identity, tracker state, dependencies, recognized
+relationships, and derived next work. Phase execution starts only after
+the selected row is `active`; `<status-path>` never substitutes for the
+tracker.
+
+The caller resolves the path vocabulary in `milestone-playbook.md` before any
+phase: `<project-path>`, `<milestone-path>`, `<impl-path>`, `<matrix-path>`,
+`<tracker-path>`, `<status-path>`, `<archive-scope>`, and `<docs-root>`. Run
+every displayed docs-cli command from `<docs-root>`. `<slug>` remains semantic
+tracker identity only; never derive a physical filename from it inside a
+phase.
+
 ## Cross-phase quality policies
 
 - Visible tests drive implementation, but green visible tests are
@@ -43,17 +57,25 @@ and mock policy.
 - Record the demand, not the implementation (see the shared quality
   model's Demand-driven chains): when work reveals a future need outside
   the milestone's Deliverables, record it in the milestone plan or
-  `followup-log.md` — do not build surface for it. A public output
+  `<project-path>followup-log.md` — do not build surface for it. A public output
   neither named in the contract nor asserted by a visible test is
   speculative and needs a logged decision plus a ledger entry.
 - Deferred work and feedback have a single home in the project logs
-  at the docs root: engineering deferrals go to `followup-log.md`,
-  operator feedback and ideas to `feedback-log.md` (both created by
+  in the owning project: engineering deferrals go to
+  `<project-path>followup-log.md`, operator feedback and ideas to
+  `<project-path>feedback-log.md` (both created by
   `project-foundation`, with entry templates embedded in each).
   Milestone docs reference open entries while they remain open and
   drop the reference once incorporated. Do not leave open items only
   in milestone docs — those archive at completion and the item is
   lost.
+- Preserve the active semantic slug throughout all phases. A phase may
+  refine the milestone title or scope, but never rename its activated
+  identity or infer execution order from filenames. If evidence changes
+  durable prerequisites, update `Depends on` and synchronize
+  `depends-on` / `required-by` through the tracker workflow before the
+  phase proceeds; transient blockers use `blocks` / `blocked-by` and do
+  not create a stored `blocked` state.
 
 ## Phase 1 — Define Contract
 
@@ -85,14 +107,14 @@ and mock policy.
   - [ ] Risk level is assigned.
   - [ ] Test matrix has been created or linked.
 - **Docs touchpoints:**
-  - Append a Phase 1 section to `<slug>-impl.md` body.
-  - Update `<slug>-test-matrix.md` with initial contract clauses
+  - Append a Phase 1 section to `<impl-path>` body.
+  - Update `<matrix-path>` with initial contract clauses
     and planned validation layers.
-  - Tick `[x] Phase 1` in `<slug>.md`'s checklist; flip the
+  - Tick `[x] Phase 1` in `<milestone-path>`'s checklist; flip the
     progress-table cell from `Pending` to `Complete`.
-  - `docs touch <slug>.md <slug>-impl.md <slug>-test-matrix.md
-    status.md`.
-  - `docs check <root> --stale 14` exit 0 or 1.
+  - `docs touch <milestone-path> <impl-path> <matrix-path>
+    <status-path>`.
+  - `docs check . --stale 14` exit 0 or 1.
 
 ## Phase 2 — Write Tests (RED)
 
@@ -101,7 +123,7 @@ and mock policy.
   evidence to pin the contract without overbuilding the test surface.
 - **Activities:** Write visible product tests that trace to contract
   clauses where practical and, when the project has a
-  `use-cases.md`, to the primary use cases they demonstrate —
+  `<project-path>use-cases.md`, to the primary use cases they demonstrate —
   tests focus on use cases first; for planning, documentation, or handoff
   artifacts, write explicit checks outside default product-test
   discovery. Prefer behavior tests over implementation-detail tests;
@@ -202,7 +224,7 @@ and mock policy.
   forward from guesses about what later phases might want. Each
   intermediate output (return field, parameter, threaded context)
   names its downstream consumer; anything speculative is a logged
-  decision with a `followup-log.md` ledger entry naming the
+  decision with a `<project-path>followup-log.md` ledger entry naming the
   intended future consumer.
 - **Deliverables:** Updated base modules; minimal logic, just
   the scaffolding to support later phases.
@@ -210,7 +232,7 @@ and mock policy.
   the new interfaces; no unlogged speculative surface.
 - **Docs touchpoints:** standard per-phase set above. If a
   decision was made here (e.g., a base-class API choice), append
-  an entry to `decision-log.md` and `docs touch` it.
+  an entry to `<project-path>decision-log.md` and `docs touch` it.
 
 ## Phase 6 — Implement Offline/Core Path
 
@@ -290,7 +312,7 @@ and mock policy.
   clear TODOs for blocked external dependencies.
 - **Exit:** The milestone's user-visible or integration behavior
   is accepted for its Risk Level, or blocked items are documented
-  with owner and risk and recorded as open `followup-log.md`
+  with owner and risk and recorded as open `<project-path>followup-log.md`
   entries.
 - **Docs touchpoints:** standard per-phase set above. Many
   milestones have no online surface; in that case repurpose
@@ -310,7 +332,7 @@ and mock policy.
   - Record hidden-generalization gap if visible and hidden pass
     rates are available.
   - Log mutation/property/fuzz/benchmark gaps as open
-    `followup-log.md` entries if not run.
+    `<project-path>followup-log.md` entries if not run.
   - Complete the mock audit.
   - Run the taste checklist from the shared quality model's Taste
     model against the milestone diff; record patch bloat (diff
@@ -321,7 +343,7 @@ and mock policy.
     conventions (CLAUDE.md / AGENTS.md) or future taste anchors.
   - Run the boundary sweep from the shared quality model's
     Demand-driven chains: every speculative output this milestone
-    leaves behind gets a `followup-log.md` ledger entry naming its
+    leaves behind gets a `<project-path>followup-log.md` ledger entry naming its
     intended consumer, or is removed now; ledger entries naming
     THIS milestone as consumer are closed (consumed) or challenged
     (the reserved surface went unused — remove it or re-justify).
@@ -341,15 +363,20 @@ and mock policy.
   reason — none untriaged); boundary sweep complete (speculative
   outputs ledgered or removed; inbound ledger entries closed or
   challenged); skipped selected deep gates have explicit approval
-  or an open `followup-log.md` entry; handoff notes written. Ready for
-  `docs archive <slug>.md --cascade-only '<slug>*' --reason "<reason>"`.
+  or an open `<project-path>followup-log.md` entry; handoff notes written; the
+  milestone tracker row remains `active`, links the materialized task
+  plan, and matches its durable dependencies and recognized reciprocal
+  relationships. Ready for the playbook's same-scope preview and
+  `docs archive <milestone-path> --cascade-only '<archive-scope>' --reason
+  "<reason>"`, where the frozen scope is
+  `<project-path><artifact-stem>-*`.
 - **Docs touchpoints:**
   - Append "Milestone-completion summary" sections to both
-    `<slug>.md` and `<slug>-impl.md`.
-  - Update `<slug>-test-matrix.md` with final matrix and adequacy
+    `<milestone-path>` and `<impl-path>`.
+  - Update `<matrix-path>` with final matrix and adequacy
     results.
   - `docs touch` all milestone docs.
-  - `docs check <root> --stale 14` must exit 0 or 1.
+  - `docs check . --stale 14` must exit 0 or 1.
   - **Do not archive yet** — the playbook's Step 4 owns the
     archive call so the project-level status update happens in
     one place.
@@ -358,19 +385,20 @@ and mock policy.
 
 After every phase, regardless of which one:
 
-- [ ] Phase section appended to `<slug>-impl.md` body (objective,
+- [ ] Phase section appended to `<impl-path>` body (objective,
       files, actions, results, decisions).
-- [ ] `<slug>-test-matrix.md` updated when contract clauses,
+- [ ] `<matrix-path>` updated when contract clauses,
       visible tests, hidden/generalization categories, adequacy
       checks, or mock policy changed.
-- [ ] Progress-table cell in `<slug>-impl.md` flipped to
+- [ ] Progress-table cell in `<impl-path>` flipped to
       `Complete`.
-- [ ] `[x]` ticked in `<slug>.md`'s Phase Checklist.
-- [ ] `status.md`'s "Current Phase" line updated.
-- [ ] `docs touch <slug>.md <slug>-impl.md
-      <slug>-test-matrix.md status.md`.
-- [ ] `docs index <root>` regenerated.
-- [ ] `docs check <root> --stale 14` exit 0 or 1.
+- [ ] `[x]` ticked in `<milestone-path>`'s Phase Checklist.
+- [ ] `<status-path>`'s current milestone/phase narrative updated without adding a
+      second tracker or stored next-work choice.
+- [ ] `docs touch <milestone-path> <impl-path> <matrix-path>
+      <status-path>`.
+- [ ] `docs index .` regenerated.
+- [ ] `docs check . --stale 14` exit 0 or 1.
 - [ ] User confirmation before starting the next phase.
 
 ## Phase ordering invariants
@@ -405,14 +433,21 @@ substantial revision:
    the shared quality model's reopen rules.
 3. Append a decision-log entry capturing what was discovered and
    what needs to change.
-4. Edit the milestone doc's relevant Phase section and Phase
+4. If the revision changes tracker-owned order, state, dependencies,
+   or blockers, apply the shared tracker workflow and synchronize the
+   recognized relationship pairs before continuing. The activated
+   semantic slug is frozen: change the title for wording refinements,
+   or cancel/supersede and create a new row for a genuine identity
+   change.
+5. Edit the milestone doc's relevant Phase section and Phase
    Checklist to reflect the new shape.
-5. Update `<slug>-test-matrix.md` if contract clauses, visible
+6. Update `<matrix-path>` if contract clauses, visible
    tests, hidden/generalization categories, adequacy checks, or
    mock policy changed.
-6. `docs touch <slug>.md <slug>-test-matrix.md` and the decision
-   log.
-7. Resume the (now corrected) phase.
+7. `docs touch <milestone-path> <matrix-path>
+   <project-path>decision-log.md`.
+8. `docs index .` and `docs check . --stale 14`, then
+   resume the corrected phase.
 
 Plan revision is normal — every long-running milestone has at
 least one. The audit trail is what makes it safe.

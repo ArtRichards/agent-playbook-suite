@@ -209,10 +209,16 @@ Write exploration state where its downstream consumer already works:
 | Foundation architecture | `options-comparison.md`; place durable decisions in the existing decision log if the project uses one. |
 | Milestone comparison or feasibility | The milestone implementation log is canonical; keep the behavior contract authoritative in the milestone plan and put only the disposition plus a link in its Decisions section. |
 | Failed-route recovery | The affected milestone implementation log, beside the failure evidence and next implementation step; other artifacts link to it. |
-| Standalone, cross-cutting, or multi-session | A separate `idea` document created with `docs new idea <topic>-exploration` only when no owning artifact is suitable. |
+| Standalone, cross-cutting, or multi-session | A separate `idea` document created with `docs new idea <project-path><topic>-exploration` only when no owning artifact is suitable. |
 
 In a docs-managed tree, create a new document only through the `docs` skill and
-`docs new`; update lifecycle and index through docs-cli. Outside a docs-managed
+`docs new`. First resolve the docs root and the owning project's concrete
+docs-root-relative `<project-path>` (empty for a dedicated project root or a
+prefix ending in `/` in a shared root), then run docs-cli from that root and
+qualify every document operand and `Related:` target. Resolve an existing
+milestone implementation log from its tracker link and artifact paths; never
+derive its filename from a semantic slug. Update lifecycle and index through
+docs-cli, using `docs index .` and `docs check .` from the docs root. Outside a docs-managed
 tree, use the project's existing decision-record convention. For a short direct
 exploration with no durable project artifact, keep the registry and evidence
 current in response-local scratch state before each synthesis; the final
@@ -609,12 +615,16 @@ materially change the choice; resolve, reject, or report that gap instead.
 
 Use when technical evidence has reduced the issue to a product value or
 priority, or when the contract owner must clarify an underspecified acceptance
-criterion before routes can be evaluated. State the viable options or contract
-defect, consequences, reversibility, cost of later change, any recommendation
-already implied by the charter or project criteria, and the smallest question
-the operator must answer. Do not invent the missing criterion. After the
-answer, bind it as a criterion through the owning workflow and finish the
-technical disposition.
+criterion before routes can be evaluated. State where the decision came from
+and cite the inspected evidence, why it blocks disposition now, the viable
+options or contract defect, practical consequences, reversibility, and cost of
+later change. Include a project-grounded example or, when the project has no
+suitable example, a clearly labeled hypothetical. Recommend the choice implied
+by the charter or project criteria and explain the basis; if none is supported,
+say there is no strong recommendation. Then ask the smallest clear question
+the operator must answer. Do not invent the missing criterion or use an example
+as evidence. After the answer, bind it as a criterion through the owning
+workflow and finish the technical disposition.
 
 ### `NO VIABLE ROUTE`
 
@@ -657,6 +667,13 @@ Return a compact handoff packet:
 - Implementation constraints and non-solutions:
 - Verification steps:
 - Residual assumptions / blockers:
+- Operator decision packet, when applicable:
+  - Origin / evidence:
+  - Why the decision is needed now:
+  - Options and practical effects:
+  - Grounded example or clearly labeled hypothetical:
+  - Recommendation and basis, or no strong recommendation:
+  - Exact operator question:
 - Next owner and action:
 ```
 

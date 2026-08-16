@@ -8,13 +8,59 @@ The 10-phase TDD reference lives next door in
 [`tdd-phases.md`](tdd-phases.md). The shared risk and adequacy
 policy lives at
 [`../../_shared/references/agentic-quality-model.md`](../../_shared/references/agentic-quality-model.md).
-Read both before driving any single phase.
+The canonical milestone tracker contract lives at
+[`../../_shared/references/milestone-tracker.md`](../../_shared/references/milestone-tracker.md).
+The shared operator-question policy lives at
+[`../../_shared/references/operator-interaction.md`](../../_shared/references/operator-interaction.md).
+Read all four before selecting, creating, driving, or completing a
+milestone.
 
 ## When this applies
 
 The user wants to create, advance, or complete a milestone for
 a project whose foundation work is complete (the Definition of
 Ready doc is `Lifecycle: active`).
+
+## Project-qualified path model
+
+Resolve the docs root and owning project directory once, before running any
+docs-cli write. Run the displayed root-relative commands from the docs root;
+`--root <root>` selects configuration but does not rebase every positional
+file operand from another working directory:
+
+- `<project-path>` is empty when the project's docs are flat in a dedicated
+  root. In a shared root it is the root-relative directory that contains this
+  project's tracker, with a trailing slash, such as `specs/payments/`.
+- `<artifact-stem>` is the physical basename without `.md`. For a new
+  milestone, set it to `<slug>` in a dedicated root and `<project>-<slug>` in
+  a shared root. Before using it, reject a root-global collision with another
+  milestone artifact stem or any of its three derived basenames.
+- For any materialized or ever-activated milestone, recover
+  `<artifact-stem>` from its established tracker link and artifact paths.
+  Preserve that stem even when it is a legacy `<slug>` basename; never
+  mass-rename activated or historical work. An unmaterialized cancelled row
+  has no artifact stem to recover.
+- `<milestone-path>` = `<project-path><artifact-stem>.md`.
+- `<impl-path>` = `<project-path><artifact-stem>-impl.md`.
+- `<matrix-path>` = `<project-path><artifact-stem>-test-matrix.md`.
+- `<tracker-path>` = `<project-path>milestone-plan.md`.
+- `<status-path>` = `<project-path>status.md`.
+- `<archive-scope>` = `<project-path><artifact-stem>-*`, passed as one
+  shell-quoted argument.
+
+Use these root-relative paths for every `docs new`, `docs touch`, `docs
+archive`, `docs mv`, and `docs relate` operand. Apply the same project path to
+other project docs such as `definition-of-ready.md`, `followup-log.md`, and
+`feedback-log.md`. `<slug>` remains semantic tracker identity and the branch
+component; `<artifact-stem>` is physical identity that keeps dated archive
+basenames root-global. Same-directory Markdown body links and tracker cells
+may stay basename-relative, for example
+`[<slug>](<artifact-stem>.md)`. `Related:` metadata targets are root-relative
+and use the qualified paths.
+
+In the dedicated-root worked example below, `<project-path>` is empty and
+`<artifact-stem>` equals `fetch-and-parse`, so the shown commands remain
+directly runnable.
 
 ## Bootstrap (Step 0) — verify the foundation
 
@@ -25,9 +71,9 @@ Ready doc is `Lifecycle: active`).
    ```sh
    docs list --root <root> --project <p> --role reference --lifecycle active
    ```
-   Output must include `definition-of-ready.md`. If it shows
+   Output must include `<project-path>definition-of-ready.md`. If it shows
    `draft` or is missing → redirect to `project-foundation`.
-3. **Verify mechanical hygiene.** `docs check <root> --stale 14`
+3. **Verify mechanical hygiene.** `docs check . --stale 14`
    must exit 0 or 1. Exit 2 is any hard error — lifecycle drift,
    broken refs, and as of docs 2.0 also `missing-inverse`,
    `broken-body-link`, `outside-root-body-link`, `duplicate-field`
@@ -37,50 +83,85 @@ Ready doc is `Lifecycle: active`).
    *Upgrading from 1.x* section carries a repair recipe per rule.
 4. **Read the milestone-plan.**
    `docs list --root <root> --project <p> --role plan --lifecycle active`
-   should show `milestone-plan.md`. Read it for M1..Mn.
-5. **Read the status doc** for the latest narrative.
-6. **Read `use-cases.md`** when it exists — milestone tests focus
+   should show `<tracker-path>`. Validate its exact
+   `Order | Milestone | State | Depends on | Notes` table against the
+   shared tracker contract. If the project still has a legacy plan,
+   run the proposal-first `manage-milestone-tracker` migration before
+   selecting work; do not infer an id-based fallback here.
+5. **Read `<status-path>`** for the latest narrative.
+6. **Read `<project-path>use-cases.md`** when it exists — milestone tests focus
    primarily on the primary use cases recorded there, and the
    test matrix maps against them. If it is missing, suggest
    running the `use-cases` skill first (optional, but strongly
    preferred); do not block milestone work on it.
 
-## Step 1 — Identify the milestone
+## Step 1 — Select and claim the milestone
 
-From `milestone-plan.md`, pick the next milestone — the first in
-id order not yet `active` or `archived`. Slug it `m<N>` or
-`m<N>-<short-topic>` (e.g. `m1-fetch-and-parse`).
+`<tracker-path>`, not filename sorting or `<status-path>`, selects the
+work. Use the tracker row's project-unique semantic slug unchanged.
+For new rows this is a meaningful lowercase kebab-case identity such
+as `session-storage`; existing activated numeric or hierarchical
+slugs remain valid migration history and are never mass-renamed.
 
-### Milestone ids: insert, never renumber
+1. **Resolve the requested row.** For `next`, choose the
+   lexicographically first eligible slug at the lowest eligible
+   `Order`. A row is eligible only when it is `planned`, the project
+   Definition of Ready passes, every slug in `Depends on` is
+   `complete`, and a materialized milestone doc has no live
+   `blocked-by` edge. An explicitly named eligible row may be selected
+   out of normal order. If nothing is eligible, report the stored
+   states, unmet dependencies, live blockers, and DoR result; do not
+   create artifacts.
+2. **Distinguish resume from creation.** An explicitly named `active`
+   row is in-flight work: inspect its task plan, companions, phase
+   record, branch state, and tracker relationships, then resume or
+   reconcile it. If its link already points under the archive directory,
+   route directly to Step 4's completion-state checkpoint; do not treat the
+   missing live paths as permission to recreate them. Never treat age as
+   evidence that the claim expired.
+   An explicitly named `complete` row whose link points under the archive
+   directory also routes to that checkpoint for read-only final verification;
+   never recreate or re-archive it.
+   A `paused` row must first be explicitly resumed to `active` through
+   the tracker workflow.
+3. **Validate identity before activation.** Reject reserved
+   `-impl`/`-test-matrix` endings. For new work, scan the whole docs root,
+   including archives, and reject any milestone artifact basename already
+   using `<artifact-stem>.md`, `<artifact-stem>-impl.md`, or
+   `<artifact-stem>-test-matrix.md`; also reject the three derived live-path
+   collisions. Activation freezes both semantic slug and physical stem; later
+   order changes never rename its files, branches, or links.
+4. **Claim before production work.** Immediately re-read the canonical
+   table. If it differs from the inspected snapshot, write nothing and
+   require reconciliation. Otherwise change only the selected row's
+   `State` from `planned` to `active`, preserving `Order`, slug,
+   dependencies, and notes. Then run:
 
-The planned sequence uses integer ids (`m5`, `m6`). When new work
-must land between existing milestones, append an alternating
-letter/number suffix to the id it follows instead of renumbering:
-`m5a` runs between `m5` and `m6`; `m5a1` runs between `m5a` and
-`m5b`; deeper as needed (`m5a2a`). The same scheme may denote a
-sub-milestone that decomposes its parent — either way, id order
-is execution order.
+   ```sh
+   docs touch <tracker-path>
+   docs index .
+   docs check . --stale 14
+   ```
 
-- **Never renumber existing milestones.** Ids appear in doc
-  filenames, `Related:` pairing, branch names, and archived
-  status tables; renumbering breaks all of them. Insert at a
-  deeper suffix level instead.
-- Id order respects suffix depth: numeric segments compare
-  numerically, and a suffixed id sorts after its prefix and
-  before that prefix's next sibling
-  (`m5 < m5a < m5a1 < m5a2 < m5a2a < m5b < m6`).
-- When inserting, confirm the proposed id with the operator
-  before authoring docs for it, and record the insertion in
-  `milestone-plan.md` so plan order stays explicit.
-- **Any plan change — insertion, re-scope, or drop — sweeps the
-  speculative ledger.** Check `followup-log.md` for entries whose
-  named consuming milestone this change re-scopes or removes:
-  those entries' reserved surface is now dead — removing it
-  becomes an explicit task (or the entry is re-justified against
-  a new consumer), never silent rot.
+   Do not create the artifact set, delegate production work, or create
+   a branch until this claim passes. This current-checkout sequence is
+   deliberately serialized; it does not claim atomic coordination
+   across independent worktrees.
+
+Direct insert, reorder/normalize, planned rename, dependency, blocker,
+pause/resume, or cancel requests belong to the thin
+`manage-milestone-tracker` workflow backed by the shared contract.
+It uses docs-cli primitives; do not add a separate tracker utility or
+duplicate its algorithms here.
+
+**Any plan change — insertion, re-scope, or cancellation — sweeps the
+speculative ledger.** Check `<project-path>followup-log.md` for entries whose named
+consuming milestone the change re-scopes or removes. Remove the now
+dead reserved surface or re-justify it against a real consumer; never
+leave silent rot.
 
 **Sweep the project logs before authoring.** Read
-`followup-log.md` and `feedback-log.md` at the docs root for open
+`<project-path>followup-log.md` and `<project-path>feedback-log.md` for open
 entries this milestone should incorporate. For each item taken
 on, move its content into the milestone doc (contract, test
 hooks, or deliverables as appropriate) and remove the entry from
@@ -94,23 +175,28 @@ surface, plan for it and close the entry at completion; if not,
 challenge it — the reserved surface is a removal candidate, not a
 default to build on.
 
-Confirm the slug and initial Risk Level (Lite / Standard / High)
-with the user before authoring. Propose the level with one-line
-reasoning per the shared quality model's "Choosing a level" rule:
+The tracker row supplies the slug; do not invent or confirm a separate
+ordinal id. Confirm the initial Risk Level (Lite / Standard / High)
+with the user before authoring when project evidence does not already
+settle it. Propose the level with plain-language
+reasoning proportional to the risk per the shared quality model's
+"Choosing a level" rule:
 default Standard for ordinary work, Lite reserved for
 low-blast-radius changes, and High only with an explicit trigger
 from the model's High list — stated and explicitly approved by
-the operator, never assigned unilaterally.
+the operator, never assigned unilaterally. Ground the confirmation
+in the selected milestone-plan entry and the concrete risk signal;
+explain what the level changes in the later gates.
 
 ## Step 2 — Create the milestone artifacts
 
-Three docs per milestone:
+Three project-qualified docs per milestone:
 
-- task plan: `<slug>.md`
-- implementation log: `<slug>-impl.md`
-- test matrix: `<slug>-test-matrix.md`
+- task plan: `<milestone-path>`
+- implementation log: `<impl-path>`
+- test matrix: `<matrix-path>`
 
-Treat the milestone's `Decisions` section and `<slug>-test-matrix.md` as the
+Treat the milestone's `Decisions` section and `<matrix-path>` as the
 canonical homes for provenance. Nearby code comments or docs may also carry
 references. Make every reference resolve to its source without guessing, using
 the most readable path, link, or qualified identifier for the repository;
@@ -122,14 +208,13 @@ references outside those names.
 ### 2a. Task plan — `Role: milestone`, `Lifecycle: draft`
 
 ```sh
-docs new milestone <slug> --project <p> --title "<M<N>> — <Title>" --body-from - <<'EOF'
+docs new milestone <project-path><artifact-stem> --project <p> --title "<Title>" --body-from - <<'EOF'
 ## Overview
 
-- Milestone: <M<N>>
+- Milestone: <slug>
 - Title: <Title>
 - Surface: <what this milestone delivers>
-- Progress: Planned   (prose — Lifecycle: in the metadata block is the controlled vocab)
-- Test Matrix: [<slug>-test-matrix.md](<slug>-test-matrix.md)
+- Test Matrix: [<artifact-stem>-test-matrix.md](<artifact-stem>-test-matrix.md)
 
 ## Risk Level
 
@@ -255,7 +340,7 @@ Do not include actual hidden/private cases here if the implementation agent can 
 
 ## Test Matrix
 
-Link: [<slug>-test-matrix.md](<slug>-test-matrix.md)
+Link: [<artifact-stem>-test-matrix.md](<artifact-stem>-test-matrix.md)
 
 ## Deliverables
 
@@ -321,17 +406,17 @@ EOF
 ### 2b. Implementation log — `Role: log`, `Lifecycle: active`
 
 ```sh
-docs new log <slug>-impl --project <p> --title "<M<N>> — Implementation Log" --body-from - <<'EOF'
+docs new log <project-path><artifact-stem>-impl --project <p> --title "<Title> — Implementation Log" --body-from - <<'EOF'
 ## Overview
 
-Chronological log of work on <M<N>>. Append a section per
+Chronological log of work on `<slug>`. Append a section per
 phase with objective, files changed, actions, test results,
 decisions.
 
 ## Risk / Adequacy Tracking
 
 - Risk level:
-- Test matrix: [<slug>-test-matrix.md](<slug>-test-matrix.md)
+- Test matrix: [<artifact-stem>-test-matrix.md](<artifact-stem>-test-matrix.md)
 - High-risk RED approval:
 - Hidden/generalization handling:
 - Mock audit:
@@ -362,7 +447,7 @@ EOF
 ### 2c. Test matrix — `Role: spec`, `Lifecycle: draft`
 
 ```sh
-docs new spec <slug>-test-matrix --project <p> --title "<M<N>> — Test Matrix" --body-from - <<'EOF'
+docs new spec <project-path><artifact-stem>-test-matrix --project <p> --title "<Title> — Test Matrix" --body-from - <<'EOF'
 ## Risk level
 
 Lite | Standard | High
@@ -423,43 +508,41 @@ the use-cases doc's test-matrix table.
 EOF
 ```
 
-### 2d. Link the milestone artifacts
+### 2d. Link the milestone artifacts and plan
 
 Add `Related:` typed edges (careful Edit on the metadata block;
 `Related:` is the only metadata field this skill extends after
 `docs new`).
 
-To `<slug>.md`:
-- `pairs-with: <slug>-impl.md`
-- `pairs-with: <slug>-test-matrix.md`
-- optional `parent-of: <slug>-impl.md` and
-  `parent-of: <slug>-test-matrix.md` if the project uses parent
-  edges for hierarchy
-- `child-of: milestone-plan.md`
-- `implements: charter.md`
+To `<milestone-path>`:
+- `pairs-with: <impl-path>`
+- `pairs-with: <matrix-path>`
+- `child-of: <tracker-path>`
+- `implements: <project-path>charter.md`
 - any relevant `pairs-with:` (architecture, test-strategy, etc.)
 
-To `<slug>-impl.md`:
-- `pairs-with: <slug>.md` (bidirectional reverse of `parent-of`)
-- `pairs-with: <slug>-test-matrix.md`
+To `<impl-path>`:
+- `pairs-with: <milestone-path>`
+- `pairs-with: <matrix-path>`
 
-To `<slug>-test-matrix.md`:
-- `pairs-with: <slug>.md`
-- `pairs-with: <slug>-impl.md`
+To `<matrix-path>`:
+- `pairs-with: <milestone-path>`
+- `pairs-with: <impl-path>`
 
-Candidate discovery follows `pairs-with` and `child-of` one hop —
-never transitively, and never the reciprocal verbs
+Archive candidate discovery follows `pairs-with` and `child-of` one
+hop — never transitively, and never the reciprocal verbs
 (`precedes`/`follows`, `depends-on`/`required-by`,
-`blocks`/`blocked-by`), because sequence and dependency do not imply
-archive membership. Ensure the milestone doc has `pairs-with` links
-to both companions before relying on the cascade scope at completion.
+`blocks`/`blocked-by`). A candidate is context for the preview, not
+authorization to move it. Ensure the milestone doc has `pairs-with`
+links to both companions so the explicit completion scope can select
+them.
 
 **The `child-of` refusal is directional.** At docs 2.0 the archive
 verb refuses, at exit 2 with zero bytes written, when a still-active
 document **outside the plan** declares `child-of` a document **the
 plan would archive** — the "parent archived out from under a live
 child" case. Only that direction refuses. The milestone doc's own
-`child-of: milestone-plan.md` edge is unaffected and should stay: the
+`child-of: <tracker-path>` edge is unaffected and should stay: the
 child is the thing being archived and the parent lives on, which is
 the normal shape.
 
@@ -470,19 +553,62 @@ the tree root — a `child-of` edge to the milestone doc. Make it a
 the write: it makes the document a *candidate*, and the glob decides.
 Choose a slug the milestone glob does not match, or narrow the glob.
 
-### 2e. Flip the milestone docs to active
+### 2e. Materialize the tracker row and synchronize relationships
 
-Edit `Lifecycle: draft` → `Lifecycle: active` in `<slug>.md`
-and `<slug>-test-matrix.md` if `docs new spec` created the
-matrix as a draft. Then:
+After `<milestone-path>` exists, replace that row's plain semantic
+`Milestone` cell (or verify its intentional stub link) with
+`[<slug>](<artifact-stem>.md)`. Preserve the claimed `active` state, `Order`,
+`Depends on`, and `Notes` exactly.
+
+Derive the complete desired recognized edge set from the tracker
+contract, then use `docs relate add/remove` rather than hand-editing
+either half:
+
+- every materialized milestone in the next lower distinct `Order`
+  cohort `precedes` this row, and this row `precedes` every
+  materialized milestone in the next higher distinct `Order` cohort.
+  A cohort still counts when none of its milestone documents exists:
+  add edges only to materialized documents in that exact cohort and
+  never skip across it to a more distant cohort;
+- every materialized slug in this row's `Depends on` has a
+  `depends-on` / `required-by` pair with this milestone; and
+- existing live `blocks` / `blocked-by` pairs stay independent of
+  durable dependencies and sequence.
+
+For example:
 
 ```sh
-docs touch <slug>.md <slug>-test-matrix.md
-docs index <root>
+docs relate add <earlier-path> precedes <milestone-path>
+docs relate add <milestone-path> depends-on <dependency-path>
 ```
 
-Update `status.md`'s "Current milestone" section to point at
-the new milestone; `docs touch status.md`.
+Resolve `<earlier-path>` and `<dependency-path>` to their exact current
+root-relative paths from the tracker links or docs inventory. A live endpoint
+in this project normally starts with `<project-path>`; an archived endpoint
+uses its dated archive path. Never substitute an ambiguous bare basename in a
+shared root.
+
+Use `docs relate remove` for obsolete recognized pairs. When either
+endpoint is archived, supply a concise `--reason`, such as
+`--reason "Synchronize <slug> with milestone tracker"`; docs-cli owns
+the reciprocal edit and archived revision audit. Do not infer a
+dependency from order, and do not treat any relationship as archive
+membership.
+
+### 2f. Flip the milestone artifacts to active
+
+Edit `Lifecycle: draft` → `Lifecycle: active` in `<milestone-path>`
+and `<matrix-path>` if `docs new spec` created the matrix as a draft.
+Update `<status-path>` as a narrative summary linking
+to `<tracker-path>` and the current milestone/phase; do not copy the
+tracker rows or independently declare next work. Then:
+
+```sh
+docs touch <tracker-path> <milestone-path> <impl-path> \
+  <matrix-path> <status-path>
+docs index .
+docs check . --stale 14
+```
 
 ## Step 3 — Walk the TDD phases
 
@@ -490,8 +616,10 @@ Drive phases 1-10 one at a time. Full per-phase procedure in
 [`tdd-phases.md`](tdd-phases.md). The cadence per phase:
 
 1. State phase number, name, objective.
-2. Ask clarifying questions if the plan's phase section is
-   sparse.
+2. Inspect the plan, implementation log, test matrix, and relevant
+   project surface. If the phase still needs clarification, ask only
+   the unresolved question and follow the shared operator-interaction
+   policy.
 3. Do the work (code, tests).
 4. Append a phase section to the impl log via body edit:
 
@@ -526,19 +654,54 @@ Drive phases 1-10 one at a time. Full per-phase procedure in
    `Complete`.
 6. Tick the matching `[ ]` → `[x]` in the milestone doc's
    Phase Checklist.
-7. Update `<slug>-test-matrix.md` when contract clauses,
+7. Update `<matrix-path>` when contract clauses,
    visible tests, hidden/generalization categories, adequacy
    checks, or mock policy change.
-8. `docs touch <slug>.md <slug>-impl.md <slug>-test-matrix.md
-   status.md`.
-9. Update `status.md`'s "Current Phase" line.
-10. `docs index <root>` → `docs check <root> --stale 14`.
+8. Update `<status-path>`'s narrative with the current milestone and
+   phase. Keep it linked to `<tracker-path>`; do not duplicate
+   tracker rows or independently declare next work.
+9. `docs touch <milestone-path> <impl-path> <matrix-path>
+   <status-path>`.
+10. `docs index .` → `docs check . --stale 14`.
    Exit 2 → fix before next phase.
-11. Confirm with the user before starting the next phase.
+11. Confirm with the user before starting the next phase. Summarize
+    the completed phase evidence, explain what the next phase will
+    change, and recommend proceeding when the exit criteria are met.
 
 ## Step 4 — Complete the milestone
 
-When Phase 10 wraps up:
+When Phase 10 wraps up, run this **completion-state checkpoint before any
+write**. Read `<tracker-path>`, list this project's live and archived docs, and
+classify the three derived artifact paths:
+
+- **Normal live completion:** exactly `<milestone-path>`, `<impl-path>`, and
+  `<matrix-path>` are live, the row is `active`, and its link resolves to
+  `<milestone-path>`. Continue with item 1 below.
+- **Archive already applied, tracker still active:** no live copy exists; the
+  same three expected basenames, with the owning `Project: <p>`, are together
+  in one dated archive directory; and the row is `active` with a link rebased
+  to that archived milestone. Verify all archive witnesses before resuming:
+  each file is `Lifecycle: archived`, each `Archived:` value equals its parent
+  directory date, the primary has the expected non-empty `Archived-reason:`,
+  the milestone completion summaries and final matrix evidence are present,
+  metadata/body links resolve, no additional artifact from this project and
+  scope was archived with the set, and `docs check . --stale 14` exits 0
+  or 1. Then skip items 1-6 and resume at item 7. Do not run preview/apply
+  again, recreate a live copy, or edit any archived file.
+- **Archive and tracker completion already applied:** require the same exact
+  archived set and witnesses, with the row already `complete`. Re-read the
+  tracker, verify `<status-path>` has the completion/current-activity narrative
+  and relative tracker link without a stored next-work choice, and run the
+  final `docs check` without touching archived files. If it exits 0, or exits
+  1 with every warning reviewed, report the milestone complete; do not replay
+  items 1-9.
+- **Anything else:** stop fail-closed. A live/archived mixture, a missing or
+  extra matching companion, different archive dates, wrong project metadata,
+  a tracker link that does not resolve to the witnessed primary, or a state
+  other than the two recovery cases is unexplained. Report the evidence and
+  require reconciliation rather than guessing or mutating either side.
+
+For the normal path:
 
 1. **Append a completion summary** to the impl log:
    verification results (commands + test counts), files
@@ -548,37 +711,58 @@ When Phase 10 wraps up:
    issues found.
 2. **Append a completion summary** to the milestone doc under
    `## Milestone-completion summary`.
-3. **Update `<slug>-test-matrix.md`** with final visible,
+3. **Update `<matrix-path>`** with final visible,
    selected hidden/generalization, property/stateful, mutation,
    fuzz/benchmark/security/schema, mock-audit, skipped-gate,
    and follow-up status.
 4. **Sweep open items to the project logs.** The milestone docs
    are about to leave the active tree, and the logs are the
    single home for open items: move any still-open follow-up,
-   adequacy gap, or skipped-gate item into `followup-log.md` as a
+   adequacy gap, or skipped-gate item into
+   `<project-path>followup-log.md` as a
    dated entry, and any unaddressed feedback or idea into
-   `feedback-log.md`. Drop milestone-doc mentions of log entries
-   this milestone incorporated. `docs touch` the logs.
+   `<project-path>feedback-log.md`. Drop milestone-doc mentions of log entries
+   this milestone incorporated. Use the qualified paths when running `docs
+   touch` on the logs.
 5. **Preview the exact plan, then archive it:**
    ```sh
-   docs archive <slug>.md --cascade-dry-run --cascade-only '<slug>*'
-   docs archive <slug>.md --cascade-only '<slug>*' --reason "Milestone <M<N>> complete"
+   docs archive <milestone-path> --cascade-dry-run --cascade-only '<archive-scope>'
+   docs archive <milestone-path> --cascade-only '<archive-scope>' --reason "Milestone <slug> complete"
    ```
    Pass the **same glob** to the dry run. `--cascade-dry-run` on its
    own lists the candidate neighbourhood with nothing selected, so it
    rehearses a different operation than the one you are about to run.
 
    Candidate discovery walks `Related: pairs-with` and `Related:
-   child-of` one hop; the glob then decides which of those candidates
-   are actually written. `'<slug>*'` reaches the impl log
-   (`<slug>-impl.md`) and the test matrix
-   (`<slug>-test-matrix.md`), and cannot reach `milestone-plan.md`
-   or `charter.md` — the job the interactive prompt used to do.
+   child-of` one hop; relationships provide context for the preview,
+   never authorization to move a document. The explicit glob decides
+   which candidates join the named primary. `<archive-scope>` matches the
+   candidates' canonical root-relative paths, reaching `<impl-path>` and
+   `<matrix-path>` while anchoring a shared-root selection to this project
+   directory and physical artifact stem.
    It is **not** a guarantee that those two are the only matches:
-   the glob has no slash, so it matches the basename at any depth,
-   and a `<slug>-release-log.md` or `quality/<slug>-quality-log.md`
-   would match as well. Read the preview; narrow the glob if it
-   selected a document meant to stay active.
+   `<project-path><artifact-stem>-release-log.md` would match as well. When
+   `<project-path>` is empty, the glob has no slash and matches that basename
+   at any depth. The optional
+   long-lived quality companion deliberately uses
+   `<project-path>quality/quality-log-<artifact-stem>.md`; because its basename starts with
+   `quality-log-`, this milestone scope cannot select it. A legacy
+   `<project-path>quality/<slug>-quality-log.md` can match the bare
+   dedicated-root scope; rename it before closeout with
+   `docs mv <project-path>quality/<slug>-quality-log.md <project-path>quality/quality-log-<artifact-stem>.md`.
+   Require the previewed
+   plan to include the primary and select exactly the intended
+   companions. If it selects anything else, stop and narrow the scope
+   or repair the candidate relationships before applying the same
+   scope.
+
+   Also require every planned destination to be unoccupied. The
+   `<project>-<slug>` artifact stem makes new shared-root milestones globally
+   distinct even when projects use the same semantic slug. If an established
+   legacy stem or another unexplained path still produces a destination
+   collision, treat the atomic preflight refusal as a reconciliation blocker.
+   Do not bypass it by falsifying the archive date or renaming an activated
+   identity.
 
    **Bare `--cascade` is retired at docs 2.0**: it refuses at
    exit 2, writes nothing, and prints the replacement recipe.
@@ -593,22 +777,37 @@ When Phase 10 wraps up:
    malformed member, a bad `--date`, an already-archived primary)
    refuse on their own terms.
 
-   Result: all milestone docs move to `<root>/archive/<today>/`,
+   Result: the explicitly selected milestone set moves to
+   `<root>/<archive-dir>/<today>/`,
    with `Lifecycle: archived`, an `Archived:` date recorded on
    every moved document, referring links rebased, and INDEX
    regenerated.
-6. **Update `status.md`:**
-   - "Current milestone" → next milestone (or "Project
-     complete").
-   - Append a row to the milestone-progress table with the
-     archive date.
-   - `docs touch status.md`.
-7. **Run the docs gate** once more:
+6. **Validate the archive before completing the tracker row:**
    ```sh
-   docs check <root> --stale 14
+   docs check . --stale 14
    ```
-   Exit 0 or 1. Errors block declaring completion.
-8. **Ask the user** about the next milestone.
+   Exit 0 or 1. Verify that docs-cli rebased the selected row's
+   milestone link to the dated archive path and that the row is still
+   `active`. Errors block the state transition.
+7. **Complete the tracker row and refresh the narrative.** Change only
+   that row's `State` from `active` to `complete`; preserve `Order`,
+   semantic slug, dependencies, notes, and the rebased archive link.
+   Derive the next eligible row from the tracker contract for the operator
+   response. Update `<status-path>` with a concise completion/current-work
+   narrative that links to `<tracker-path>`; do not add a duplicate
+   milestone table or store the derived next value.
+8. **Run the final docs gate:**
+   ```sh
+   docs touch <tracker-path> <status-path>
+   docs index .
+   docs check . --stale 14
+   ```
+   Re-read the tracker and recognized relationships. Exit 0 or 1 is
+   required; fix any error before reporting the milestone complete.
+9. **Ask the user** about the next milestone. Ground the question in
+   the updated status and milestone plan, explain what starting it
+   will open, and recommend the derived next eligible semantic slug
+   when one exists.
 
 ## Quality gate commands (per phase, adapt to project)
 
@@ -624,8 +823,8 @@ make test      # or: pytest / npm test
 Plus the docs-side gate when the project uses docs-cli:
 
 ```sh
-docs check <root> --stale 14
-docs index <root>
+docs check . --stale 14
+docs index .
 ```
 
 `docs check` proves the docs tree is mechanically valid. It does
@@ -653,110 +852,130 @@ when the phase or milestone is ready.
   milestone's task plan; track in the impl log under the
   relevant phase. No new doc.
 - **Bug fix:** scoped → impl log under that milestone.
-  Cross-cutting → `docs new postmortem <slug>` (incident
-  retrospective) or `docs new decision <slug>` (codified fix
-  choice).
+  Cross-cutting → `docs new postmortem <project-path><slug> --project <p>`
+  (incident retrospective) or
+  `docs new decision <project-path><slug> --project <p>` (codified fix choice).
 - **Hot-fix outside the TDD flow:** log to
-  `decision-log.md` so the audit trail stays complete.
+  `<project-path>decision-log.md` so the audit trail stays complete.
 - **Operator feedback, ideas, scope thoughts:** append a dated
-  entry to `feedback-log.md` at the docs root (following the
+  entry to `<project-path>feedback-log.md` (following the
   template embedded there) rather than burying them in phase
   notes or a milestone's follow-on sections. Engineering
-  deferrals go to `followup-log.md` the same way.
+  deferrals go to `<project-path>followup-log.md` the same way.
 
 ## Parallel milestones
 
 Supported (rare):
 
-- Each milestone is independent: separate `<slug>.md`,
-  `<slug>-impl.md`, and `<slug>-test-matrix.md` docs, all
+- Equal `Order` values in the tracker define a parallel cohort. Each
+  `next` invocation still deterministically selects and claims one
+  eligible row; equal-order peers remain eligible for later claims.
+- Each milestone is independent: separate `<milestone-path>`,
+  `<impl-path>`, and `<matrix-path>` docs, all
   `Lifecycle: active`.
-- `status.md`'s "Current milestone" becomes a list.
+- `<status-path>` may narrate the active set but must not duplicate the
+  tracker table or store its own next-work decision.
 - `docs list --role milestone --project <p> --lifecycle active`
   shows the parallel set.
-- Archive each as it completes; cascade is per-archive call.
+- Archive each with its own previewed `'<archive-scope>'` scope, validate the
+  result, then change only that tracker row to `complete`.
 
-## Worked example: link-checker M1
+## Worked example: link-checker `fetch-and-parse`
 
-Continues the worked example from the `project-foundation`
-skill — a small fictional CLI that crawls a website and reports
-broken links. Foundation is complete; DoR is `active`; M1 is
-"Fetch and parse" (HTTP client, link extraction, in-memory
-crawl). Working directory: `~/code/link-checker/docs/specs/`.
+Continues the worked example from `project-foundation`: a small
+fictional CLI that crawls a website and reports broken links. The
+foundation and DoR are active. The tracker starts with semantic rows:
 
-### Bootstrap — verify the foundation
+```markdown
+| Order | Milestone | State | Depends on | Notes |
+|---:|---|---|---|---|
+| 100 | fetch-and-parse | planned | — | HTTP fetch, link extraction, in-memory crawl |
+| 200 | persistence | planned | fetch-and-parse | Save crawl results |
+```
+
+Working directory: `~/code/link-checker/docs/specs/`.
+
+### Bootstrap, select, and claim
 
 ```sh
 docs list --root . --project link-checker --role reference --lifecycle active
-# definition-of-ready.md ... reference ... active   (DoR present)
-
-docs check . --stale 14   # exit 0   (mechanical hygiene clean)
+# definition-of-ready.md ... reference ... active
 
 docs list --root . --project link-checker --role plan --lifecycle active
-# milestone-plan.md ... plan ... active             (plan present)
+# milestone-plan.md ... plan ... active
+
+docs check . --stale 14
+# exit 0
 ```
 
-Reads `milestone-plan.md` — M1 is "Fetch and parse" with no
-upstream deps. Confirms slug `m1-fetch-and-parse` with user.
+`fetch-and-parse` is the lexicographically first row in the lowest
+eligible order cohort. It is `planned`, has no dependencies or live
+blocker, and the DoR passes. After re-reading the unchanged table, the
+workflow changes only its state to `active`:
 
-### Create the milestone artifacts
+```markdown
+| 100 | fetch-and-parse | active | — | HTTP fetch, link extraction, in-memory crawl |
+```
 
-Uses Step 2a's template. Project-specific deltas filled in:
+```sh
+docs touch milestone-plan.md
+docs index .
+docs check . --stale 14
+```
 
-- Overview Surface: `link_checker.fetch` HTTP client,
-  `link_checker.parse` link extractor, `link_checker.crawl`
-  in-memory orchestrator.
-- Risk Level: Standard. The change is a customer-facing CLI
-  path with network parsing behavior, but no auth, billing,
-  migration, or data-integrity surface.
-- Goal: given a seed URL, BFS-crawl same-origin links to
-  depth N, return `(url, status_code, depth)` tuples. No
-  persistence (M2 owns that).
-- Test strategy: visible parser/crawler tests cite contract
-  clauses; hidden/generalization categories cover alternate HTML
-  shapes and URL edge cases; property checks cover dedupe and
-  max-depth invariants; HTTP mocks require one fixture-backed
-  real-path crawl.
-- Phase 1 sketch: `Objective: pydantic models for Link,
-  CrawlResult, CrawlConfig. Files:
-  src/link_checker/models.py. Exit: mypy clean, no
-  implementation.`
-- Success criteria: crawl the 20-page fixture site in < 5s,
-  100% link surfacing, dedupe, respect max_depth.
+Standard risk is recommended because this is a customer-facing
+network/parsing path but does not touch auth, billing, migration, or
+data integrity.
 
-Then the impl log via Step 2b and the test matrix via Step 2c
-(no project-specific delta beyond title and initial matrix rows).
+### Create and materialize the artifacts
 
-Add `Related:` edges per Step 2d. Flip
-`Lifecycle: draft → active` in
-`m1-fetch-and-parse.md`. `docs touch` the milestone and matrix.
-`docs index .`.
+Step 2's templates create:
 
-Update `status.md`'s "Current milestone" → M1; `docs touch
-status.md`.
+- `fetch-and-parse.md`;
+- `fetch-and-parse-impl.md`; and
+- `fetch-and-parse-test-matrix.md`.
 
-### Walk Phase 1 (the cadence)
+The contract covers `link_checker.fetch`, `link_checker.parse`, and an
+in-memory `link_checker.crawl` orchestrator. Given a seed URL, the CLI
+BFS-crawls same-origin links to depth N and returns
+`(url, status_code, depth)` tuples. Persistence is explicitly owned by
+the later `persistence` row.
 
-Phase 1 work: create `src/link_checker/models.py` with three
-pydantic models. `mypy` clean. Append to impl log:
+Add the companion `pairs-with` links and the milestone's
+`child-of: milestone-plan.md` link. Replace the tracker cell with:
+
+```markdown
+| 100 | [fetch-and-parse](fetch-and-parse.md) | active | — | HTTP fetch, link extraction, in-memory crawl |
+```
+
+`persistence` is not materialized, so no sequence or dependency
+relationship can be written to it yet. The tracker still records both
+facts. Flip the task plan and matrix to `Lifecycle: active`, update the
+status narrative, and validate:
+
+```sh
+docs touch milestone-plan.md fetch-and-parse.md fetch-and-parse-impl.md \
+  fetch-and-parse-test-matrix.md status.md
+docs index .
+docs check . --stale 14
+```
+
+### Walk Phase 1
+
+Phase 1 defines `Link`, `CrawlResult`, and `CrawlConfig` contracts and
+records the Standard-risk test strategy. The implementation log entry
+uses the normal phase structure:
 
 ```markdown
 ## Phase 1 — Define Contract (2026-05-25)
 
 ### Objective
-Establish pydantic models for Link, CrawlResult, CrawlConfig.
+Establish the behavior and data contracts for fetching and parsing.
 
 ### Files Changed
 | File | Action | Notes |
 |------|--------|-------|
-| src/link_checker/__init__.py | added | empty package marker |
-| src/link_checker/models.py | added | three models |
-| pyproject.toml | modified | pydantic ~=2.0 dependency |
-
-### Actions Taken
-- Link: (url: HttpUrl, source_url: HttpUrl, depth: int).
-- CrawlResult: (links, status_code, error).
-- CrawlConfig: defaults max_depth=2, timeout=10.0, retries=3.
+| src/link_checker/models.py | added | Link, CrawlResult, CrawlConfig contracts |
 
 ### Test Results
 N/A — Phase 2 owns tests.
@@ -766,87 +985,88 @@ N/A — Phase 2 owns tests.
 - Gate evidence: contract and initial test matrix drafted.
 - Hidden/generalization handling: categories only, no private cases.
 - Mock changes: none.
-- Adequacy gaps or follow-ups: Phase 2 to map visible tests to clauses.
-
-### Issues/Decisions
-- Chose pydantic over dataclasses for HttpUrl validation.
 ```
 
-Flip progress cell `| 1. Define Contract | Pending |` →
-`| 1. Define Contract | Complete |`. Tick
-`[x] Phase 1 — Define Contract` in the milestone doc.
+Flip the Phase 1 progress cell to `Complete`, tick its checklist item,
+and update the status narrative to the current milestone and phase.
+Then run:
 
 ```sh
-docs touch m1-fetch-and-parse.md m1-fetch-and-parse-impl.md \
-  m1-fetch-and-parse-test-matrix.md status.md
+docs touch fetch-and-parse.md fetch-and-parse-impl.md \
+  fetch-and-parse-test-matrix.md status.md
 docs index .
-docs check . --stale 14   # exit 0
+docs check . --stale 14
 ```
-
-Confirm with user → Phase 2.
 
 ### Phases 2-10 (abridged)
 
-Same cadence per phase: do the work, append a log section,
-flip the progress cell, tick the checklist, update the test
-matrix, `docs touch`, `docs check`, confirm. Phase 4 captures
-RED baseline verbatim and investigates any already-green visible
-test. Phase 8 captures GREEN and Standard-risk gate results.
-Phase 9 has no online surface for M1 — repurposed as dogfooding
-against the 20-page fixture site, with measured metrics (crawl
-in 3.2s, 100% broken-link detection) recorded in the Phase 9
-log entry. Phase 10 appends the milestone-completion summary to
-the task plan and impl log, and finalizes the test matrix.
+The same cadence drives each phase. Phase 4 captures the intended RED
+baseline; Phase 8 records GREEN and the Standard-risk gates; Phase 9
+dogfoods the 20-page fixture site and records a 3.2-second crawl with
+100% broken-link detection; Phase 10 finalizes the completion
+summaries, test matrix, taste triage, and boundary sweep.
 
-### Milestone completion
+### Explicit-scope completion
+
+The tracker row is still `active`. Preview the exact same scope that
+will be applied:
 
 ```sh
-docs archive m1-fetch-and-parse.md --cascade-dry-run --cascade-only 'm1-fetch-and-parse*'
+docs archive fetch-and-parse.md \
+  --cascade-dry-run \
+  --cascade-only 'fetch-and-parse-*'
 ```
 
-The preview lists **three** candidates and writes nothing:
-`m1-fetch-and-parse-impl.md` and `m1-fetch-and-parse-test-matrix.md`,
-both `pairs-with` targets and both **selected** by the glob, plus
-`milestone-plan.md`, reached by the milestone doc's own `child-of`
-edge and reported **not selected** — which is exactly the outcome the
-glob exists to produce. Then:
+The plan includes the named primary and selects exactly the two
+companion candidates. `milestone-plan.md` is reported but not selected;
+relationships exposed it as context, not archive permission. Apply the
+same scope:
 
 ```sh
-docs archive m1-fetch-and-parse.md \
-  --reason "Milestone M1 complete; fixture site crawled in 3.2s, 100% detection" \
-  --cascade-only 'm1-fetch-and-parse*'
+docs archive fetch-and-parse.md \
+  --cascade-only 'fetch-and-parse-*' \
+  --reason "Milestone fetch-and-parse complete; fixture site crawled in 3.2s, 100% detection"
 ```
 
-All three milestone docs move to `archive/2026-06-12/`; all have
-`Lifecycle: archived` and an `Archived: 2026-06-12` line; links
-that pointed at them are rebased; INDEX regenerated.
-
-Update `status.md`:
-
-- "Current milestone" → M2 (Persistence).
-- Milestone progress row:
-  `| M1 | Complete (2026-06-12) | archive/2026-06-12/m1-fetch-and-parse.md | archive/2026-06-12/m1-fetch-and-parse-impl.md | archive/2026-06-12/m1-fetch-and-parse-test-matrix.md |`
+All three artifacts move to `archive/2026-06-12/`, and docs-cli
+rebases metadata and Markdown body links, including the tracker cell.
+Before changing tracker state:
 
 ```sh
-docs touch status.md
-docs check . --stale 14   # exit 0
+docs check . --stale 14
 ```
 
-Ask user about M2.
+After that check passes, change only the row state to `complete`:
+
+```markdown
+| 100 | [fetch-and-parse](archive/2026-06-12/fetch-and-parse.md) | complete | — | HTTP fetch, link extraction, in-memory crawl |
+| 200 | persistence | planned | fetch-and-parse | Save crawl results |
+```
+
+`persistence` is now the derived next eligible row for the operator response.
+Update `status.md` only with the completion/current-activity narrative and a
+link to the tracker, not the derived next choice or a copy of the rows, then
+validate the final state:
+
+```sh
+docs touch milestone-plan.md status.md
+docs index .
+docs check . --stale 14
+```
 
 ### Post-archive
 
 ```sh
 $ docs list --root . --project link-checker --role milestone
-m2-persistence.md                          milestone   draft
-archive/2026-06-12/m1-fetch-and-parse.md   milestone   archived
+archive/2026-06-12/fetch-and-parse.md   milestone   archived
 
 $ ls archive/2026-06-12/
-m1-fetch-and-parse-impl.md
-m1-fetch-and-parse.md
-m1-fetch-and-parse-test-matrix.md
+fetch-and-parse-impl.md
+fetch-and-parse-test-matrix.md
+fetch-and-parse.md
 ```
 
-M1's plan, log, and test matrix live together in the dated
-archive. Active tree shows M2 as next. Audit trail complete;
-`docs check` green.
+The semantic identity stayed stable while its order and archive path
+lived in the tracker. The artifact set is in the dated archive,
+`persistence` remains an unmaterialized planned row, and `docs check`
+is green.

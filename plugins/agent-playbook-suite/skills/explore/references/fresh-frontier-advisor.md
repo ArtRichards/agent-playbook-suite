@@ -55,4 +55,11 @@ Also answer:
 If no genuinely new, decision-relevant direction exists, begin with the exact
 line `NO MATERIAL NEW DIRECTION`, then briefly explain which recorded evidence
 closes the obvious openings. Novelty is not a quota.
+
+If the actual bottleneck is an operator-owned value choice or underspecified
+acceptance criterion, append a compact decision packet for the coordinator:
+the issue's origin and evidence, why it blocks progress now, practical effects
+of the options, a project-grounded example or clearly labeled hypothetical, an evidence-supported
+recommendation or `no strong recommendation`, and the smallest clear question.
+Do not contact the operator directly or invent the missing criterion.
 ```

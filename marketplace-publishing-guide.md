@@ -3,7 +3,7 @@
 Lifecycle: active
 Role: guide
 Project: agent-playbook-suite
-Updated: 2026-07-20
+Updated: 2026-08-16
 
 This guide is the maintainer checklist for publishing Agent Playbook Suite as
 one plugin marketplace package for Codex and Claude Code.
@@ -21,6 +21,7 @@ The suite contains exactly these skills:
 - `project-foundation`
 - `use-cases`
 - `explore`
+- `manage-milestone-tracker`
 - `create-milestones`
 - `ship-milestone`
 - `sync-and-commit`
@@ -62,14 +63,16 @@ binary drifts from the pin. The maintainer refresh step above, not a byte-for-by
 CI comparison, keeps the vendored `docs` skill aligned with that release. Always
 bump the pin to the newest release rather than holding it back.
 
-The seven workflow skills — `project-foundation`, `use-cases`, `explore`,
-`create-milestones`, `ship-milestone`, `sync-and-commit`, and `simplify` — are
+The eight workflow skills — `project-foundation`, `use-cases`, `explore`,
+`manage-milestone-tracker`, `create-milestones`, `ship-milestone`,
+`sync-and-commit`, and `simplify` — are
 maintained directly in this repository under
 `plugins/agent-playbook-suite/skills/`. This repository is
 their source of truth: edit them in place. The five formerly standalone
 workflow-skill repositories are archived and read-only; they exist only as
-historical pointers back here. `use-cases` and `explore` originate in this
-suite. Do not rsync or copy from the archived repositories — their content
+historical pointers back here. `use-cases`, `explore`, and
+`manage-milestone-tracker` originate in this suite. Do not rsync or copy from
+the archived repositories — their content
 predates the risk-aware upgrade, so pulling it in would silently revert skills.
 
 Only the `docs` skill is vendored from an external source: the `docs-cli` PyPI
@@ -83,7 +86,7 @@ find plugins/agent-playbook-suite/skills -mindepth 1 -maxdepth 1 -type d -printf
 find plugins/agent-playbook-suite/skills -name .git -print
 ```
 
-The first command should print the eight skill directories and, if present,
+The first command should print the nine skill directories and, if present,
 `_shared`. The second command should print nothing. Each skill directory must
 contain `SKILL.md`; `_shared` must only contain reusable references.
 
@@ -126,6 +129,7 @@ expected = {
     "create-milestones",
     "docs",
     "explore",
+    "manage-milestone-tracker",
     "project-foundation",
     "ship-milestone",
     "simplify",
@@ -158,21 +162,25 @@ python3 - <<'PY'
 from pathlib import Path
 import yaml
 
-skill = "explore"
-path = Path("plugins/agent-playbook-suite/skills") / skill / "agents" / "openai.yaml"
-data = yaml.safe_load(path.read_text(encoding="utf-8"))
-interface = data.get("interface") if isinstance(data, dict) else None
-if not isinstance(interface, dict):
-    raise SystemExit(f"{path} must contain an interface mapping")
-for key in ("display_name", "short_description", "default_prompt"):
-    value = interface.get(key)
-    if not isinstance(value, str) or not value.strip():
-        raise SystemExit(f"{path} missing non-empty interface.{key}")
-if not 25 <= len(interface["short_description"]) <= 64:
-    raise SystemExit(f"{path} short_description must be 25-64 characters")
-if f"${skill}" not in interface["default_prompt"]:
-    raise SystemExit(f"{path} default_prompt must mention ${skill}")
-prompt = interface["default_prompt"].lower()
+for skill in ("explore", "manage-milestone-tracker"):
+    path = Path("plugins/agent-playbook-suite/skills") / skill / "agents" / "openai.yaml"
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    interface = data.get("interface") if isinstance(data, dict) else None
+    if not isinstance(interface, dict):
+        raise SystemExit(f"{path} must contain an interface mapping")
+    for key in ("display_name", "short_description", "default_prompt"):
+        value = interface.get(key)
+        if not isinstance(value, str) or not value.strip():
+            raise SystemExit(f"{path} missing non-empty interface.{key}")
+    if not 25 <= len(interface["short_description"]) <= 64:
+        raise SystemExit(f"{path} short_description must be 25-64 characters")
+    if f"${skill}" not in interface["default_prompt"]:
+        raise SystemExit(f"{path} default_prompt must mention ${skill}")
+
+prompt = yaml.safe_load(
+    Path("plugins/agent-playbook-suite/skills/explore/agents/openai.yaml")
+    .read_text(encoding="utf-8")
+)["interface"]["default_prompt"].lower()
 required_terms = (
     "compare",
     "feasibility",
@@ -182,7 +190,7 @@ required_terms = (
 )
 missing = [term for term in required_terms if term not in prompt]
 if missing:
-    raise SystemExit(f"{path} default_prompt missing explore modes/outcomes: {missing}")
+    raise SystemExit(f"explore default_prompt missing modes/outcomes: {missing}")
 PY
 ```
 
@@ -291,14 +299,18 @@ claude plugin marketplace add ./
 claude plugin install agent-playbook-suite@agent-playbook-suite
 ```
 
-Restart the relevant agent and confirm the eight skills are discoverable.
+Restart the relevant agent and confirm the eight workflow skills plus `docs`
+are discoverable.
 
 For both smoke tests, also confirm:
 
-- `docs`, `project-foundation`, `use-cases`, `explore`, `create-milestones`,
-  `ship-milestone`, `sync-and-commit`, and `simplify` are installed;
-- `_shared` is present only as a reference directory if installed;
-- the shared quality model is readable from installed workflow skills;
+- `docs`, `project-foundation`, `use-cases`, `explore`,
+  `manage-milestone-tracker`, `create-milestones`, `ship-milestone`,
+  `sync-and-commit`, and `simplify` are installed;
+- `_shared` is present as a required reference directory in the full plugin
+  install and is not exposed as an invokable skill;
+- the shared quality model, milestone-tracker contract, and
+  operator-interaction policy are readable from installed workflow skills;
 - the bundled `docs` skill exposes quality-artifact guidance.
 
 ## Publish
@@ -316,21 +328,41 @@ Before publishing, require:
   supported.
 
 Commit the marketplace files, plugin manifests, skill payload, README, and docs
-updates together:
+updates together on a release branch. Do not push a release commit directly to
+`main`; use a CI-backed pull request so the repository follows the same branch
+safety rule that the published `sync-and-commit` skill teaches:
 
 ```bash
+VERSION=$(python3 -c 'import json; print(json.load(open("plugins/agent-playbook-suite/.codex-plugin/plugin.json"))["version"])')
+git switch -c "release/$VERSION"
 git status --short
-git add .
-git commit -m "Publish agent playbook suite marketplace"
-git push origin main
+git add \
+  .agents/plugins/marketplace.json \
+  .claude-plugin/marketplace.json \
+  .github/workflows \
+  AGENTS.md CLAUDE.md INDEX.md README.md \
+  blog-post.md briefing.md docs marketplace-publishing-guide.md overview.md \
+  plugins/agent-playbook-suite site
+git commit -m "Release Agent Playbook Suite $VERSION"
+RELEASE_HEAD=$(git rev-parse HEAD)
+git push -u origin "release/$VERSION"
+gh pr create \
+  --base main \
+  --head "release/$VERSION" \
+  --title "Release Agent Playbook Suite $VERSION" \
+  --body "Publish the validated Agent Playbook Suite $VERSION payload and docs."
+gh pr checks --watch
+gh pr merge --merge --delete-branch --match-head-commit "$RELEASE_HEAD"
+git switch main
+git pull --ff-only
 ```
 
-After the release commit is on `main` (whether by direct push or a merged PR),
-tag it to match the manifest version, and push the tag:
+After the merged release commit and the `main` validation plus Pages workflows
+are green, tag that exact local `main` commit to match the manifest version and
+push only the tag:
 
 ```bash
-VERSION=0.7.0   # must match the plugin manifests and the marketplace entry
-git checkout main && git pull --ff-only
+VERSION=$(python3 -c 'import json; print(json.load(open("plugins/agent-playbook-suite/.codex-plugin/plugin.json"))["version"])')
 git tag -a "v$VERSION" -m "Agent Playbook Suite v$VERSION"
 git push origin "v$VERSION"
 ```

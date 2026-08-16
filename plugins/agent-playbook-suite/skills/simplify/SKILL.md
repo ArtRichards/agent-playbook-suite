@@ -14,6 +14,12 @@ You are in post-implementation simplify mode.
 Assume the current code is correct but too complex. The task is to reduce complexity while
 preserving behavior.
 
+## Read first
+
+Read [`../_shared/references/operator-interaction.md`](../_shared/references/operator-interaction.md)
+before asking for a clarification, approval, or contract decision. It requires
+grounded, understandable explanations without adding approval gates.
+
 ## Establish the baseline
 
 Before changing anything, anchor to the most recent commit:
@@ -66,13 +72,20 @@ After simplifying:
 - Run the same selected risk-level gate as before.
 - Compare test count, coverage, mutation score, hidden/generalization result, property
   result, fuzz result, and benchmark deltas when available.
-- If a metric drops, restore the stronger version or log an explicit operator-approved
-  reason.
+- If a metric drops, restore the stronger version or request an explicit
+  operator-approved exception. Ground that request in the before/after result,
+  explain what protection would be lost and why the exception is needed now,
+  and recommend restoration unless the project evidence supports accepting the
+  drop.
 - Update the test matrix and quality log if simplification affects test or quality
   posture.
 
-For High-risk milestones, simplification must be reviewed by a fresh-eyes reviewer or
-operator before final `sync-and-commit`.
+For High-risk milestones, when simplification changes code, freeze the exact candidate
+and obtain approval before committing it or final sync: use one fresh-eyes reviewer
+when available, otherwise ask the operator under the shared interaction policy. In
+`ship-milestone`, this happens before the clean pre-archive checkpoint. This is a
+single conditional gate, not a two-provider review. Record the reviewer/operator,
+frozen tree id, findings and dispositions; with no code change, record `not required`.
 
 If simplification would reduce adequacy, remove realistic coverage, weaken hidden hooks,
 or require speculative rewrites, return with no changes and explain why.
@@ -94,8 +107,8 @@ or require speculative rewrites, return with no changes and explain why.
   (or asserted by a visible test), do NOT remove it unilaterally — surface a
   contract-change proposal instead; removal goes through the "contract
   changed and the decision is logged" path. Dead outputs covered by a
-  speculative-ledger entry in `followup-log.md` stay: their consumer is a
-  named future milestone.
+  speculative-ledger entry in `<project-path>followup-log.md` stay: their
+  consumer is a named future milestone.
 - Addressing waived or deferred taste findings from review when a
   behavior-preserving change fixes them — then update their taste-triage
   entries (in the impl log) to fixed. Do not expand scope to chase findings
@@ -144,9 +157,16 @@ simplified.
 - Summarize each change and why it simplifies (clever → obvious, helper collapsed, branch
   removed, abstraction dropped).
 - Record the simplification in whatever implementation log the project uses. The format
-  varies — a `<slug>-impl.md` milestone implementation log (the docs-cli convention used
-  by `create-milestones` / `ship-milestone`), a `CHANGELOG`, a phase log, commit messages,
-  or task-tracker notes. Look for the project's existing convention (project context is
-  the fastest way to find out) and follow it; if none exists, skip the log rather than
-  inventing one.
+  varies — a `<project-path><artifact-stem>-impl.md` milestone implementation log
+  (the docs-cli convention used by `create-milestones` / `ship-milestone`), a
+  `CHANGELOG`, a phase log, commit messages, or task-tracker notes. For suite-managed
+  work, resolve both values from `<project-path>milestone-plan.md`; semantic `<slug>` is
+  tracker and branch identity, not a physical filename operand. Look for the project's
+  existing convention (project context is the fastest way to find out) and follow it; if
+  none exists, skip the log rather than inventing one.
+- When updating a docs-cli-managed log, resolve the docs root and change the working
+  directory to it before any `docs touch` or other docs-cli operation. `--root` does not
+  rebase relative `FILE`, `SOURCE`, or `TARGET` operands and is not a substitute for
+  changing directories. Use the root-relative `<project-path>`-qualified operand, then
+  run `docs index .` and `docs check .` from that docs root.
 - Return the simplest readable version of the code.
