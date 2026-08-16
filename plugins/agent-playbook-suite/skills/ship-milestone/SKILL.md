@@ -1,186 +1,194 @@
 ---
 name: ship-milestone
-description: Autonomously run a milestone through all ten TDD phases to completion. A lightweight conductor spawns fresh high-capability sub-agents — milestone creation (if needed), then per-step planning, implementation, and fresh-eyes review — commits each step to its own branch, runs the same-instance consistency audit and /simplify. Use when the operator wants a milestone built end-to-end. Invoke as `/ship-milestone M1` or `/ship-milestone next milestone`.
+description: Autonomously claim and run one semantic milestone through all ten TDD phases, isolated Claude-family and GPT-family reviews at the end of Steps 0-2, simplification, and explicit archive closeout. Uses milestone-plan.md for identity, order, state, dependencies, and deterministic next-work selection; commits each step to its own branch. Use when the operator wants a milestone built end-to-end. Invoke as `/ship-milestone session-storage` or `/ship-milestone next milestone`.
 ---
 
 # ship-milestone
 
-Drive one milestone through the full 10-phase TDD lifecycle —
-contract, tests, fixtures, RED baseline, implementation, GREEN,
-integration, quality, and a post-implementation simplify pass —
-and finish with the work committed on a reviewable branch stack.
+Drive one milestone through the full 10-phase TDD lifecycle — contract, tests,
+fixtures, RED baseline, implementation, GREEN, integration, quality, and a
+post-implementation simplify-and-close pass — then safely archive its artifact
+set on a reviewable branch stack.
 
-Assumes a project set up with the docs-cli + skills ecosystem
-(see `project-foundation` / `create-milestones`). If the target
-milestone's task plan, implementation log, or test matrix do not
-exist yet, **Step 0** creates the missing milestone artifacts
-following the `create-milestones` conventions before the TDD steps
-begin.
+Assumes a project set up with docs-cli plus `project-foundation` /
+`create-milestones`. Step 0 creates any missing task plan, implementation log,
+or test matrix before TDD begins.
 
 ## Requirements
 
 Required tooling:
 
-- [`docs-cli`](https://github.com/ArtRichards/docs-cli) — always run the
-  newest release — for the `Lifecycle:` metadata convention,
-  `docs new --body-from -|<path>`, and atomic multi-file
-  `docs touch <file>...`.
+- [`docs-cli`](https://github.com/ArtRichards/docs-cli) 2.0 or newer — for managed
+  lifecycle, reciprocal relationships, link rebasing, archive preview/apply,
+  and docs-tree validation.
 
 Companion skills (sub-agents invoke them by name):
 
-- `create-milestones` — read by Step 0's milestone-creation agent
-  for conventions when scaffolding a missing task plan, implementation
-  log, and test matrix.
+- `create-milestones` — read by Step 0's milestone-creation agent when
+  scaffolding a missing task plan, implementation log, and test matrix.
 - `explore` — invoked conditionally for a clearly uncertain or genuinely novel
   technical route, and for evidence-backed recovery from an invalidated route.
-- `docs` (the docs-cli skill) — used by every sub-agent for doc
-  lifecycle and validation.
-- `sync-and-commit` — called by each implementation agent at the
-  end of its step (after fresh-eyes review feedback is applied).
-- `simplify` — called by the Step 3 simplify agent.
-- `code-review` (built-in) — optional, available to fresh-eyes
-  review agents.
+- `docs` (the docs-cli skill) — used by every sub-agent for doc lifecycle and
+  validation.
+- `sync-and-commit` — called by each implementation agent after step-review
+  findings are applied.
+- `simplify` — called by the Step 3 simplify-and-close writer.
+- `code-review` (built-in) — optional for fresh-eyes review agents.
 
-If a companion skill is missing, the sub-agent must fall back to
-the manual equivalent and note it in the milestone log.
+If a companion skill is missing, use the manual equivalent and note it in the
+milestone log.
 
 ## Substance lives in references/
 
 This SKILL.md is intentionally short. The substance lives in:
 
-- [`references/agent-prompts.md`](references/agent-prompts.md) —
-  the five sub-agent prompt templates (milestone-creation,
-  planning, implementation, fresh-eyes review, simplify) with
-  their resume-message variants.
-- [`references/consistency-check.md`](references/consistency-check.md)
-  — the same-instance audit each implementation agent runs after
-  the last phase of its step.
+- [`references/agent-prompts.md`](references/agent-prompts.md) — prompt templates plus resume variants.
+- [`references/consistency-check.md`](references/consistency-check.md) — the
+  implementation agent's same-instance audit.
+- [`references/review-protocol.md`](references/review-protocol.md) — the Step 0-2
+  review and resume gate.
 - [`../_shared/references/agentic-quality-model.md`](../_shared/references/agentic-quality-model.md)
   — the shared risk and solution-uncertainty model used by planning,
   implementation, review, and consistency checks.
+- [`../_shared/references/operator-interaction.md`](../_shared/references/operator-interaction.md)
+  — read before any operator question or decision.
+- [`../_shared/references/milestone-tracker.md`](../_shared/references/milestone-tracker.md)
+  — the normative semantic tracker contract; do not duplicate or weaken it.
 
-When you spawn a sub-agent, substitute every `{placeholder}` in the
-prompt with a concrete value — the agent runs in `{project_root}`
-with FRESH context and cannot resolve bundle-relative paths or
-unfilled tokens. In particular, `{skill_dir}` is the absolute path of
-THIS skill's directory (shown as "Base directory for this skill" when
-the skill loads); the shared quality model, when bundled with the
-suite, sits at `{skill_dir}/../_shared/references/agentic-quality-model.md`.
-If the skill is installed without the `_shared` sibling, tell the
-agent the model is absent and to fall back to the milestone's own
-QUALITY PLAN and test matrix.
+The milestone-tracker contract is a hard requirement. Before pre-flight or
+spawning a worker, verify and read it in full. If absent, stop, explain that the
+full Agent Playbook Suite installation is incomplete, and recommend reinstalling
+or updating it. Never reconstruct the contract from prompts, project artifacts,
+or another skill, or use the companion-skill fallback for this reference.
+
+Substitute every prompt `{placeholder}` before spawning: fresh agents cannot
+resolve bundle-relative paths or unfilled tokens. `{skill_dir}` is this skill's
+absolute directory (shown as "Base directory for this skill"); the bundled quality
+model is `{skill_dir}/../_shared/references/agentic-quality-model.md`. If that
+model is absent, tell the agent to use the milestone's QUALITY PLAN and test
+matrix instead.
 
 ## When this applies
 
-The operator wants a milestone built end-to-end without
-step-by-step interaction — they invoke
-`/ship-milestone <milestone-id>` or `/ship-milestone next
-milestone` and the conductor runs the full lifecycle.
+The operator wants an end-to-end run without step-by-step interaction: invoke
+`/ship-milestone <milestone-slug>` or `/ship-milestone next milestone`.
 
 Do **not** apply when:
 
-- The user wants interactive milestone work — use
-  `create-milestones` instead.
-- The project has no docs tree yet — redirect to
-  `project-foundation`.
-- The user wants only one phase or one step — drive it manually
-  rather than spinning up the full conductor.
+- The user wants interactive milestone work — use `create-milestones` instead.
+- The project has no docs tree yet — redirect to `project-foundation`.
+- The user wants only one phase or step — drive it manually instead.
 
 ## The conductor model
 
-The session running this skill is the **conductor**. The
-conductor does not implement, audit, simplify, or edit project
-code or docs. It only:
+The session running this skill is the **conductor**. It does not implement,
+audit, simplify, or edit project code or docs. It only:
 
-- resolves and tracks the milestone (reading `status.md` / the
-  milestone doc and log is allowed — that's coordination, not
-  implementation);
+- resolves the canonical tracker row and inspects milestone artifacts;
 - creates and checks out branches;
 - spawns fresh sub-agents and sequences them;
 - conditionally invokes `explore` and routes its disposition;
 - triages questions and findings, and runs `AskUserQuestion`;
 - runs read-only end-of-run verification.
 
-Every heavyweight unit of work — creating the milestone,
-planning, implementing, reviewing, simplifying — is a **fresh
-high-capability sub-agent**. In Codex, use `gpt-5.6-sol` with `xhigh`
-reasoning when available. In Claude Code, use the `opus` alias with `xhigh`;
-the alias tracks the newest supported Opus model. If host policy or
-availability substitutes a model, use the strongest permitted alternative and
-record the effective model instead of claiming the requested model ran. This
-keeps the conductor's context small and bounded across the entire run, and
-means each step's agents are automatically free of any prior step's context:
-they rebuild understanding from the specs, logs, and code on the branch.
+Every heavyweight unit is a **fresh high-capability sub-agent**. For creation,
+planning, implementation, and simplification, prefer Codex `gpt-5.6-sol`
+`xhigh` or Claude Code's newest `opus` alias at `xhigh`. Record any effective
+substitution. Fresh agents rebuild from branch artifacts; reviewers follow the
+linked protocol and never fill a missing provider slot with a same-provider
+substitute.
 
-Run the conductor session on the same per-host model target named above with
-high reasoning — its triage decisions need it.
+Run the conductor on that per-host model target with high reasoning for triage.
 
 ## The steps
 
 | Step | Phases | Branch |
 |---|---|---|
-| 0 — Create the milestone *(only if its task plan is missing)* | — | `<slug>/milestone-setup` (off the start commit) |
-| 1 — Contract & RED baseline | 1–4 | `<slug>/phases-1-4` (off Step 0's branch, else the start commit) |
-| 2 — Implement & ship | 5–10 | `<slug>/phases-5-10` (off step 1's branch) |
-| 3 — Simplify | post-10 | `<slug>/simplify` (off step 2's branch) |
+| 0 — Create the milestone *(only if its task plan is missing)* | — | `<project-branch-prefix><slug>/milestone-setup` (off the start commit) |
+| 1 — Contract & RED baseline | 1–4 | `<project-branch-prefix><slug>/phases-1-4` (off Step 0's branch, else the start commit) |
+| 2 — Implement & ship | 5–10 | `<project-branch-prefix><slug>/phases-5-10` (off step 1's branch) |
+| 3 — Simplify & close | post-10 | `<project-branch-prefix><slug>/simplify` (off step 2's branch) |
 
-`<slug>` is a branch-safe milestone id (e.g. `m4`, or an
-inserted id like `m4a`). The branches
-stack; nothing is merged to `main` — the operator reviews and
-merges the stack.
+`<slug>` is the project-unique semantic identity; its first `active` transition
+freezes it, and activated numeric slugs stay valid. Project slugs are repository-globally
+unique; use prefix `<project>/` with multiple suite projects, otherwise empty.
+Reordering never renames the branch stack. Nothing is merged to `main` — the
+operator reviews and merges the stack.
 
-Step 0, when needed, runs one **milestone-creation** agent.
-Steps 1 and 2 each run three fresh sub-agents in sequence:
-**planning → implementation → fresh-eyes review**. Step 3 runs
-one **simplify** agent. When the stable contract and RED baseline exist and the
+Before the first branch, a retained **claim writer** serializes selection and
+changes the chosen tracker row from `planned` to `active`. Step 0, when needed,
+runs one **milestone-creation** agent followed by its end-of-step reviews.
+Steps 1 and 2 run **planning → implementation → isolated Claude/GPT review
+attempts**. Step 3 runs one **simplify-and-close** writer. When the stable
+contract and RED baseline exist and the
 shared quality model's high-threshold solution-uncertainty gates are met, an
 `explore` handoff runs before Step 2 implementation; it is not a routine fourth
 agent or mandatory step.
 
 ## Procedure
 
-### Resolve the milestone and pre-flight
+### Resolve, claim, and pre-flight
 
-1. **Resolve the milestone — never guess.**
-   - An explicit id argument → use it.
-   - The literal phrase `next milestone` → read `status.md`,
-     take the first row whose lifecycle is `draft` (or marked
-     pending in the milestone table). "First" follows id order
-     with insertion suffixes respected: numeric segments compare
-     numerically, and a suffixed id runs after its prefix and
-     before that prefix's next sibling
-     (`m5 < m5a < m5a1 < m5b < m6` — see the `create-milestones`
-     playbook's id convention).
-   - No argument → `AskUserQuestion` for which milestone. Do
-     not proceed without an explicit answer.
-2. **Check whether it was created.** Look for the milestone's
-   task-plan doc, implementation log, and test matrix (e.g.
-   `m4-*.md`, `m4-*-impl.md`, and `m4-*-test-matrix.md`). If all
-   three exist and are linked by `Related: pairs-with`, Step 0 is
-   skipped. If any artifact is missing or unlinked, **Step 0** will
-   create or repair the missing milestone artifact set.
-3. **Working tree must be clean** (`git status`). If dirty,
-   **stop** — do not stash, do not commit. Ask the operator
-   to clean up.
-4. Note whether a git remote exists, and the current `HEAD`
-   (the start commit).
+1. Resolve `{docs_root}`, `<project-path>`, and `<artifact-stem>`; read the shared tracker contract and validate the canonical tracker. `status.md` is narrative context, never a scheduler.
+2. Resolve exactly one row: an explicit semantic slug selects that row; `next
+   milestone` selects the lexicographically first eligible `planned` slug at
+   the lowest eligible `Order`. With no argument, ask under the shared
+   operator-interaction policy. Never derive next work from filenames, row
+   position, `status.md`, or ordinal-id sorting.
+3. Inspect the row, readiness, dependencies, blockers, artifacts, collisions, and
+   `<project-branch-prefix><slug>/...` branches before rejecting terminal state. A named `active`
+   row is a resume candidate. Stop on `paused`, `cancelled`, or ineligible `planned`.
+   A `complete` row is terminal unless read-only inspection proves an established
+   Step 3 closeout with exactly the canonical three artifacts archived and final sync incomplete; otherwise it is unrelated or closed. Never rewrite state.
+4. Require a clean tree, then note `HEAD` and remote; never stash or absorb work.
+   The only dirty-tree exception is an interrupted Step 3 closeout on its
+   simplify branch, with the row `active` or qualifying as `complete` above.
+   Read-only inspection must verify the recorded clean pre-archive simplify
+   checkpoint and find no code/unrelated-doc change after it; the frozen archive
+   move/link-rewrite set plus unfinished tracker, status, or INDEX must explain
+   every path. Preserve it, reconstruct apply evidence from its diff and archive
+   witnesses, and route recovery directly to Step 3 resume detection. Do not
+   switch branches, rerun earlier work/simplify/archive, or accept unexplained state.
+5. For a `planned` row, retain the
+   [claim writer](references/agent-prompts.md#milestone-claim-writer): it
+   re-reads the tracker, fails on change, moves only this row to `active`, runs
+   `docs touch` / `docs check`, and returns the uncommitted checked diff.
+6. Only after the row is observably `active`, create the first required branch
+   while carrying that exact claim diff. Resume the same writer to commit the
+   claim on that branch and return a clean tree before any production agent is
+   launched. For an already-`active` resume, verify the existing claim and use
+   its established branch stack; reconcile a missing or divergent claim
+   checkpoint before proceeding.
 
 ### Resume detection
 
 A run can be interrupted. Before starting:
 
-- Step 0 is complete iff the milestone's task plan, implementation
-  log, and test matrix already exist and are linked by
-  `Related: pairs-with`.
-- Check which step branches exist (`<slug>/milestone-setup`,
-  `<slug>/phases-1-4`, `<slug>/phases-5-10`, `<slug>/simplify`).
-- Read the milestone log's phase table for which phases are
-  logged complete.
-- Read any recorded exploration registry and disposition so a resumed run does
-  not rediscover rejected or blocked mechanisms.
+- Require `active` for ordinary resume; permit `complete` only for verified exact-set
+  Step 3 final-sync recovery. Match its slug to every path; never re-claim or rename.
+- Step 0 is complete only if linked artifacts predated this ship run with no
+  `<project-branch-prefix><slug>/milestone-setup` branch/ledger, or its in-flight ledger meets the
+  review protocol including `final-sync: ready` in the clean branch `HEAD`.
+  Artifacts alone never close an in-flight Step 0.
+- Check which step branches exist under `<project-branch-prefix><slug>/` and read
+  the milestone log's phase table for completed phases.
+- Read recorded exploration dispositions; do not rediscover rejected/blocked routes.
+- Apply review-ledger resume rules. Preserve repeated Step 1 work as append-only
+  `review-pass-N -> contract-rework-N -> review-pass-(N+1)`, targeted re-review
+  inside its pass, each prior packet, and the exact current impl-log path#anchor
+  plus predecessor chain. Never combine frozen heads or repeat a successful attempt.
 - If the implementation log contains an open `CONTRACT CHANGE REQUIRED`
   marker, run contract-change recovery before ordinary step/phase completion
   detection; completed phases 1-4 do not override that marker.
+- Detect closeout first: active artifacts mean archive has not applied; exactly
+  the canonical three archived artifacts with matching witnesses and an
+  `active` row route to tracker/status completion; that set with a `complete`
+  row and incomplete final sync routes to docs verification and final sync. A
+  clean Step 3 `HEAD` proving archive, state completion, and final sync is done;
+  paused, cancelled, and unrelated complete rows remain terminal. Never rerun archive.
+- For any post-archive route, require the recorded simplify checkpoint commit/tree
+  and its High-risk review/approval evidence when applicable; verify the commit
+  is on the simplify branch and its diff to current state contains no code change.
 - Start at the first step that is not fully complete. If all
   are complete, report that and stop.
 - If a step is partially complete, pass its agents the phase
@@ -189,15 +197,16 @@ A run can be interrupted. Before starting:
 
 ### Step 0 — Create the milestone (only if missing)
 
-Run this **only** when the milestone's task plan, implementation
-log, or test matrix is missing or unlinked. Otherwise skip to Step
-1.
+Run this when an artifact is missing/unlinked or an existing
+`<project-branch-prefix><slug>/milestone-setup` branch/ledger is not closed. Skip only when linked
+artifacts predated this run and no in-flight Step 0 state exists.
 
-The Step 0 artifact set is the task plan, implementation log, and test matrix.
-All three must be linked with `Related: pairs-with`.
+The Step 0 artifact set is the task plan, implementation log, and test matrix;
+all three must be linked with `Related: pairs-with`.
+On resume, start at the ledger's first incomplete state; do not repeat work.
 
-1. Create + check out `<slug>/milestone-setup` off the start
-   commit (or check out the existing branch if resuming).
+1. Use the existing `<project-branch-prefix><slug>/milestone-setup` branch (or its
+   existing resume branch).
 2. **Spawn the milestone-creation agent** using the host's
    worker/general-purpose sub-agent on the strongest available
    model under [The conductor model](#the-conductor-model) policy with the
@@ -209,14 +218,21 @@ All three must be linked with `Related: pairs-with`.
    contract forks.
 4. **Resume the agent** (SendMessage) with the operator's
    answers: it finalizes the milestone doc, implementation log, test
-   matrix, updates `status.md`, regenerates the docs INDEX in lockstep,
-   confirms `docs check` is clean, and runs the
-   `sync-and-commit` skill.
-5. Step 1 now branches off `<slug>/milestone-setup` instead of
+   matrix, links the active tracker row, synchronizes its relationships, keeps
+   `status.md` narrative-only, regenerates INDEX,
+   confirms `docs check` is clean, initializes the Step 0 review ledger,
+   and creates the clean review-ready checkpoint required by the protocol.
+5. Run the [Step review protocol](references/review-protocol.md) against that
+   frozen commit with the
+   [fresh-eyes prompt](references/agent-prompts.md#fresh-eyes-review-agent) and
+   Step 0 test-quality clause.
+6. Follow the protocol's triage, retained-writer checkpoint, conditional
+   re-review, and resume-ledger rules. If no review returns, record both
+   unavailable outcomes and stop. Otherwise use the
+   [finalization message](references/agent-prompts.md#step-review-finalization)
+   to invoke `sync-and-commit` with explicit `ship-milestone Step 0` context.
+7. Step 1 now branches off `<project-branch-prefix><slug>/milestone-setup` instead of
    the start commit.
-
-Step 0 gets no separate fresh-eyes review — Step 1's planning
-agent pressure-tests the milestone spec as part of its job.
 
 ### Conditional exploration handoff
 
@@ -292,10 +308,10 @@ remains in its history, but do not begin production implementation:
 1. Spawn a fresh planning agent for phases 1-4 with the exploration handoff and
    the exact contract gap. Triage any behavior or scope choice through the
    operator as usual.
-2. Run the ordinary Step 1 implementation, fresh-eyes review, triage, and
-   risk-aware RED-baseline checkpoint on the corrected contract and tests. Log
-   these as contract-rework entries rather than erasing the earlier phase
-   history.
+2. Run the ordinary Step 1 implementation, isolated two-provider review
+   protocol, triage, and risk-aware RED-baseline checkpoint on the corrected
+   contract and tests. Log these as contract-rework entries rather than
+   erasing the earlier phase history.
 3. Close the marker only after the corrected contract is stable, the RED
    baseline fails for the intended reason, review findings are resolved, and
    any High-risk approval is recorded.
@@ -305,10 +321,10 @@ remains in its history, but do not begin production implementation:
 
 ### Step 1 — Contract & RED baseline (phases 1–4)
 
-1. Create + check out `<slug>/phases-1-4` off
-   `<slug>/milestone-setup` if Step 0 ran, otherwise off the
-   start commit (or check out the existing branch if
-   resuming).
+1. If Step 0 ran, create `<project-branch-prefix><slug>/phases-1-4` off
+   `<project-branch-prefix><slug>/milestone-setup`. If Step 0 was unnecessary, use the
+   phases-1-4 branch already created around the claim checkpoint. Check out an
+   existing branch when resuming.
 2. **Spawn the planning agent** using the host's planning-capable
    sub-agent under [The conductor model](#the-conductor-model) policy with the
    [Planning agent prompt](references/agent-prompts.md#planning-agent),
@@ -318,82 +334,76 @@ remains in its history, but do not begin production implementation:
    doc/spec/conventional ones and record the
    decision; for genuine requirement or scope forks, call
    `AskUserQuestion`.
-4. **Spawn the implementation agent** using the host's
-   worker/general-purpose sub-agent under
+4. **Spawn the implementation agent** using the host's worker/general-purpose sub-agent under
    [The conductor model](#the-conductor-model) policy with the
    [Implementation agent prompt](references/agent-prompts.md#implementation-agent),
-   the finalized plan, and the resolved answers. Keep its
-   agent id/name. It implements phases 1–4, commits per phase,
-   runs the
+   the finalized plan, and resolved answers. Keep its id/name. It implements
+   phases 1–4, commits per phase, runs the
    [same-instance consistency audit](references/consistency-check.md),
-   and returns a summary **without** running sync-and-commit.
-5. **Spawn the fresh-eyes review agent** using a fresh
-   worker/general-purpose sub-agent under
-   [The conductor model](#the-conductor-model) policy with the
-   [Fresh-eyes review agent prompt](references/agent-prompts.md#fresh-eyes-review-agent),
-   reviewing `<slug>/phases-1-4` against its base. For Step 1
-   it must specifically judge whether the phase-2 product tests
-   or selected explicit non-product checks genuinely pin the contract.
-6. **Triage** the review findings. Then **resume the
-   implementation agent** (SendMessage) with the review
-   findings to address (blockers + should-fixes), the taste
-   triage decisions (fix/waive per the *Triage rules*), any
-   operator answers to items it surfaced, and the instruction
-   to then run the `sync-and-commit` skill. If the review was
-   clean, the SendMessage simply says so and instructs
-   sync-and-commit.
-7. The implementation agent is on its own milestone branch, so
-   `sync-and-commit` may push if a remote exists.
-8. Apply the **risk-aware RED-baseline checkpoint** from the
-   planning agent's `QUALITY PLAN`, the milestone doc, and the
-   fresh-eyes review's Risk-gate decision:
-   - **Lite:** continue automatically after fresh-eyes review
-     only if the tests genuinely pin the contract and all
-     accepted blockers/should-fixes are resolved.
-   - **Standard:** continue only if the review agent returns no
-     blockers on contract/test adequacy and all accepted
-     should-fixes are resolved.
+   initializes the Step 1 review ledger, and returns a clean, committed
+   review-ready `HEAD` **without** running `sync-and-commit`.
+5. Freeze that `HEAD` and run the
+   [Step review protocol](references/review-protocol.md) with the same
+   [fresh-eyes prompt](references/agent-prompts.md#fresh-eyes-review-agent) and
+   packet. For Step 1 the test-quality clause must specifically judge whether
+   the phase-2 product tests or selected explicit non-product checks genuinely
+   pin the contract.
+6. Follow dual-result triage, retained-writer checkpoint, conditional re-review,
+   and resume rules. If no review returns, record both unavailable and stop. Otherwise use the
+   [finalization message](references/agent-prompts.md#step-review-finalization)
+   to invoke `sync-and-commit` with explicit Step 1 context and the exact current
+   qualified review-pass path#anchor; sync verifies its predecessor chain.
+7. Apply the **risk-aware RED-baseline checkpoint** from the planning agent's
+   `QUALITY PLAN`, the milestone doc, and all returned reviews' Risk-gate
+   decisions:
+   - **Lite:** continue automatically only if the tests genuinely pin the
+     contract and all accepted blockers/should-fixes are resolved.
+   - **Standard:** continue only if neither returned review has an unresolved
+     blocker on contract/test adequacy and all accepted should-fixes are
+     resolved.
    - **High:** stop after Step 1. Ask the operator to approve
      the contract, visible tests, hidden/generalization plan
      (categories only, no private cases), mock policy, and selected
-     gates before Step 2 implementation starts. Resume only
-     after explicit approval or after the requested Step 1 fixes
-     are completed.
+     gates after review-closure sync and before Step 2. Resume only after
+     explicit approval or completion of the requested Step 1 fixes.
 
 ### Step 2 — Implement & ship (phases 5–10)
 
-1. Create + check out `<slug>/phases-5-10` off
-   `<slug>/phases-1-4` only after the Step 1
+1. Create + check out `<project-branch-prefix><slug>/phases-5-10` off
+   `<project-branch-prefix><slug>/phases-1-4` only after the Step 1
    risk-aware RED-baseline checkpoint allows continuation.
-2. Run the **same three-agent sequence** as Step 1, with
-   `phase_range` = phases 5–10. The planning agent is freshly
-   spawned — it has none of Step 1's context and rebuilds it
-   from the milestone doc, the now-updated log (phases 1–4 are
-   logged), the specs, and the code on the branch. Keep its agent id and process
-   its `EXPLORATION SIGNAL` through the conditional handoff before spawning the
-   implementation agent.
-3. The fresh-eyes review for Step 2 judges correctness,
-   completeness against the milestone's Deliverables/Success
-   Criteria, and that the selected product tests plus configured
-   explicit checks are GREEN.
-4. Same triage → resume → sync-and-commit as Step 1.
+2. Run the Step 1 planning and implementation sequence with
+   `phase_range` = phases 5–10. The fresh planner rebuilds from updated
+   artifacts/code; process its `EXPLORATION SIGNAL` before implementation.
+3. Run the [Step review protocol](references/review-protocol.md) for Step 2.
+   Every returned review judges correctness, completeness against the
+   milestone's Deliverables/Success Criteria, and that the selected product
+   tests plus configured explicit checks are GREEN.
+4. Use the same dual-result triage, review-resolution checkpoint, conditional
+   re-review, ledger finalization, and explicit `ship-milestone Step 2`
+   `sync-and-commit` invocation as Step 1.
 
-### Step 3 — Simplify (post-phase-10)
+### Step 3 — Simplify & close (post-phase-10)
 
-1. Create + check out `<slug>/simplify` off
-   `<slug>/phases-5-10`.
-2. **Spawn the simplify agent** using a fresh worker/general-purpose
+1. Create + check out `<project-branch-prefix><slug>/simplify` off `<project-branch-prefix><slug>/phases-5-10`.
+2. **Spawn the simplify-and-close agent** using a fresh worker/general-purpose
    sub-agent under [The conductor model](#the-conductor-model) policy with the
    [Simplify agent prompt](references/agent-prompts.md#simplify-agent),
-   filling `{unresolved_taste_findings}` with the waived/deferred
-   taste findings from Steps 1–2 reviews (or "none"). No planning
-   agent, no review agent — `/simplify` is behavior-preserving and
-   self-tests.
-3. The simplify agent runs the `/simplify` process, confirms
-   the selected product tests plus configured explicit checks are GREEN, and
-   runs `sync-and-commit`. If nothing genuinely simplifies, it
-   makes no changes —
-   `sync-and-commit` then finds a clean tree, which is fine.
+   filling `{unresolved_taste_findings}` with waived/deferred Step 1–2 taste
+   findings (or "none"). There is no planner or routine Step 0–2 dual-provider review.
+   If High-risk simplification changes code, satisfy `/simplify`'s single
+   [fresh-reviewer](references/agent-prompts.md#high-risk-simplify-review-agent)-or-operator approval gate before the checkpoint.
+3. Prove GREEN and finish active-doc updates; freeze the exact staged tree, then
+   create and record a clean pre-archive simplify checkpoint whose tree matches it
+   (or record clean current `HEAD` when nothing changed). Pass `{docs_root}` and
+   change to it before docs-cli operations. Normal mode freezes paths/date/reason and literal
+   `<project-path><artifact-stem>-*`, then JSON-previews/applies the exact set. In
+   verified interruption recovery, never preview/archive; reconstruct the exact
+   moved set and witnesses. If the row is `active`, change only State to
+   `complete` and update/touch tracker/status; if already `complete`, preserve it.
+   Resume the first incomplete `docs touch`/`docs index .`/`docs check .`/sync stage; relationships never authorize archive.
+4. Invoke `sync-and-commit` with Step 3 context, evidence mode, checkpoint SHA/tree,
+   gate evidence, and matching archive evidence; it never archives or touches archived docs.
 
 ### End-of-run verification & report
 
@@ -404,13 +414,14 @@ the final report first-hand rather than pure trust):
 - run configured explicit non-product checks — expect GREEN;
 - run the configured quality gate (lint, format check, type check where present);
 - run `docs check` on the docs tree — expect exit 0;
+- verify the tracker row is `complete`, its rebased archive link resolves, and
+  the exact primary/companion archive set has matching archive metadata;
 - `git log --oneline` across the branch stack.
 
-Then report to the operator: the branch stack created, what
-shipped, every decision auto-resolved, every `AskUserQuestion`
-asked and its answer, push status, and the verification
-results. Note that the branches are left for the operator to
-review and merge — nothing was merged to `main`.
+Report the branch stack, shipped behavior, decisions/questions and answers,
+reviewer identities/unavailability, blocker dispositions, push status,
+archive preview/apply evidence, and verification. Leave branches for operator
+review and merge; never merge to `main`.
 
 ## Triage rules
 
@@ -424,11 +435,14 @@ review agent flags a finding:
   default, and clear bugs. Record the decision (in the
   milestone doc's Decisions or the log) and fold the fix into
   the relevant agent's work.
-- **Ask the operator (`AskUserQuestion`)** — anything that
-  changes milestone scope, alters intended behavior, or is a
-  genuine requirement fork with no obvious right answer.
-  Concentrate these in Step 0 and the planning stage so
-  implementation runs unattended afterward.
+- **Ask the operator (`AskUserQuestion`)** — changes to milestone scope or
+  intended behavior, or a genuine requirement fork with no clear answer. Apply
+  the shared operator-interaction policy before the host UI; never forward a
+  bare worker question. Concentrate these in Step 0 and planning.
+- **Blockers from either review** — preserve their source ids and disposition
+  each as `fixed`, `disproven` with contract/code/test evidence, or `operator
+  decision` with the recorded answer and applied result. Reviewer agreement is
+  not evidence and an unanswered operator decision remains open.
 - **Taste findings (the review's `## Taste` section)** — must-triage,
   never dropped. Gating taste findings (anchor violations, scope
   creep, hygiene, library duplication — see the shared quality
@@ -447,7 +461,10 @@ Stop and surface to the operator — never loop, never relax a
 test — when:
 
 - the milestone cannot be resolved;
-- the working tree is dirty at pre-flight;
+- the tracker is invalid, changed during claim, or disagrees with the selected
+  semantic identity, state, dependencies, artifact set, or branch stack;
+- the working tree is dirty at pre-flight, except for a forensically verified
+  interrupted Step 3 closeout on its established simplify branch;
 - an implementation agent cannot reach the selected test state and its blocker
   is not a qualifying solution-uncertainty signal, or `explore` recovery returns
   `NO VIABLE ROUTE` or `INSUFFICIENT EVIDENCE` that cannot be closed in the
@@ -457,27 +474,24 @@ test — when:
   plan, mock policy, and selected gates before Step 2;
 - a review finding needs an operator decision (use
   `AskUserQuestion`);
+- neither provider-family review returns for a Step 0, 1, or 2 packet, or any
+  reviewer-labeled blocker lacks a completed disposition;
 - a taste finding is left untriaged — no fixed/waived-with-reason
   decision recorded (a High-risk waiver additionally needs
   operator approval);
 - exploration requires an operator-owned product decision (use
-  `AskUserQuestion`) or all route families share the same external blocker.
+  `AskUserQuestion`) or all route families share the same external blocker;
+- Step 3 lacks a clean pre-archive checkpoint, applicable High-risk approval, an
+  exact archive preview/apply match, or recovery proof of no code change after
+  the checkpoint; or verification would require editing an archived document.
 
 ## Notes
 
-- Sub-agents are selected under [The conductor model](#the-conductor-model)
-  policy with an explicit deep-reasoning directive in the prompt (built into
-  each template). Record any substituted effective model.
-- The conductor owns all `AskUserQuestion` interaction;
-  sub-agents surface questions by returning them, then are
-  resumed (SendMessage) with the answers.
-- Steps run straight through only when the Step 1 risk-aware
-  RED-baseline checkpoint allows it. Lite and Standard milestones
-  may continue under the review criteria above; High-risk
-  milestones pause after Step 1 for operator approval before
-  Step 2 starts. The consistency audit and the fresh-eyes review
-  are quality gates, and `AskUserQuestion` handles required
-  operator approvals.
-- Push happens only via `sync-and-commit`, only when a remote
-  exists, and only on the milestone branches — never on
-  `main` or any shared branch.
+- Prompts carry the deep-reasoning directive; record substituted models. End-of-step reviewer selection follows the narrower provider protocol.
+- The conductor owns `AskUserQuestion`; sub-agents return questions and resume
+  with the answers.
+- Lite/Standard continue only when the Step 1 RED checkpoint allows it. High
+  pauses there for operator approval. The consistency audit and Step 0-2
+  review protocol remain gates.
+- Push happens only via `sync-and-commit`, only with a remote and on milestone
+  branches — never on `main` or a shared branch.

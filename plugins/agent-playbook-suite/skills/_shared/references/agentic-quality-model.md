@@ -119,8 +119,9 @@ Default gate set:
   risk;
 - mutation smoke or mutation baseline where configured;
 - fresh-eyes review signoff when available;
-- explicit approval or an open entry in the project's follow-up log
-  (`followup-log.md`) for skipped deep gates selected for the milestone.
+- explicit approval or an open entry in the owning project's follow-up log
+  (`<project-path>followup-log.md` in a shared docs root) for skipped deep
+  gates selected for the milestone.
 
 ## Solution uncertainty
 
@@ -248,8 +249,9 @@ produces must trace forward to a consumer.
 - A public output that is neither named in the contract nor asserted by a
   visible test is speculative.
 - Speculative outputs are permitted only as logged decisions naming the
-  intended future consumer, each with a matching entry in `followup-log.md`
-  (the speculative ledger). An unlogged speculative output is a minimality
+  intended future consumer, each with a matching entry in the owning project's
+  follow-up log (`<project-path>followup-log.md` in a shared docs root; the
+  speculative ledger). An unlogged speculative output is a minimality
   finding and routes through taste triage.
 
 ### Record the demand, not the implementation

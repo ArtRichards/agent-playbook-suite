@@ -7,6 +7,11 @@ lives here so SKILL.md can stay small.
 Pair this with [`role-mapping.md`](role-mapping.md) for the
 artifact-to-role-and-lifecycle table — every `docs new` call
 below uses the role and starting `Lifecycle:` from that table.
+Before Phase 4, read the shared
+[`milestone-tracker.md`](../../_shared/references/milestone-tracker.md)
+contract. It is the sole authority for the tracker schema, semantic
+milestone identity, stored execution states, and recognized milestone
+relationships.
 
 ## When this applies
 
@@ -22,12 +27,11 @@ Before any phase question:
    levels from the project location looking for `.docs.toml`.
    - **Found existing root** → inspect it before reusing: is it
      internal project documentation, and does its layout fit this
-     project? When the found root already hosts other projects,
-     placing the foundation under `<found-root>/specs/<project-slug>/`
-     is appropriate — the `<subdir>/` prefix on its `Related:` paths
-     then reflects a real shared tree. Otherwise prefer a dedicated
-     root whose directory *is* this project (see the placement note
-     below), or ask whether to bootstrap one.
+     project? When it already hosts other projects, reuse it as a
+     shared root and place this foundation at a root-relative path
+     such as `specs/<project-slug>/`. Otherwise prefer a dedicated
+     root whose directory is this project, or ask whether to
+     bootstrap one.
    - **No root found** → inspect the existing directories before
      suggesting a location. Classify any candidate documentation
      directory as internal vs public/customer-facing before
@@ -37,10 +41,9 @@ Before any phase question:
      documentation surface, or in site/publishing directories
      such as `site/`, `website/`, `pages/`, or `public/`, even
      when they contain Markdown.
-     - `docs/` exists and is internal → prefer
-       `<repo-root>/docs/specs/<project-slug>/` when that fits
-       the layout. Single-project repos may use the flat
-       `docs/specs/` layout (no subdirectory).
+     - `docs/` exists and is internal → prefer a dedicated root at
+       `<repo-root>/docs/specs/<project-slug>/` when that fits the
+       layout. Single-project repos may use `docs/specs/` directly.
      - `docs/` exists but is public/customer-facing → prefer
        `internal-docs/specs/<project-slug>/`, and ask the
        operator before creating it.
@@ -52,38 +55,59 @@ Before any phase question:
      or internal specs directory. In a relatively greenfield
      repo, proceed with the preferred default when the layout is
      clear.
-   - **Project ≠ directory — keep `.docs.toml` with the docs.** A
-     `Project:` is a metadata slug, not a folder, and `Related:`
-     paths are root-relative, so the directory holding `.docs.toml`
-     *is* the root. For a single project, put `.docs.toml` in the
-     same directory as the foundation docs and keep them flat
-     (root = project) — whether that directory is `docs/specs/` or
-     `docs/specs/<project-slug>/`. Do **not** drop `.docs.toml` at a
-     parent root and then author the docs in a `<project-slug>/`
-     child: that makes every sibling `Related:` carry a redundant
-     `<subdir>/` prefix for no benefit. The nested
-     `specs/<project-slug>/` form is for joining an existing
-     multi-project root only. (Mirrors the docs convention's "Where
-     to put `.docs.toml`" section.)
+   - **Resolve one `<project-path>`.** This is the docs-root-relative
+     directory prefix for every live doc in this project, including a
+     trailing slash when nonempty. It is empty for a dedicated project
+     root and, for example, `specs/payments/` in an existing shared root.
+     `Project:` remains the metadata owner; `<project-path>` is what
+     disambiguates artifact paths. Do not nest a lone project under a
+     newly created parent root merely to add a redundant prefix.
 
-2. **Bootstrap the new root** by:
+2. **Bootstrap only a new dedicated root** by:
    - Creating the directory.
    - Copying [`docs-toml-template.toml`](docs-toml-template.toml)
      to `<root>/.docs.toml` and substituting the project slug
      into `[project] name`.
-   - Running `docs check <root>` once (empty tree always passes).
+   - Changing the working directory to `<root>` and running
+     `docs check .` once (empty tree always passes).
 
-3. **Resolve the project slug** — kebab-case, lowercase. Used by
-   `--project` on every `docs new` call. Record the chosen
-   working directory; every subsequent `docs new` runs from
-   there.
+   When joining an existing shared root, retain its `.docs.toml`, create only
+   the `<project-path>` directory, change the working directory to the found
+   root, and validate the existing tree before authoring.
 
-4. **Create the five living docs** before any phase question:
-   `status.md` (`Role: status`, `Lifecycle: active`),
-   `foundation-log.md` (`Role: log`, `Lifecycle: active`),
-   `risks.md` (`Role: log`, `Lifecycle: active`),
-   `followup-log.md` (`Role: log`, `Lifecycle: active`), and
-   `feedback-log.md` (`Role: log`, `Lifecycle: active`). These
+3. **Resolve the project slug** — kebab-case, lowercase, and unique across the
+   repository — and bind it to the chosen `<project-path>`. Inspect all
+   docs-managed trees and their `Project:` metadata before accepting it; if the
+   same slug belongs to another project path, choose a distinct slug rather
+   than creating an ambiguous branch namespace. Run every subsequent docs-cli
+   command from the docs root. `--root` selects a tree but does not rebase
+   relative `FILE`, `SOURCE`, or `TARGET` operands, so it is not a substitute
+   for changing directory.
+   Every document path operand and every `Related:` target is root-relative and
+   begins with `<project-path>`;
+   `docs new` receives `<project-path><slug>` without `.md`. Same-directory
+   Markdown body links stay relative and omit the prefix.
+
+   For example, a `payments` project in a shared root can use
+   `<project-path> = specs/payments/`: create its tracker with
+   `docs new plan specs/payments/milestone-plan`, touch it with
+   `docs touch specs/payments/milestone-plan.md`, and target its artifacts as
+   `specs/payments/payments-<slug>.md` in `Related:` and `docs relate`
+   operations. The project-qualified physical stem remains distinct after
+   docs-cli flattens it into the archive. A link from its status body to its
+   tracker remains
+   `[Milestone Plan](milestone-plan.md)`.
+
+   Also derive `<project-branch-prefix>` for generated agent context. Use
+   `<project-slug>/` whenever the repository has more than one suite project;
+   use the empty string only when one project-wide milestone namespace is
+   guaranteed. Freeze that choice once a milestone is activated and reject an
+   existing branch root owned by another project instead of renaming it.
+
+4. **Create the five living docs** before any phase question at
+   `<project-path>{status,foundation-log,risks,followup-log,feedback-log}.md`.
+   `status.md` uses `Role: status`; the others use `Role: log`; all five use
+   `Lifecycle: active`. These
    accumulate throughout the project — see the
    [worked example](#worked-example-link-checker) for their
    initial bodies.
@@ -110,21 +134,31 @@ evidence supports instead of presenting blank questionnaires, and
 let the operator correct a concrete proposal rather than fill in
 a form.
 
+Treat each phase's `Ask` list as discovery coverage, not a script.
+Ask only what remains unresolved after inspection. For every
+necessary question, follow the shared operator-interaction policy:
+explain where it came from, why it matters at this phase, and what
+the answer changes; include a concise project-grounded example or a
+clearly labeled hypothetical; recommend the evidence-supported answer
+or state that there is no strong recommendation. Keep the prose
+proportional to the actual decision rather than forcing a fixed format.
+
 If the operator asks for it, launch a thorough investigation of
 the entire product's foundation — architecture, module
 boundaries, dependencies, data flows, test coverage, operational
 surfaces — before or during foundation work. Record the findings
-in `foundation-log.md` (and `architecture.md` once it exists) so
+in `<project-path>foundation-log.md` (and
+`<project-path>architecture.md` once it exists) so
 the investigation outlives the session.
 
 ## Authoring docs without harness friction
 
-Every `docs new` call in this playbook uses the M8 `--body-from`
+Every `docs new` call in this playbook uses the `--body-from`
 flag so metadata block and body land in a single Bash call, with
 no Read-before-Write round trip:
 
 ```sh
-docs new <role> <slug> --project <p> --title "<H1>" --body-from - <<'EOF'
+docs new <role> <project-path><slug> --project <p> --title "<H1>" --body-from - <<'EOF'
 ## <First section heading>
 
 <body content>
@@ -142,11 +176,20 @@ self-correct.
 
 ## Adding `Related:` edges
 
-`Related:` is the one metadata field this skill extends after
-`docs new`. Use a careful Edit on the metadata block to add
-`- <verb>: <target.md>` lines under the existing `Related:`
-list (or to insert a `Related:` block if one wasn't scaffolded).
-Then `docs touch <file>` to bump `Updated:`.
+For free-form verbs such as `pairs-with`, `implements`, and `references`,
+use a careful Edit on the metadata block to add
+`- <verb>: <project-path><target>.md` under `Related:` (or insert the block if
+it was not scaffolded), then run `docs touch <project-path><file>.md`.
+
+For the recognized reciprocal pairs `precedes`/`follows`,
+`depends-on`/`required-by`, and `blocks`/`blocked-by`, never hand-author
+either half. Use
+`docs relate add <project-path><source>.md <verb> <project-path><target>.md`
+or the corresponding `docs relate remove` so docs-cli validates and
+updates both endpoints together. If either endpoint is archived, include
+the required one-line `--reason`. Foundation normally has no materialized
+milestone endpoints yet; synchronize these relationships later when a
+milestone artifact exists, as directed by the shared tracker contract.
 
 ## Phase 0 — Intake & Alignment
 
@@ -160,7 +203,7 @@ Ask:
 Author:
 
 ```sh
-docs new charter charter --project <p> --title "<Project>: Charter" --body-from - <<'EOF'
+docs new charter <project-path>charter --project <p> --title "<Project>: Charter" --body-from - <<'EOF'
 ## What we're building
 
 <problem statement, target user, measurable success metric>
@@ -187,9 +230,10 @@ Ask:
 - What are hard constraints (time, budget, tech stack, compliance)?
 - What open questions need answers before proceeding?
 
-Author `docs new spec scope-and-constraints` with body sections:
+Author `docs new spec <project-path>scope-and-constraints` with body sections:
 **In scope**, **Out of scope**, **Assumptions**, **Constraints**,
-**Open questions**. Add `Related: pairs-with: charter.md`.
+**Open questions**. Add
+`Related: pairs-with: <project-path>charter.md`.
 
 ## Phase 2 — Stakeholders & Interfaces
 
@@ -200,10 +244,10 @@ Ask:
 - What data will be consumed or produced?
 - Who owns each interface?
 
-Author `docs new reference stakeholders` with body sections:
+Author `docs new reference <project-path>stakeholders` with body sections:
 **Stakeholders**, **Interfaces (consumed)**, **Interfaces
 (produced)**, **Data flows**, **Ownership**. Add
-`Related: pairs-with: charter.md`.
+`Related: pairs-with: <project-path>charter.md`.
 
 If solo with no external interfaces, write a single paragraph
 acknowledging that — the doc still exists as a DoR checkbox.
@@ -222,8 +266,9 @@ Ask:
 Before comparing routes or invoking optional exploration, create the canonical
 decision record:
 
-1. `docs new decision options-comparison` — keep `Lifecycle: draft` while the
-   choice is open. Start the body with **Context**, **Options considered** (one
+1. `docs new decision <project-path>options-comparison` — keep
+   `Lifecycle: draft` while the choice is open. Start the body with **Context**,
+   **Options considered** (one
    H3 per option, with pros/cons), **Selected approach**, and **Rationale**.
 
 Use the ordinary comparison for established solution shapes. Invoke `explore`
@@ -232,8 +277,9 @@ are met: the architecture decision and its consumer are named, direct
 inspection or a cheap probe did not resolve it, and the problem is genuinely
 novel or an acceptance-critical route remains clearly uncertain. Do not invoke
 it for ordinary unfamiliarity. Keep the approach registry and evidence in the
-existing draft `options-comparison.md`; do not create a parallel exploration
-doc. A selected route feeds the architecture sketch, an operator-owned product
+existing draft `<project-path>options-comparison.md`; do not create a parallel
+exploration doc. A selected route feeds the architecture sketch, an
+operator-owned product
 decision is surfaced with its tradeoffs, and an unresolved acceptance-critical
 gap keeps the relevant Definition of Ready item unready. When an ordinary
 comparison settles the choice, or `explore` returns `SELECTED` (including after
@@ -244,13 +290,13 @@ gap and next owner/action recorded.
 
 Author the remaining two docs:
 
-2. `docs new sketch architecture` — `Lifecycle: draft`. Body:
+2. `docs new sketch <project-path>architecture` — `Lifecycle: draft`. Body:
    **Shape**, **Data flow**, **Integration points**. Add
-   `Related: implements: charter.md`, `Related: pairs-with:
-   options-comparison.md`. Graduates to `Role: reference` when
+   `Related: implements: <project-path>charter.md`, `Related: pairs-with:
+   <project-path>options-comparison.md`. Graduates to `Role: reference` when
    authoritative. If no route is selected, record only known constraints and
    gaps and keep the sketch draft.
-3. `docs new log decision-log` — `Lifecycle: active`. Ongoing
+3. `docs new log <project-path>decision-log` — `Lifecycle: active`. Ongoing
    log of choices made during the project; the first entry summarises the
    Phase 3 disposition and, once settled, the architecture choice. Append dated
    `## YYYY-MM-DD — <one-line>` entries as decisions accumulate.
@@ -261,25 +307,76 @@ Ask:
 
 - What are the major milestones (3-5 checkpoints)?
 - What does each deliver?
-- What are the dependencies between them?
+- What meaningful semantic slug identifies each one?
+- Which milestones are durable prerequisites, and which may proceed in
+  parallel?
 - Where are the demo/review checkpoints?
 
-Author `docs new plan milestone-plan` with body sections:
-**Sequencing** (ASCII flow diagram if useful), **Milestones**
-(one H3 per milestone — `### M1 — <title>`, with goal +
-dependencies + demo checkpoint + consumer), **Buffer notes**.
+Author `docs new plan <project-path>milestone-plan` with exactly one canonical
+table in this shape and column order:
+
+```markdown
+| Order | Milestone | State | Depends on | Notes |
+|---:|---|---|---|---|
+| 100 | fetch-and-parse | planned | — | Crawl and extraction contract |
+| 200 | persistence | planned | fetch-and-parse | Resume prior crawls |
+| 200 | reporting | planned | fetch-and-parse | Human and machine output |
+```
+
+Use project-unique, lowercase kebab-case semantic slugs. Start distinct
+cohorts at `100`, `200`, `300`, and so on; equal `Order` values mean the
+rows may proceed in parallel. Every foundation row starts `planned`.
+`Depends on` is `—` or a comma-separated list of tracker slugs. Because
+foundation does not create milestone artifacts, keep the `Milestone` cells
+plain text rather than creating stubs merely to add links. Later
+materialization replaces the plain cell with a link whose text remains the
+semantic slug.
+
+Precompute and validate each row's future physical `<artifact-stem>` without
+storing it as a tracker column: use `<slug>` in a dedicated project root and a
+project-qualified basename such as `<project>-<slug>` in a shared root.
+Docs-cli flattens basenames into `archive/<date>/`, so a directory prefix alone
+cannot protect same-slug projects during archival. Reject any proposed stem
+whose milestone, `-impl`, or `-test-matrix` basename collides root-globally.
+When materialized, the row link target is the same-directory relative
+`<artifact-stem>.md`; `Depends on` and link text continue to use semantic
+slugs. Apply the shared contract's reserved-suffix checks too.
+
+The plan may follow the table with **Sequencing**, **Milestone details**
+(one H3 per semantic slug, with goal, demo checkpoint, and consumer), and
+**Buffer notes**. These sections describe scope; the table alone owns
+identity, order, stored execution state, dependencies, and derived next
+work. `<project-path>status.md` remains a narrative summary and link surface,
+not a second scheduler.
 
 Decompose demand-driven (see the shared quality model's
 Demand-driven chains): each milestone's deliverables name their
 consumer — the end user, or a specific later milestone. Prefer
 vertical slices whose outputs are consumed immediately over
-horizontal layers ("M1: all the models, M2: all the services");
+horizontal layers ("models-only", followed by "services-only");
 a milestone that delivers only surface for later milestones is
 an exception that needs explicit justification in the plan.
 
-Add `Related: implements: charter.md`,
-`Related: pairs-with: architecture.md`. Per-milestone task
-plans (`m1.md`, etc.) belong to `create-milestones`, not here.
+Add `Related: implements: <project-path>charter.md`,
+`Related: pairs-with: <project-path>architecture.md`. Per-milestone task plans
+and companions at `<project-path><artifact-stem>.md`,
+`<project-path><artifact-stem>-impl.md`, and
+`<project-path><artifact-stem>-test-matrix.md` belong to `create-milestones`,
+not here. Once those artifacts exist, sequence and dependency relationships
+are synchronized with qualified `docs relate` operands under the shared
+tracker contract; tracker order never becomes part of semantic identity or
+physical naming.
+
+After `<project-path>milestone-plan.md` exists, update
+`<project-path>status.md`: preserve its narrative, add the same-directory body
+link `[Milestone Plan](milestone-plan.md)`, and remove copied tracker rows or
+independent schedule/next claims. Then run, in order:
+
+```sh
+docs touch <project-path>milestone-plan.md <project-path>status.md
+docs index .
+docs check . --stale 14
+```
 
 ## Phase 5 — Environment & Tooling
 
@@ -291,7 +388,7 @@ Ask:
 - What access/credentials are needed?
 - Any blockers to getting started?
 
-Author `docs new runbook env-and-tooling` with body sections:
+Author `docs new runbook <project-path>env-and-tooling` with body sections:
 **Runtimes**, **Build commands**, **Test commands**,
 **Access/credentials**, **Blockers**. `runbook` because the
 content describes commands to run, not concepts to think about.
@@ -305,7 +402,7 @@ Ask:
 - Data quality expectations?
 - Privacy/security/compliance constraints?
 
-Author `docs new plan data-plan` with body sections:
+Author `docs new plan <project-path>data-plan` with body sections:
 **Data sources**, **Synthetic vs. real approach**, **Quality
 expectations**, **Privacy/security/compliance**.
 
@@ -329,9 +426,10 @@ Ask:
 - What human/operator approval triggers should stop implementation?
 
 **Propose risk levels, never assign them.** Investigate the repo
-or product first, then propose a level per area with one-line
-reasoning and confirm with the operator. Default to Standard for
-ordinary product or workflow changes; reserve Lite for docs,
+or product first, then propose a level per area with plain-language
+reasoning proportional to the risk and confirm with the operator.
+Default to Standard for ordinary product or workflow changes;
+reserve Lite for docs,
 internal/admin work, and low-blast-radius changes. Propose High
 only with an explicit reason from the shared quality model's High
 triggers (auth, billing, security, privacy, data integrity,
@@ -340,7 +438,7 @@ performance-sensitive core paths) — and get the operator's
 explicit approval before recording High. Record the agreed level
 and its reasoning in the risk table.
 
-Author `docs new outline test-strategy` with body sections:
+Author `docs new outline <project-path>test-strategy` with body sections:
 **Validation taxonomy**, **Risk levels**, **Fast PR gate**,
 **Deep/nightly/release gate**, **Hidden-test policy**,
 **Mock policy**, **Human approval triggers**, and **Coverage /
@@ -418,7 +516,7 @@ Ask:
 - Where will each doc live?
 - How often will docs be updated?
 
-Author `docs new plan documentation-plan` with body sections:
+Author `docs new plan <project-path>documentation-plan` with body sections:
 **Required docs** (table: name + role + owner + cadence),
 **Locations**, **Update cadence**.
 
@@ -437,7 +535,7 @@ explicitly read project context as their first action, so this is
 load-bearing for autonomous milestone work across Claude Code, Codex,
 and compatible hosts.
 
-Run this **after** authoring `documentation-plan.md`:
+Run this **after** authoring `<project-path>documentation-plan.md`:
 
 1. **Check for existing host context files** at the repo root:
    ```sh
@@ -458,21 +556,21 @@ Run this **after** authoring `documentation-plan.md`:
    [`claude-md-template.md`](claude-md-template.md) to identify which
    fixed sections are missing: Documentation tree, Skill ecosystem,
    TDD methodology, Quality gates and test adequacy, Branch
-   conventions.
+   conventions, Operator questions and decisions.
    - **All fixed sections present** -> the file is good as-is. Note
-     that in `foundation-log.md`; do not write an additions file.
+     that in `<project-path>foundation-log.md`; do not write an additions file.
    - **One or more missing** -> write `CLAUDE-additions.md` and/or
      `AGENTS-additions.md` next to the existing file with the proposed
      additions (rendered, with derived slots filled). Show the user the
      path and a short summary of what's proposed; let them review and
      merge by hand.
 
-4. **Add context files to `documentation-plan.md`'s Required docs
+4. **Add context files to `<project-path>documentation-plan.md`'s Required docs
    table** — name `CLAUDE.md` and/or `AGENTS.md`, role "project
    context for coding agents", owner the project owner, cadence
    "updated when skill ecosystem, quality gates, or tooling changes."
 
-5. **Note the action in `foundation-log.md`** — one of:
+5. **Note the action in `<project-path>foundation-log.md`** — one of:
    "scaffolded CLAUDE.md/AGENTS.md from template", "wrote
    context additions for operator review", or "agent context already
    covers the skill ecosystem and quality gates (no changes needed)."
@@ -487,7 +585,7 @@ thereafter.
 Definition of Ready is `Role: reference`. Author:
 
 ```sh
-docs new reference definition-of-ready --project <p> --title "<Project>: Definition of Ready" --body-from - <<'EOF'
+docs new reference <project-path>definition-of-ready --project <p> --title "<Project>: Definition of Ready" --body-from - <<'EOF'
 Gate-check before implementation begins. Implementation does not start until every item is green.
 
 ## Foundation checklist
@@ -496,7 +594,7 @@ Gate-check before implementation begins. Implementation does not start until eve
 - [ ] **Scope, assumptions, constraints captured.** → [scope-and-constraints.md](scope-and-constraints.md)
 - [ ] **Stakeholders/interfaces noted with owners.** → [stakeholders.md](stakeholders.md)
 - [ ] **Architecture option chosen; decision recorded.** → [options-comparison.md](options-comparison.md), [architecture.md](architecture.md)
-- [ ] **Milestones and dependencies mapped; timeline feasible.** → [milestone-plan.md](milestone-plan.md)
+- [ ] **Canonical milestone tracker has semantic slugs, explicit order, allowed states, and valid dependencies.** → [milestone-plan.md](milestone-plan.md)
 - [ ] **Environment/tooling validated; access unblocked.** → [env-and-tooling.md](env-and-tooling.md)
 - [ ] **Data plan set; compliance/privacy constraints clear.** → [data-plan.md](data-plan.md)
 - [ ] **Test strategy outline covers critical paths and fixtures.** → [test-strategy.md](test-strategy.md)
@@ -521,14 +619,14 @@ Gate-check before implementation begins. Implementation does not start until eve
 EOF
 ```
 
-Add `Related: pairs-with: charter.md`,
-`Related: pairs-with: milestone-plan.md`,
-`Related: pairs-with: status.md`.
+Add `Related: pairs-with: <project-path>charter.md`,
+`Related: pairs-with: <project-path>milestone-plan.md`, and
+`Related: pairs-with: <project-path>status.md`.
 
 **Mechanical gate.** Before declaring green:
 
 ```sh
-docs check <root> --stale 14
+docs check . --stale 14
 ```
 
 Exit-code verdict:
@@ -537,10 +635,11 @@ Exit-code verdict:
   checkbox justified, every link resolves, success metric
   measurable, residual risks logged). Flip the DoR doc and
   every front-half doc from `Lifecycle: draft` to
-  `Lifecycle: active`, then `docs touch` each.
+  `Lifecycle: active`, then perform the qualified status/touch/index/check
+  completion sequence below.
 - `1` → warnings (medium-confidence inferences or stale docs).
-  Review; `docs touch` if still correct, or update content.
-  Re-run.
+  Review; touch the qualified paths if still correct, or update content, then
+  re-run.
 - `2` → errors (missing fields, broken refs, lifecycle/location
   drift). Fix before proceeding. DoR cannot pass.
 
@@ -548,16 +647,21 @@ Exit-code verdict:
 
 When DoR flips to `active`:
 
-1. `docs check <root> --stale 14` exit 0.
-2. `docs list --lifecycle active --project <p>` shows every
+1. Update `<project-path>status.md` with a narrative foundation-complete
+   summary and `[Milestone Plan](milestone-plan.md)`. Remove copied tracker
+   rows and independent schedule/next claims.
+2. After the lifecycle and status body edits, atomically touch every changed
+   qualified path. The batch must include both
+   `<project-path>milestone-plan.md` and `<project-path>status.md`.
+3. Run `docs index .` and `docs check . --stale 14`; require exit 0.
+4. `docs list --root . --lifecycle active --project <p>` shows every
    artifact in the expected state.
-3. Update `status.md`'s "Current milestone" section:
-   _Pending → M1 setup_.
-4. `docs touch status.md`.
-5. Hand off to the `use-cases` skill — it runs automatically
-   after foundation completes (optional, but strongly preferred)
+5. Hand off the resolved docs root, `<project-path>`, and `Project:` value to
+   the `use-cases` skill — it runs automatically after foundation completes
+   (optional, but strongly preferred)
    to explore the primary use cases that will guide testing.
-6. Then hand off to `create-milestones`.
+6. Then hand off to `create-milestones` for `next milestone` or an
+   explicitly named eligible semantic slug.
 
 ## Worked example: link-checker
 
@@ -569,7 +673,9 @@ with a `docs/` directory).
 ### Step 0 — Bootstrap
 
 Wizard walks up three levels, finds no `.docs.toml`. Default
-suggestion (`docs/` exists → `docs/specs/`) confirmed. Then:
+suggestion (`docs/` exists → `docs/specs/`) confirmed. This is a dedicated
+root, so `<project-path>` is empty and the expanded docs-cli operands below
+are the bare filenames. Then:
 
 ```sh
 mkdir -p ~/code/link-checker/docs/specs
@@ -585,17 +691,16 @@ Five living docs created before any phase question:
 ```sh
 docs new status status --project link-checker \
   --title "link-checker: Status" --body-from - <<'EOF'
-**Single source of truth for project progress. Update only this file when milestones complete or phases advance.**
+Narrative project summary. The canonical milestone tracker is created in
+Phase 4; once it exists, this doc links to it without copying its rows.
 
-## Current milestone
+## Project summary
 
-_Pending — foundation work in progress._
+Foundation work is in progress.
 
-## Quick links
+## Planning links
 
-- [Charter](charter.md)
-- [Milestone Plan](milestone-plan.md)
-- [Definition of Ready](definition-of-ready.md)
+_Milestone plan pending Phase 4._
 EOF
 
 docs new log foundation-log --project link-checker \
@@ -652,7 +757,7 @@ EOF
 
 Wizard asks each phase's questions and authors the artifact
 with `docs new --body-from -`, appending a one-line note to
-`foundation-log.md` after each. After all eight phases, the
+the empty-prefix `foundation-log.md` after each. After all eight phases, the
 tree looks like:
 
 ```
@@ -677,11 +782,27 @@ tree looks like:
 └── status.md                    Role: status,     Lifecycle: active
 ```
 
-`milestone-plan.md`'s body lists three milestones:
+`milestone-plan.md` begins with its canonical tracker:
 
-- M1 — Fetch and parse (HTTP client, link extraction, in-memory crawl)
-- M2 — Persistence (SQLite cache, resume from prior crawl)
-- M3 — Reporting (HTML/JSON output, summary stats)
+```markdown
+| Order | Milestone | State | Depends on | Notes |
+|---:|---|---|---|---|
+| 100 | fetch-and-parse | planned | — | HTTP client, link extraction, in-memory crawl |
+| 200 | persistence | planned | fetch-and-parse | SQLite cache and resume |
+| 200 | reporting | planned | fetch-and-parse | HTML/JSON output and summary stats |
+```
+
+The semantic slugs remain stable if the operator later changes the two
+`200` rows to different cohorts or inserts a new order between them.
+Because this example uses a dedicated docs root, each future artifact stem is
+the same as its semantic slug; a materialized row would link, for example,
+`[fetch-and-parse](fetch-and-parse.md)`. In a shared root, the visible text
+would stay `fetch-and-parse` while the relative target would be
+`link-checker-fetch-and-parse.md`.
+Once the plan exists, the wizard replaces the pending note in `status.md`
+with `[Milestone Plan](milestone-plan.md)`, removes any independent schedule
+claim, then runs `docs touch milestone-plan.md status.md`, `docs index .`, and
+`docs check . --stale 14` in that order.
 
 ### Phase 8 addendum — CLAUDE.md scaffold
 
@@ -690,13 +811,17 @@ Wizard renders `claude-md-template.md` with the derived slots:
 
 - `<project summary>`: first paragraph of `charter.md`.
 - `<docs-root-path>`: `docs/specs`.
+- `<project-path>`: empty (the docs root is dedicated).
 - `<project-slug>`: `link-checker`.
+- `<project-branch-prefix>`: empty (the repository has one project-wide
+  milestone namespace and `link-checker` is repository-unique).
 - Build/test commands: from `env-and-tooling.md` (e.g. `pytest`,
   `ruff check .`, `mypy`).
 - Commit conventions: defaulted (no prior git history yet).
 
 Writes to `~/code/link-checker/CLAUDE.md`; notes the scaffold in
-`foundation-log.md`; `docs touch foundation-log.md`.
+`foundation-log.md`; `docs touch foundation-log.md` (the expanded empty-prefix
+operand).
 
 ### Phase 9 — DoR and hand-off
 
@@ -706,20 +831,22 @@ DoR doc authored per the template above. Mechanical gate:
 docs check . --stale 14   # exit 0
 ```
 
-Wizard ticks every checkbox after qualitative review, flips
-every front-half doc to `Lifecycle: active`, then:
+Wizard ticks every checkbox after qualitative review, flips every front-half
+doc to `Lifecycle: active`, and updates `status.md` with the
+foundation-complete narrative and relative tracker link. It then touches all
+changed docs in one qualified batch; for this empty-prefix example:
 
 ```sh
 docs touch charter.md scope-and-constraints.md stakeholders.md \
   options-comparison.md architecture.md milestone-plan.md \
   env-and-tooling.md data-plan.md test-strategy.md \
-  documentation-plan.md definition-of-ready.md
+  documentation-plan.md definition-of-ready.md status.md
 docs index .
 docs check . --stale 14   # exit 0
 ```
 
-Updates `status.md`'s "Current milestone" to
-`Pending → M1 setup`, `docs touch status.md`. Hand-off check:
+The tracker and status paths were touched together before index/check.
+Hand-off check:
 
 ```sh
 $ docs list --root . --project link-checker --lifecycle active

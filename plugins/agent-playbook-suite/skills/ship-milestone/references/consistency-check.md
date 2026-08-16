@@ -6,6 +6,17 @@ last phase of the step and before returning to the conductor. This is the
 
 Use the shared risk-aware quality model at
 `../../_shared/references/agentic-quality-model.md` where it exists.
+Use the semantic identity, tracker, state, and relationship rules in
+`../../_shared/references/milestone-tracker.md`; do not infer order or next work
+from filenames, document order, or `<project-path>status.md`.
+Resolve the docs root and change the working directory to it before every
+docs-cli operation. `--root` does not rebase relative `FILE`, `SOURCE`, or
+`TARGET` operands and is not a substitute for changing directories. From the
+docs root, keep operands `<project-path>`-qualified and use `docs index .` and
+`docs check .` where applicable.
+Prepare the handoff under
+[`review-protocol.md`](review-protocol.md); the conductor, not this audit,
+selects and runs the reviewers.
 
 Work through every item. **Fix** what you find and commit the fixes. **Surface**
 (do not auto-decide) anything that would change milestone scope or behavior
@@ -32,16 +43,34 @@ intent — list those in your return message for the operator.
 
 ## Consistency — documentation
 
-- `status.md`, the milestone doc, the milestone log, and `milestone-plan.md`
-  agree with each other and with reality: phase progress, test counts, dates,
-  "next" pointers, open/resolved questions.
+- The owning project's canonical `<project-path>milestone-plan.md` tracker row
+  is `active`; its project-unique
+  semantic slug matches the milestone identity and
+  `<project-branch-prefix><slug>/...` branch root. The row's linked physical
+  artifact set resolves to `<project-path><artifact-stem>.md`,
+  `<project-path><artifact-stem>-impl.md`, and
+  `<project-path><artifact-stem>-test-matrix.md`; the stem is `<slug>` in a
+  dedicated project root and a
+  root-globally unique `<project>-<slug>` for new work in a shared root. Its
+  Order, dependencies, and Notes have not drifted during implementation.
+- `<project-path>milestone-plan.md` is the only authority for identity, order,
+  state, dependencies, and derived next work. `<project-path>status.md` is a
+  narrative summary that links to it; it does not duplicate tracker rows or
+  independently name next.
+- `<project-path><artifact-stem>.md`, its `-impl.md` and `-test-matrix.md`
+  companions, `<project-path>milestone-plan.md`, and
+  `<project-path>status.md` agree with reality on phase progress, test counts,
+  dates, and open/resolved questions. Steps 0-2 never mark the row `complete`
+  or archive the milestone artifact set; Step 3 owns that closeout.
+- Materialized adjacent-order and dependency relationships match the tracker
+  contract, while live blocker relationships remain distinct.
 - No doc claims a behavior the code does not have, and no shipped behavior is
   undocumented.
 - Cross-references and `Related:` links resolve to real files.
-- Open follow-ups and feedback noted during this step live in the project's
-  `followup-log.md` / `feedback-log.md` at the docs root, not only inline in
-  milestone docs; milestone docs reference open log entries rather than
-  holding them.
+- Open follow-ups and feedback noted during this step live in
+  `<project-path>followup-log.md` / `<project-path>feedback-log.md`, not only
+  inline in milestone docs; milestone docs reference open log entries rather
+  than holding them.
 - Doc front-matter (`Lifecycle`, `Role`, `Updated`) is correct; any doc
   edited this step had its `Updated:` bumped per the convention (via
   `docs touch`).
@@ -50,7 +79,7 @@ intent — list those in your return message for the operator.
 
 - Generated artifacts (e.g. `INDEX.md`) and any frozen test snapshots are
   regenerated **in lockstep** — byte-identical where they must match.
-- `docs check` on the project's docs tree exits 0.
+- `docs check .` from the resolved docs root exits 0.
 
 ## Consistency — codebase
 
@@ -63,7 +92,8 @@ intent — list those in your return message for the operator.
 - Abstraction level and comment/docstring density match the surrounding code.
 - Liveness (shared quality model, Demand-driven chains): every new public
   output traces to a contract clause, a visible test, or a logged decision
-  with a `followup-log.md` ledger entry naming its intended consumer. Flag
+  with a `<project-path>followup-log.md` ledger entry naming its intended
+  consumer. Flag
   produced-but-unconsumed values — return fields no caller reads, parameters
   always passed the same value, threaded context nobody uses.
 - The diff contains only this milestone's work — no unrelated changes. The
@@ -102,7 +132,8 @@ intent — list those in your return message for the operator.
 - Selected risk-level gates were run or explicitly marked not configured.
 - Property/stateful, mutation, fuzz, benchmark, security, schema, migration, or
   rollback checks selected for the milestone are run, explicitly marked not
-  configured, or recorded as open entries in the project's `followup-log.md`.
+  configured, or recorded as open entries in the project's
+  `<project-path>followup-log.md`.
 - No code path appears keyed to visible test literals, fixture names, or narrow
   examples.
 - No tests or selected explicit checks were weakened, skipped, deleted, or
@@ -136,7 +167,38 @@ intent — list those in your return message for the operator.
   and non-green state are explicit. Messages follow the project's convention
   (see project context and recent `git log`); no secrets staged.
 
+## Review-ready handoff
+
+- The return evidence names the `<project-path>milestone-plan.md` tracker path,
+  owning project, active semantic
+  row, claim-checkpoint commit, and semantic branch root.
+- The implementation log ends this step's append-only review history with a
+  uniquely headed, monotonically numbered `review-pass` entry. Its predecessor
+  link is exact; after Step 1 contract rework, the immediately preceding entry
+  is the newly closed `contract-rework`, while every earlier pass and frozen
+  packet remains preserved. A targeted conditional re-review remains nested in
+  its original pass and never substitutes for a fresh post-rework pass.
+- The current `review-pass` has one Claude slot and one GPT slot, both
+  initialized as `pending`. Do not infer or
+  fabricate provider availability or effective model identity; the conductor
+  records actual attempt outcomes later.
+- The return report names the exact current pass location as the qualified
+  implementation-log path plus its unique heading anchor; a general Step
+  section is not a usable resume or sync location.
+- The exact branch-base and review-ready `HEAD` commit SHAs, changed artifact
+  paths, selected test/quality commands, and latest results needed for the
+  frozen review packet are present in the return report or canonical milestone
+  artifacts.
+- All implementation and audit work is committed without bypassing hooks. The
+  return report names the exact review-ready `HEAD`, and the working tree is
+  clean so both isolated reviewers can inspect the same immutable diff.
+
 ## Return
 
-Report: issues found and fixed (with commits), anything surfaced for an
-operator decision, and the final test + quality-gate status.
+Report: issues found and fixed (with commits), the final test + quality-gate
+status, and anything surfaced for an operator decision. For each decision,
+include its inspected origin/evidence, why it matters now, options and practical
+effects, a grounded current-project example or clearly labeled hypothetical,
+an evidence-backed recommendation or `no strong recommendation`, and the exact
+operator question. This is an internal packet for the conductor, not a fixed
+user-facing template.

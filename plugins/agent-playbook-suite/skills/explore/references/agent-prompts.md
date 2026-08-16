@@ -53,9 +53,13 @@ Return:
 4. CLAUSE EFFECT: affected C-xx; the coordinator maps observations to routes.
 5. LIMITATIONS: relevant domain, environment, recency, or coverage gaps.
 6. CANDIDATE EVIDENCE ROWS: observation and interpretation kept separate.
-7. CONTRACT ISSUE: any clause that is unmeasurable, impossible, or
-   underspecified as written, with evidence; do not reinterpret it. Otherwise
-   `none`.
+7. CONTRACT / OPERATOR DECISION ISSUE: any clause that is unmeasurable,
+   impossible, or underspecified as written, with evidence; do not reinterpret
+   it. If it requires an operator-owned choice, return a compact packet with
+   the issue's origin, why it blocks evaluation now, practical effects of the
+   options, a project-grounded example or clearly labeled hypothetical, an evidence-supported
+   recommendation or `no strong recommendation`, and the smallest clear
+   question. Do not contact the operator directly. Otherwise `none`.
 8. NEXT QUESTION: only if one smaller follow-up could materially change the
    decision; otherwise `none`.
 
@@ -101,9 +105,13 @@ Return:
 7. EVIDENCE: candidate E-xx rows separating observation from interpretation.
 8. EXACT GAPS: only decision-changing unknowns, each with the smallest useful
    probe or source.
-9. CONTRACT ISSUE: any clause that is unmeasurable, impossible, or
-   underspecified as written, with evidence; do not reinterpret it. Otherwise
-   `none`.
+9. CONTRACT / OPERATOR DECISION ISSUE: any clause that is unmeasurable,
+   impossible, or underspecified as written, with evidence; do not reinterpret
+   it. If it requires an operator-owned choice, return a compact packet with
+   the issue's origin, why it blocks evaluation now, practical effects of the
+   options, a project-grounded example or clearly labeled hypothetical, an evidence-supported
+   recommendation or `no strong recommendation`, and the smallest clear
+   question. Do not contact the operator directly. Otherwise `none`.
 10. ROUTE RECOMMENDATION: viable, rejected, blocked, or deferred, with reason;
     this is advisory and only the coordinator changes registry status.
 
@@ -156,6 +164,14 @@ Return:
 
 If cleanup cannot be verified, flag it prominently. Do not recommend merging
 any probe artifact.
+
+If the probe is blocked because an authorization or operator-owned choice was
+not included in the approved card, append a compact decision packet for the
+coordinator: the blocking observation, why the input is needed now, the
+practical effect of granting or withholding it, a project-grounded example or
+clearly labeled hypothetical, an evidence-supported recommendation or `no strong
+recommendation`, and the smallest clear question. Do not contact the operator
+directly or exceed the card while waiting.
 ```
 
 ## Fresh pattern and simplicity challenger
@@ -206,6 +222,13 @@ not a statement of certainty. Only PASS may authorize SELECTED. FAIL or
 INSUFFICIENT EVIDENCE remains blocking; if the coordinator changes the
 candidate, another fresh challenge must review that final candidate. Do not
 propose unrelated improvements or implement fixes.
+
+If a finding's smallest remediation requires an operator-owned choice, append
+a compact decision packet with the finding's evidence, why the choice blocks
+the gate now, practical effects of the options, a project-grounded example or
+clearly labeled hypothetical, an evidence-supported recommendation or `no strong recommendation`,
+and the smallest clear question. Return it to the coordinator; do not contact
+the operator directly.
 ```
 
 ## Sequential fallback

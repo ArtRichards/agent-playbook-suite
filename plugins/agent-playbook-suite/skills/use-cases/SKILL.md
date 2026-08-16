@@ -35,6 +35,11 @@ Do **not** apply when the project has no docs tree yet — run
 - [`references/use-cases-playbook.md`](references/use-cases-playbook.md)
   — the collaborative exploration procedure and the use-cases
   doc template.
+- [`../_shared/references/operator-interaction.md`](../_shared/references/operator-interaction.md)
+  — shared requirements for grounded, understandable operator
+  questions and decisions.
+
+**Read both before beginning the collaborative exploration.**
 
 ## Invariants
 
@@ -48,8 +53,10 @@ Do **not** apply when the project has no docs tree yet — run
    matrices map against them, and tests focus on demonstrating
    them first — semantic behavior over incidental representation.
 3. **The doc is docs-managed.** Author with `docs new`, bump with
-   `docs touch`, validate with `docs check`. Never hand-edit
-   metadata.
+   `docs touch`, validate with `docs check`. Resolve the docs root and owning
+   project's one docs-root-relative `<project-path>` first, run docs-cli from
+   that root, and qualify every project document operand and `Related:` target;
+   never assume project docs are at the root. Never hand-edit metadata.
 4. **Optional, but strongly preferred.** If milestone work starts
    without the doc, nudge once toward running this skill — do not
    block.

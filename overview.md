@@ -1,86 +1,69 @@
-# Automated Software Development Workflow Guide
+# Agent Playbook Suite overview
 
 Lifecycle: active
 Role: guide
 Project: agent-playbook-suite
-Updated: 2026-07-11
+Updated: 2026-08-16
 
-This guide explains a public workflow built from seven workflow skills and the
-supporting `docs` skill, distributed as one suite plugin for Codex and Claude
-Code, plus one supporting CLI:
+Agent Playbook Suite is a public plugin for Codex and Claude Code that keeps
+long-running software work understandable across agents and sessions. It
+bundles eight workflow skills plus the supporting
+[`docs`](https://github.com/ArtRichards/docs-cli) skill; those workflows use
+the separately installed `docs-cli` runtime.
 
-- [`project-foundation`](https://github.com/ArtRichards/project-foundation)
-- [`use-cases`](https://github.com/ArtRichards/agent-playbook-suite/tree/main/plugins/agent-playbook-suite/skills/use-cases)
-- [`explore`](https://github.com/ArtRichards/agent-playbook-suite/tree/main/plugins/agent-playbook-suite/skills/explore)
-- [`create-milestones`](https://github.com/ArtRichards/create-milestones)
-- [`ship-milestone`](https://github.com/ArtRichards/ship-milestone)
-- [`sync-and-commit`](https://github.com/ArtRichards/sync-and-commit)
-- [`simplify`](https://github.com/ArtRichards/simplify)
-- [`docs-cli`](https://github.com/ArtRichards/docs-cli)
+The central idea is simple: project state belongs in versioned artifacts, not
+only in chat history. The suite records scope, architecture, decisions,
+milestones, tests, implementation evidence, and current state in a validated
+Markdown tree. A fresh agent can reconstruct the work from the repository
+instead of relying on a prior conversation.
 
-Everything listed here is public. The seven workflow skills form an opinionated way to run a software project, or a broad feature-release effort, with an AI coding agent as the main build engine.
+## What it solves
 
-## What problem this solves
+Long-running agent work commonly loses continuity: the plan diverges from the
+code, status becomes ambiguous, and restarting requires reconstructing context.
+The suite replaces that informal memory with a small operating system for the
+project:
 
-Long-running agent projects usually break down in three places:
+- `docs-cli` owns document metadata, relationships, indexing, validation, and
+  controlled archival.
+- A canonical milestone tracker separates meaningful milestone identity from
+  execution order and state.
+- A fixed, risk-aware TDD loop records what was promised, tested, implemented,
+  reviewed, and deferred.
+- Fresh-agent boundaries reduce self-review bias during autonomous delivery.
 
-- the agent loses track of the real project state
-- the docs drift away from the code
-- restarting after a few days costs too much time
+The process is deliberately opinionated. Its value is resumability,
+auditability, and safer handoffs; its cost is maintaining the artifacts as part
+of the work.
 
-This workflow solves that by keeping project state on disk instead of in chat history.
+## The pieces
 
-The project charter, scope, architecture, milestone plans, implementation logs, status, and agent instructions are all written into a structured Markdown tree. A fresh agent can then rebuild context from files, not from a transcript.
+| Skill | Responsibility |
+|---|---|
+| [`project-foundation`](https://github.com/ArtRichards/project-foundation) | Establish charter, scope, architecture, readiness, quality strategy, milestone plan, and agent context. |
+| [`use-cases`](https://github.com/ArtRichards/agent-playbook-suite/tree/main/plugins/agent-playbook-suite/skills/use-cases) | Record how people should use the result so milestone tests start from user-visible behavior. |
+| [`explore`](https://github.com/ArtRichards/agent-playbook-suite/tree/main/plugins/agent-playbook-suite/skills/explore) | Compare genuinely uncertain implementation routes using repository evidence and bounded probes. |
+| [`manage-milestone-tracker`](https://github.com/ArtRichards/agent-playbook-suite/tree/main/plugins/agent-playbook-suite/skills/manage-milestone-tracker) | Insert, reorder, pause, resume, cancel, and select semantic milestones without implementing them. |
+| [`create-milestones`](https://github.com/ArtRichards/create-milestones) | Materialize and advance a milestone interactively through the ten TDD phases. |
+| [`ship-milestone`](https://github.com/ArtRichards/ship-milestone) | Conduct an eligible milestone autonomously through planning, implementation, review, simplification, and closeout. |
+| [`sync-and-commit`](https://github.com/ArtRichards/sync-and-commit) | Verify code, docs, tracker, and git state, then commit and push safely. |
+| [`simplify`](https://github.com/ArtRichards/simplify) | Reduce unnecessary complexity after behavior is green, without changing the contract. |
 
-That is the core idea: state lives on disk, not in chat.
+`explore` is optional and cross-cutting. It runs only when direct inspection or
+a cheap probe leaves a named, acceptance-relevant technical decision
+unresolved. It does not produce mergeable production implementation.
 
-## The parts and how they fit
+## Adoption and installation
 
-[`docs-cli`](https://github.com/ArtRichards/docs-cli) is the substrate. It is an agent-native tool built to make structured project documentation easier and safer for agents to maintain. It manages a prescriptive Markdown tree with metadata such as `Lifecycle:`, `Role:`, project name, and typed document relationships. It can validate the tree, rebuild `INDEX.md`, move docs safely into the archive subtree, rewrite `Related:` references on rename, query the tree, and adopt existing Markdown directories into the convention.
-
-That matters because, in this workflow, documentation is not side paperwork. It is the working memory of the project. `docs-cli` reduces the burden on the agent by programmatically maintaining document pointers, validating relationships, and preserving the shape of the docs tree. In practice, that lowers the chance of broken references, stale status pages, hand-edited metadata drift, and other avoidable documentation mistakes while the agent is recording work in progress and planned work.
-
-The convention is portable without the CLI, but the workflow assumes you use the CLI because that is what makes the process safe for repeated agent use.
-
-The seven workflow skills sit on top of that:
-
-- `project-foundation` sets up the project front-half: charter, scope, architecture, milestone plan, definition of ready, status docs, and agent context (`CLAUDE.md`, `AGENTS.md`, or equivalent)
-- `use-cases` explores the project's primary use cases collaboratively after foundation work and records them in a doc that milestone test matrices map against — optional, but strongly preferred, because tests focus on these use cases first
-- `explore` is an optional technical solution search for genuinely uncertain or novel implementation routes; it compares evidence-backed approaches without turning exploration into production implementation
-- `create-milestones` creates and advances a milestone interactively through a fixed 10-phase TDD workflow
-- `ship-milestone` runs a milestone more autonomously by spawning fresh agents for planning, implementation, review, and simplification
-- `sync-and-commit` verifies the work, syncs the docs tree, reviews the diff, and commits safely
-- `simplify` handles the final cleanup pass by removing unnecessary complexity without changing behavior
-
-The ordinary delivery path is sequential:
-
-`project-foundation` -> `use-cases` -> `create-milestones` or `ship-milestone` -> `sync-and-commit` -> `simplify`
-
-The `use-cases` stage runs automatically after foundation work and can be skipped, though skipping it is discouraged.
-
-`explore` is cross-cutting, not another required stage. It can support an
-architecture choice during foundation, select an implementation route after a
-milestone contract is stable, or recover when concrete evidence invalidates a
-selected route. The other skills invoke it automatically only when direct
-inspection or a cheap probe leaves a named, acceptance-relevant technical
-decision genuinely unresolved. It can also be invoked directly.
-The decision must have a named downstream consumer and at least one hard
-signal, such as an unverified acceptance-critical assumption, no applicable
-local or authoritative pattern, unresolved materially different mechanisms,
-or concrete route invalidation.
-
-## What a user needs to do
-
-First, install the published `docs-cli` package from PyPI:
+Install the current CLI from PyPI:
 
 ```bash
 python3 -m pip install --upgrade docs-cli
 docs --version
 ```
 
-Then install the Agent Playbook Suite plugin from this repository's marketplace
-catalog. Treat [`README.md`](README.md) as the canonical public install guide
-and keep this overview as a summary.
+Then install the suite from this repository. The canonical, current commands
+are in [`README.md`](README.md).
 
 For Codex:
 
@@ -96,117 +79,35 @@ claude plugin marketplace add ArtRichards/agent-playbook-suite
 claude plugin install agent-playbook-suite@agent-playbook-suite
 ```
 
-The repository contains both marketplace catalogs:
+Both marketplaces install the same payload under
+`plugins/agent-playbook-suite/skills/`. Installation does not grant access to
+either model provider. Cross-provider review works only when the host already
+has authorized Claude-family and GPT-family worker mechanisms.
 
-- `.agents/plugins/marketplace.json` for Codex
-- `.claude-plugin/marketplace.json` for Claude Code
+## How the workflow runs
 
-Both catalogs point at the same suite plugin under
-`plugins/agent-playbook-suite/`, which contains the shared `skills/` payload.
+Foundation creates or joins an internal docs tree, then writes the project’s
+living status and logs, planning documents, canonical milestone tracker, and
+root agent instructions. `use-cases` follows automatically unless the operator
+skips it.
 
-Gemini CLI and OpenCode do not consume these Codex or Claude marketplace
-manifests directly. The suite still remains portable because the packaged skill
-payload lives in `plugins/agent-playbook-suite/skills/`. The five formerly
-standalone workflow-skill repositories remain public as historical pointers;
-suite-only skills such as `use-cases` and `explore` are available from this
-repository's skill payload for manual direct-skill installs.
+The tracker has exactly five columns:
 
-Update Codex by refreshing the marketplace:
-
-```bash
-codex plugin marketplace upgrade agent-playbook-suite
+```text
+Order | Milestone | State | Depends on | Notes
 ```
 
-Update Claude Code by refreshing the marketplace and plugin:
+Milestones use semantic slugs such as `session-storage`; order is a separate
+integer and may change without renaming files or branches. State is one of
+`planned`, `active`, `paused`, `complete`, or `cancelled`. The next milestone
+is derived deterministically from order, dependencies, readiness, and live
+blockers. A writer claims it as `active` before creating its first branch.
+Project slugs are repository-unique, so multi-project branch prefixes remain
+unambiguous even when projects reuse the same milestone slug.
 
-```bash
-claude plugin marketplace update agent-playbook-suite
-claude plugin update agent-playbook-suite@agent-playbook-suite
-```
-
-`docs-cli` itself is lightweight: Python 3.11+, published on PyPI, and has no runtime dependencies. The `docs` console command is the tool the other skills rely on.
-
-The workflow is still portable outside Codex and Claude Code. In Gemini CLI,
-OpenCode, and similar agent shells, the marketplace support and auto-discovery
-behavior differ, but the operating model still works if the agent can read the
-same repo, project instruction file, docs tree, and commands.
-
-Always use the newest PyPI `docs-cli` release; recent releases add `Lifecycle:`
-metadata, agent-friendly authoring via `docs new --body-from`, the newer
-adoption-workflow helpers, and a once-daily, fail-silent notice when a newer
-`docs-cli` has been published so you know when to upgrade. The suite plugin includes the `docs` skill, and that
-bundled skill is generated from `docs-cli` itself and kept in lockstep with the
-newest release, so the skill instructions always match the `docs` command they
-call. There is no separate older version floor to track. Run
-`python3 -m pip install --upgrade docs-cli` to stay current.
-
-## What gets created
-
-When you start a project with `project-foundation`, the system creates the working context the agent will rely on later:
-
-- a docs root such as `docs/specs/` or `specs/`
-- a `.docs.toml` file that marks and configures the tree
-- a generated `INDEX.md`
-- always-on living docs such as `status.md`, `foundation-log.md`, and `risks.md`, plus two project logs that act as the single home for open items: `followup-log.md` (engineering follow-ups) and `feedback-log.md` (feedback, ideas, and scope thoughts)
-- charter
-- scope and constraints
-- stakeholder and interface map
-- option comparison
-- architecture sketch
-- decision log
-- milestone plan
-- environment and tooling checklist
-- data plan
-- test strategy
-- documentation plan
-- definition of ready
-- `CLAUDE.md`, `AGENTS.md`, or a matching companion additions file
-
-When the `use-cases` stage runs after foundation work, it adds `use-cases.md` —
-the primary use cases, recorded as primary goals, that milestone test matrices
-map against.
-
-An exploration normally records its route comparison and evidence in the
-artifact that already owns the decision: `options-comparison.md` during
-foundation, or the milestone's decision and implementation records during
-delivery. A separate exploration document is reserved for standalone or
-genuinely multi-session investigations.
-
-When you start delivery work, each milestone gets its own milestone doc,
-implementation log, and test matrix; quality logs or generated report companions
-are added where the risk level calls for them. Status docs are updated as phases
-move forward. New milestones can be added later as the project evolves. They are
-expected to inherit the overall project goals, constraints, and architecture
-context rather than starting from scratch each time.
-
-## How the workflow works
-
-### 1. Set up the project once
-
-Run `project-foundation` once at the start of a project. In practice, that project is often a broad feature release, delivery effort, or sub-project inside a larger repo, not necessarily the entire lifetime of the product. The agent asks structured questions and writes the answers into the docs tree as it goes.
-
-This is not just planning paperwork. It creates the durable operating context for future sessions and future agents, and it also prepares the agent context file that the later skills expect.
-
-### 2. Break work into technical milestones
-
-In this system, the project is the broad release-sized effort. The milestones inside it are the smaller technical slices.
-
-Good milestones tend to be narrow enough that one focused agent run can finish them with clear tests, docs, and exit criteria. That makes them easier to review, easier to resume, and easier to fit into a bounded usage window.
-
-The milestone plan is not frozen on day one. As new changes, follow-up work, or release units appear, `create-milestones` is expected to be used again to add new milestones that stay aligned with the original project context and goals.
-
-### 3. Run a milestone through the 10 phases
-
-Use `create-milestones` for interactive operator-driven work, or `ship-milestone` for more autonomous execution.
-
-`create-milestones` is not just for the first pass. It is also the normal way to introduce new units of work as the release continues.
-
-For each milestone, `create-milestones` creates a milestone task-plan doc, a
-paired implementation log, and a paired test matrix. The milestone moves through
-the TDD phases in those artifacts, then the artifact set is archived together
-with `docs archive <slug>.md --cascade-only '<slug>*'` when the work is complete.
-
-Every milestone follows the same TDD-shaped phases:
+`create-milestones` provides the interactive path. `ship-milestone` provides
+the autonomous path, using a four-branch stack for setup, contract/RED work,
+implementation/quality, and simplify/closeout. Both drive the same phases:
 
 1. Define Contract
 2. Write Tests (RED)
@@ -216,160 +117,52 @@ Every milestone follows the same TDD-shaped phases:
 6. Implement Offline/Core Path
 7. Update Tool/Wrapper Layer
 8. Run Tests (GREEN)
-9. Integrate / Accept / Dogfood
-10. Quality, Docs, Refactor
+9. Integrate, Accept, and Dogfood
+10. Quality, Docs, and Refactor
 
-Each phase has an explicit exit condition and a log entry. The status file reflects the active milestone and current phase at all times.
+The shared quality model scales checks by Lite, Standard, or High risk. It
+prefers semantic behavior tests over incidental representation, records hidden
+or generalization coverage in the implementation log and test matrix, audits
+mocks, and checks that new interfaces have a real downstream consumer. Durable
+quality logs are added where the selected risk gates need them. High-risk work
+adds the relevant deeper gates and explicit approvals.
 
-### Quality model
+At the end of completed autonomous Steps 0–2, the conductor freezes one
+evidence packet and attempts one isolated Claude-family review and one isolated
+GPT-family review. If a provider is unavailable, one reviewer is sufficient;
+the workflow never substitutes a second reviewer from the same family. Every
+blocking concern must be fixed, disproved with evidence, or routed as a genuine
+operator decision. Re-review is conditional, not automatic.
 
-The suite uses a risk-aware quality model around those phases. A milestone
-records the behavior contract, visible red tests, hidden/generalization
-strategy, adequacy checks, risk level, and mock audit notes before the work is
-treated as complete.
+Step 3 simplifies only after behavior is green, preserves any required
+High-risk review or operator approval, and checkpoints the clean simplified
+state before archival. Completion previews one explicit, hyphen-bounded
+archive scope and applies that identical scope only after verifying the exact
+milestone, implementation log, and test matrix. Relationships provide context,
+not archive permission. The tracker then moves to `complete`, status is updated,
+and `sync-and-commit` verifies the evidence without editing archived artifacts.
+The closeout contract includes narrow recovery paths for an interruption after
+the archive has moved files; it never fabricates missing command output or
+replays an already-applied archive.
 
-Risk gates scale by impact. Lite work can rely on the contract, visible tests,
-configured lint/type/build checks, docs validation, and ordinary review.
-Standard work adds hidden/generalization smoke, property or stateful checks
-where applicable, and explicit mock review. High-risk work adds stronger gates
-such as mutation, security/schema/migration, benchmark, rollback, and
-fresh-eyes review checks, with operator approval after the RED baseline.
+Whenever an operator decision is genuinely necessary, suite-maintained skills
+explain where the question came from, why it matters now, practical effects, a
+grounded example, and a recommendation when evidence supports one. This changes
+how questions are presented, not which choices belong to the operator.
 
-Taste is part of the same model. A milestone's contract records taste anchors
-— the modules the change should read like, the in-project libraries to reuse,
-the patterns to follow, and the expected diff footprint — so most taste
-failures gate as ordinary contract violations rather than reviewer opinions.
-Subjective review findings (craftsmanship, abstraction level, documentation
-fit) never block on their own, but they cannot be dropped either: each one
-must be fixed or waived with a logged reason before the step is committed,
-and recurring waivers get promoted into project conventions.
+## What adoption costs
 
-The model also checks chains for dead information flow. Steps in a chain —
-phases within a milestone, milestones within a plan — tend to overproduce:
-generous return values and anticipatory surface that nothing downstream ever
-consumes. The suite counters this with a liveness rule (every public output
-traces to a contract clause, a visible test, or a logged decision), pull-style
-interface design derived backward from the deliverables, a liveness walk at
-integration time, and a speculative ledger in the follow-up log: future needs
-get recorded as plan entries instead of built as code, and reserved surface is
-re-checked — consumed, or removed — when its target milestone is planned,
-re-scoped, or dropped.
+Teams must accept the docs convention, keep project context useful, work in
+milestone-sized slices, and treat documentation validation as part of delivery.
+Autonomous runs also spend up to two initial independent review calls after
+each of Steps 0–2, and using both provider families requires separately
+authorized access.
 
-The point is not more process for its own sake. The artifact trail should show
-what was tested, what was intentionally not tested, and why the selected gate
-matches the risk.
+The suite fits substantial features, greenfield products, internal tools, and
+projects that pause, resume, or change hands. It is usually too much process for
+tiny fixes and one-off scripts.
 
-### Explore only when the technical route is uncertain
-
-`explore` starts from the existing codebase rather than a blank design space.
-Before it can recommend a route, it identifies the local modules, libraries,
-interfaces, and error-handling patterns the change should preserve; compares
-materially different mechanisms; and challenges the simplest viable candidate
-for contract fit and unnecessary complexity. A deviation is acceptable only
-when repository evidence shows the established pattern cannot satisfy the
-decision criteria, and then the skill selects the smallest justified change.
-
-When inspection is not enough, the skill may run a disposable benchmark,
-prototype, or compatibility probe in an isolated temporary copy or disposable
-worktree with an explicit success or failure oracle. It does not produce
-mergeable implementation or persist dependency or configuration changes. It
-returns `SELECTED` only when the evidence supports a route; otherwise it returns
-`OPERATOR DECISION`, `NO VIABLE ROUTE`, or `INSUFFICIENT EVIDENCE` with the exact
-remaining gap instead of manufacturing certainty.
-
-### 4. Use fresh agents when autonomy matters
-
-`ship-milestone` is the most distinctive part of the suite. It acts as a conductor, not the implementer.
-
-It can spawn fresh agents for:
-
-- milestone setup
-- planning
-- implementation
-- fresh-eyes review
-- simplification
-
-In practice it works across a small branch stack per milestone:
-
-- `<slug>/milestone-setup`
-- `<slug>/phases-1-4`
-- `<slug>/phases-5-10`
-- `<slug>/simplify`
-
-That separation matters. A review agent that did not write the code is less likely to rationalize it. A fresh planning agent has to reconstruct the project from the artifacts on disk. That is the point. The conductor resolves the milestone, keeps the working tree clean, triages real open questions, and leaves the implementation work to fresh sub-agents.
-
-### 5. Sync code, docs, and git state
-
-At each step boundary, `sync-and-commit` verifies the implementation against the milestone, runs the quality gate, updates the docs, reviews the diff, and commits safely. It is part of the delivery loop, not an afterthought. In the suite, it is the git-safety layer: do not bypass hooks, do not push to `main`, and do not treat docs sync as optional cleanup.
-
-### 6. Simplify before closing the milestone
-
-The final pass uses `simplify` to make the code more obvious without changing behavior. It anchors to the last known-good implementation state, simplifies, reruns the selected tests and configured quality gate, and leaves the code alone if nothing truly simplifies.
-
-## A small example
-
-Imagine a project called "support dashboard release." That project is the broad feature-release effort. Inside it, the work is broken into several technical milestones:
-
-- `M1`: define auth/session contracts and add login test scaffolding
-- `M2`: implement session handling and get auth tests green
-- `M3`: add ticket-list read models, fixtures, and list rendering tests
-- `M4`: implement ticket-list loading, filtering, and wrapper validation
-- `M5`: integrate the real ticket source, update docs, and simplify
-
-That is more typical of how the workflow is meant to be used. The project holds the broad release goal; the milestones are the narrow technical slices with clear tests and clean handoff points. Each one gets its own milestone doc, implementation log, status updates, and archive trail.
-
-If a later change introduces export requirements or audit logging, you would add `M6` or `M7` using `create-milestones`, based on the same project context, instead of opening a separate ad hoc workflow.
-
-## What the human operator still does
-
-The agent does most of the writing, implementation, and bookkeeping. The human still:
-
-- answers project setup questions
-- approves tradeoffs and architecture decisions
-- chooses milestone boundaries
-- adds new milestones as the release evolves
-- resolves ambiguous product decisions
-- reviews operator decision points surfaced by the conductor
-
-This is not "press one button and disappear." It is a structured human-plus-agent workflow.
-
-## Cost of adoption
-
-There is some adoption cost:
-
-- you need to accept the docs-cli document convention
-- you need to maintain useful project context (`CLAUDE.md`, `AGENTS.md`, or equivalent)
-- you need to work in milestone-sized slices
-- you need to treat docs as part of the build system
-
-If that sounds too rigid, this workflow is probably not a fit. If you want resumability, auditability, and easier agent handoff, that structure is exactly the value.
-
-## Good use cases
-
-This workflow fits best for:
-
-- major feature releases
-- greenfield products
-- internal tools
-- teams that want a Markdown docs tree they can query and validate programmatically
-- multi-milestone side projects
-- codebases that pause and resume often
-- teams that want agent work to be inspectable
-
-It is a poor fit for one-off scripts, tiny fixes, or teams that do not want process around documentation.
-
-## Model And Budget Note
-
-The workflow is built for terminal-first coding agents, including Codex and Claude Code, when the model can follow multi-step plans, run tools, inspect diffs, and keep docs synchronized with implementation.
-
-Budget planning depends on the agent, model, plan, codebase size, test cost, and how much autonomy you allow. The practical planning unit is the milestone: keep milestones small enough that a fresh agent can understand the docs, make the change, run the quality gate, and leave a reviewable diff.
-
-## The short version
-
-Install `docs-cli` from PyPI, then install the Agent Playbook Suite plugin from the Codex or Claude marketplace catalog in this repository. Run `project-foundation` once for the broad project or feature-release effort, and let `use-cases` capture how users will really work with the result. Break delivery into small technical milestones. Add new milestones with `create-milestones` as the release evolves. Use `create-milestones` or `ship-milestone` to drive active milestones through the 10 phases. Use `sync-and-commit` to keep code and docs aligned. Use `simplify` at the end.
-
-For a genuinely novel problem or a clearly uncertain implementation route,
-use `explore` to select an evidence-backed approach before production work
-continues. It is optional everywhere else.
-
-The result is a project that can be resumed by a fresh agent from artifacts on disk instead of reconstructed from chat history.
+The result is not unattended development. The operator still owns product
+tradeoffs, High-risk approvals, genuine ambiguity, and final branch review. The
+suite gives those decisions durable context—and gives the next agent a reliable
+place to begin.

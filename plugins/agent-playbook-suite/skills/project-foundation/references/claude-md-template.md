@@ -11,12 +11,15 @@ render time. The full slot list is in the
 [Filling the derived slots](#filling-the-derived-slots) table
 at the bottom of this file.
 
-**Exception — literal placeholders in Branch conventions.** The
-`<slug>` token in the `<slug>/phases-1-4` etc. branch names is
-a **literal documentation placeholder** that ships in the
-rendered CLAUDE.md unchanged. It represents "your milestone's
-slug" to readers and matches how `ship-milestone` documents its
-own branch shape. Do not substitute it at render time.
+**Exception — literal naming placeholder.** The `<slug>` token in milestone
+artifact and branch naming examples is a **literal documentation placeholder**
+that ships in the rendered CLAUDE.md unchanged. It represents "your
+milestone's semantic slug" to readers and matches how `ship-milestone`
+documents its own branch shape. Do not substitute it at render time.
+`<project-branch-prefix>` is different: after verifying that the project slug
+is repository-unique, render it as `<project-slug>/` whenever this repository
+contains more than one suite project, and as the empty string only when one
+project-wide milestone namespace is guaranteed.
 
 ---
 
@@ -35,12 +38,30 @@ to manage planning, milestone, and spec docs as a
 self-describing Markdown tree.
 
 - Docs root: `<docs-root-path>` (marked by `.docs.toml`)
+- Project path inside that root: `<project-path>` (empty for a dedicated
+  project root; otherwise a root-relative prefix ending in `/`). Docs-cli
+  document operands and `Related:` targets use this prefix; Markdown body
+  links between docs in this same directory stay relative.
 - Active artifacts: charter, scope, architecture, milestone-plan,
   test-strategy, env-and-tooling, definition-of-ready, …
 - Archive subtree: `<docs-root-path>/archive/<YYYY-MM-DD>/`
-- Single source of truth for progress: `<docs-root-path>/status.md`
-- Open follow-ups and feedback: `<docs-root-path>/followup-log.md`
-  (engineering follow-ups) and `<docs-root-path>/feedback-log.md`
+- Canonical milestone tracker:
+  `<docs-root-path>/<project-path>milestone-plan.md`.
+  Its exact `Order | Milestone | State | Depends on | Notes` table owns
+  semantic identity, execution order and state, dependencies, and derived
+  next-work selection.
+- Milestone artifact filenames use a physical artifact stem: `<slug>` in a
+  dedicated root, or `<project-slug>-<slug>` in a shared root, followed by
+  `.md`, `-impl.md`, or `-test-matrix.md`. The tracker still displays
+  `<slug>`. Project qualification is required because docs-cli flattens
+  archived files to basenames; every physical stem must be root-globally
+  unique.
+- Narrative project summary: `<docs-root-path>/<project-path>status.md`. It
+  links to the tracker but does not duplicate its rows or independently name
+  schedule or next work.
+- Open follow-ups and feedback:
+  `<docs-root-path>/<project-path>followup-log.md` (engineering follow-ups) and
+  `<docs-root-path>/<project-path>feedback-log.md`
   (operator feedback, ideas, scope thoughts). These are the single
   home for open items — milestone docs reference open entries, and
   an entry moves into the milestone that incorporates it. Each log
@@ -48,16 +69,21 @@ self-describing Markdown tree.
 - Auto-generated machine view: `<docs-root-path>/INDEX.md`
   (never hand-edit)
 
-**Always use `docs` CLI verbs** for metadata, lifecycle, archive,
-or index actions — never hand-edit metadata blocks, the
+**Always use `docs` CLI verbs** for metadata, reciprocal relationships,
+lifecycle, archive, or index actions — never hand-edit metadata blocks, the
 `<!-- docs:generated -->` block in `INDEX.md`, or files into
 `archive/`. See the `docs` skill for the verb table.
 
-The controlled-vocab field is `Lifecycle:` (not `Status:`) as of
-docs-cli M7+. A free-form `Status: <prose>` body line is allowed
-but the skills prefer `Lifecycle: blocked` +
-`Related: blocked-by: <doc>` for blocked states — queryable, not
-prose.
+Run docs-cli from `<docs-root-path>`. Relative `FILE`, `SOURCE`, and `TARGET`
+operands are interpreted from the current working directory; `--root` selects
+the tree but does not rebase those operands. Within that working directory,
+use the root-relative `<project-path>` prefix described above.
+
+The controlled-vocab metadata field is `Lifecycle:` (not `Status:`).
+Document lifecycle is separate from milestone execution state. The tracker
+stores `planned`, `active`, `paused`, `complete`, or `cancelled`; current
+blocking is derived from live `blocked-by` relationships, written with
+`docs relate` so its reciprocal `blocks` edge lands too.
 
 ## Skill ecosystem
 
@@ -76,11 +102,16 @@ This project is set up to use:
   uncertain implementation or genuinely novel problem. Used selectively
   during architecture choice, stable-contract route selection, or recovery
   from an invalidated route; it does not implement production code.
+- **`manage-milestone-tracker`** — direct semantic tracker operations such
+  as inspect, insert, reorder, normalize, pause, resume, cancel, dependency
+  changes, and deterministic next-work discovery. It does not implement or
+  archive milestones.
 - **`create-milestones`** — milestone-level TDD work. Use to
   create, advance, or complete one milestone interactively.
 - **`ship-milestone`** — autonomous end-to-end milestone driver.
   Use to run a milestone through all 10 TDD phases unattended
-  (`/ship-milestone <id>` or `/ship-milestone next milestone`).
+  (`/ship-milestone <semantic-slug>` or
+  `/ship-milestone next milestone`).
 
 ## TDD methodology
 
@@ -139,22 +170,46 @@ When in doubt:
 - Do not weaken tests to pass.
 - Do not special-case visible fixtures, literals, or test-only branches.
 
+## Operator questions and decisions
+
+Investigate the repository, project docs, prior answers, and applicable policy
+before asking the operator for input. Resolve objective questions from that
+evidence when the workflow permits it; do not add approval gates for routine,
+reversible work.
+
+When a question, clarification, approval, or decision is necessary, explain in
+plain language where it came from, why it is needed now, and what the answer
+changes in practice. Include a concise project-grounded example, or a clearly
+labeled hypothetical when the project has no suitable example. Recommend the
+choice supported by project evidence and explain why; if the evidence does not
+support a preference, say there is no strong recommendation. Keep the
+explanation proportional to the decision rather than forcing a fixed template
+or length.
+
 ## Branch conventions
 
 When using `ship-milestone`, milestone work lands on a stacked
 branch set per milestone:
 
-- `<slug>/milestone-setup` (only if the milestone's task plan
+- `<project-branch-prefix><slug>/milestone-setup` (only if the milestone's task plan
   doesn't exist yet)
-- `<slug>/phases-1-4`
-- `<slug>/phases-5-10`
-- `<slug>/simplify`
+- `<project-branch-prefix><slug>/phases-1-4`
+- `<project-branch-prefix><slug>/phases-5-10`
+- `<project-branch-prefix><slug>/simplify`
+
+Every suite project has a repository-unique project slug. The rendered
+`<project-branch-prefix>` is mandatory when this repository has multiple suite
+projects. For example,
+`payments/session-storage/phases-1-4` and
+`identity/session-storage/phases-1-4` stay distinct. Omit it only when the
+repository guarantees a single project-wide milestone namespace.
 
 Nothing merges to `main` without operator review. The branches
 stack; the operator reviews and merges.
 
-For interactive `create-milestones` use, branch conventions are
-the project's choice (often `<slug>` as a single branch).
+For interactive `create-milestones` use, branch conventions are the project's
+choice, but the same collision rule applies (often
+`<project-branch-prefix><slug>` as a single branch).
 
 ## Build, test, quality commands
 
@@ -169,23 +224,24 @@ phase when working under ship-milestone>
 
 ## Where to read next
 
-- [Charter](<docs-root-path>/charter.md) — problem, target user,
+- [Charter](<docs-root-path>/<project-path>charter.md) — problem, target user,
   success metric.
-- [Status](<docs-root-path>/status.md) — current milestone and
-  phase.
-- [Architecture](<docs-root-path>/architecture.md) — shape,
+- [Status](<docs-root-path>/<project-path>status.md) — narrative project
+  summary.
+- [Architecture](<docs-root-path>/<project-path>architecture.md) — shape,
   modules, data flow.
-- [Milestone Plan](<docs-root-path>/milestone-plan.md) — the
-  full milestone sequence.
+- [Milestone Plan](<docs-root-path>/<project-path>milestone-plan.md) — the
+  canonical milestone identity, order, execution state, dependencies,
+  and source for derived next work.
 - [INDEX](<docs-root-path>/INDEX.md) — machine view of every
   doc, generated.
 ```
 
-## Detecting an existing CLAUDE.md
+## Detecting existing agent context
 
-If a `CLAUDE.md` already exists at the repo root, **do not
-overwrite**. Read it and check for these four fixed sections by
-content match:
+If a `CLAUDE.md` or `AGENTS.md` already exists at the repo root,
+**do not overwrite it**. Read each existing file and check for
+these six fixed sections by content match:
 
 | Section | Detection heuristic |
 |---|---|
@@ -193,16 +249,18 @@ content match:
 | Skill ecosystem | substring match on at least two of `project-foundation`, `create-milestones`, `ship-milestone`, `docs-cli` |
 | TDD methodology | substring match on "10-phase" or "Define Contract" + "Implement Online" |
 | Quality gates and test adequacy | substring match on "risk-aware" or "hidden/generalization" or "mock policy" |
-| Branch conventions | substring match on `phases-1-4` or `<slug>/phases` |
+| Operator questions and decisions | substring match on "operator questions" or "why it is needed now" + "recommendation" |
+| Branch conventions | substring match on `phases-1-4` plus a project-prefix collision rule |
 
-**If all four sections are already present**, skip writing
-`CLAUDE-additions.md` entirely — just note "CLAUDE.md already
-covers the skill ecosystem" in `foundation-log.md`. The existing
-CLAUDE.md is good as-is.
+**If all six sections are already present**, skip writing the
+corresponding additions file entirely — just note that the agent
+context already covers the skill ecosystem in `foundation-log.md`.
+The existing file is good as-is.
 
 **If one or more sections are missing**, write the proposed
-additions to `CLAUDE-additions.md` next to `CLAUDE.md` (not into
-CLAUDE.md itself). The file's body uses this shape:
+additions to `CLAUDE-additions.md` or `AGENTS-additions.md` next to
+the existing context file (not into that file). The additions file
+uses this shape:
 
 ```markdown
 # Proposed additions to CLAUDE.md
@@ -222,9 +280,12 @@ the foundation work for <project-slug>. Review and merge into
 …
 ```
 
-The user reviews `CLAUDE-additions.md` and merges into
-`CLAUDE.md` by hand or with Edit calls. The skill never edits
-`CLAUDE.md` directly when it pre-existed.
+Use `# Proposed additions to AGENTS.md` in the corresponding
+`AGENTS-additions.md` file.
+
+The user reviews the additions file and merges it into the
+corresponding context file by hand or with Edit calls. The skill
+never edits a pre-existing `CLAUDE.md` or `AGENTS.md` directly.
 
 ## Filling the derived slots
 
@@ -232,7 +293,9 @@ The user reviews `CLAUDE-additions.md` and merges into
 |---|---|
 | `<project summary>` | First paragraph of `charter.md`'s "What we're building" section. |
 | `<docs-root-path>` | The path resolved at Bootstrap Step 1, relative to the repo root (e.g. `docs/specs` or `specs`). |
-| `<project-slug>` | The kebab-case slug from `[project] name` in `.docs.toml`. |
+| `<project-path>` | The docs-root-relative directory prefix established at Bootstrap Step 1, including its trailing slash; empty for a dedicated project root (e.g. `specs/payments/` in a shared root). |
+| `<project-slug>` | The repository-unique kebab-case `Project:` value resolved at Bootstrap Step 3 (`[project] name` supplies the default in a dedicated root). |
+| `<project-branch-prefix>` | `<project-slug>/` when the repository has multiple suite projects; otherwise empty. Freeze it at first milestone activation. |
 | Build/test/quality commands | The `Build commands`, `Test commands`, and any quality-gate command sections from `env-and-tooling.md`. |
 | Quality gate sections | The risk levels, fast PR gate, deep/nightly/release gate, hidden-test policy, mock policy, and human approval triggers from `test-strategy.md`. |
 | Commit conventions | If recent `git log --oneline -20` shows a consistent style, summarise it in one line. Otherwise default to: "concise, imperative, present-tense; one commit per TDD phase when working under `ship-milestone`." |

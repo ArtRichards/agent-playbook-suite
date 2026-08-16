@@ -21,6 +21,9 @@ evidence work from shared checkpoints.
   single direct coordinator pass does not require it.
 - Read [`references/fresh-frontier-advisor.md`](references/fresh-frontier-advisor.md)
   only after the playbook's Advisor escalation gate fires.
+- Read [`../_shared/references/operator-interaction.md`](../_shared/references/operator-interaction.md)
+  before asking the operator a question or returning an operator-decision
+  packet.
 - Read the repository's `AGENTS.md`, `CLAUDE.md`, or equivalent instructions
   before inspecting or probing the project.
 
@@ -154,8 +157,12 @@ conditions in the exploration playbook.
 - `OPERATOR DECISION` - viable routes remain separated by a value or product
   priority that existing project criteria do not resolve, or the contract owner
   must clarify an underspecified acceptance criterion before routes can be
-  evaluated. Supply technical consequences and the smallest decision required;
-  do not choose silently or invent the missing criterion.
+  evaluated. Ground the decision in the inspected evidence, explain why it is
+  needed now and the practical consequences, give a factual current-project
+  example or a clearly labeled hypothetical, and recommend the option supported
+  by existing criteria or state that there is no strong recommendation. Ask for
+  the smallest clear decision; do not choose silently or invent the missing
+  criterion.
 - `NO VIABLE ROUTE` - evidence eliminates every route within the fixed
   contract and constraints. Identify the clauses and constraints responsible
   and return them to the contract owner. Do not reopen search under changed
