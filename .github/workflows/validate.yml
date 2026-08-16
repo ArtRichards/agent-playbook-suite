@@ -208,6 +208,119 @@ jobs:
               subprocess.check_call(["docs", "touch", "a.md", "b.md"], cwd=root)
           PY
 
+      - name: Validate no retired docs-cli flags are prescribed
+        run: |
+          python3 - <<'PY'
+          # Fail when suite prose tells an agent to run a docs-cli flag the
+          # pinned release has RETIRED. Such a command exits 2 and writes
+          # nothing, so a stale prescription is a live break at the exact moment
+          # a milestone closes.
+          #
+          # docs-cli keeps retired flags REGISTERED in argparse so obsolete
+          # callers get a legible refusal instead of argparse's generic error,
+          # and labels them RETIRED in `--help`. That label is the signal: the
+          # flag still appears in `--help` after retirement, so presence alone
+          # proves nothing. This check reads the pinned binary rather than a
+          # hardcoded list, so it keeps working across future retirements.
+          import re
+          import subprocess
+          from pathlib import Path
+
+          # Excluded, both deliberately:
+          #   skills/docs/ is vendored docs-cli text -- it documents the
+          #   retirement and must keep naming the flags.
+          #   docs/ is this repo's own project tree: feedback logs and process
+          #   records quote what people reported at the time. Rewriting history
+          #   there would be wrong, and nobody runs a feedback entry.
+          EXCLUDED = ("plugins/agent-playbook-suite/skills/docs/", "docs/")
+
+          top = subprocess.check_output(["docs", "--help"], text=True)
+          verb_match = re.search(r"\{([a-z0-9,\-]+)\}", top)
+          if not verb_match:
+              raise SystemExit("Could not parse the verb list from `docs --help`")
+
+          def retired_flags(verb):
+              text = subprocess.check_output(["docs", verb, "--help"], text=True)
+              lines = text.splitlines()
+              try:
+                  start = next(
+                      i for i, l in enumerate(lines)
+                      if l.strip() in ("options:", "optional arguments:")
+                  )
+              except StopIteration:
+                  return set()
+              described, current = {}, None
+              for line in lines[start + 1:]:
+                  m = re.match(r"\s{2,}(--[a-z][a-z0-9-]*)", line)
+                  if m:
+                      current = m.group(1)
+                      described[current] = described.get(current, "") + " " + line.strip()
+                  elif current and line.startswith(" " * 8) and line.strip():
+                      described[current] += " " + line.strip()
+                  elif not line.strip():
+                      current = None
+              return {f for f, d in described.items() if "RETIRED" in d.upper()}
+
+          retired = {}
+          for verb in verb_match.group(1).split(","):
+              flags = retired_flags(verb)
+              if flags:
+                  retired[verb] = flags
+
+          if not retired:
+              print("No retired flags in the pinned docs-cli; nothing to check.")
+              raise SystemExit(0)
+
+          print("Retired in the pinned docs-cli: " + ", ".join(
+              "%s %s" % (v, " ".join(sorted(f))) for v, f in sorted(retired.items())
+          ))
+
+          def joined_lines(path):
+              # Fold shell continuations so a flag on its own line is still
+              # seen as part of its command.
+              raw = path.read_text(encoding="utf-8").splitlines()
+              buf, start = "", None
+              for i, line in enumerate(raw, 1):
+                  if start is None:
+                      start = i
+                  buf = (buf + " " + line.strip()) if buf else line
+                  if line.rstrip().endswith("\\"):
+                      buf = buf.rstrip()[:-1]
+                      continue
+                  yield start, buf
+                  buf, start = "", None
+              if buf:
+                  yield start, buf
+
+          violations = []
+          for path in sorted(Path(".").rglob("*.md")):
+              rel = path.as_posix()
+              if rel.startswith(EXCLUDED) or rel.startswith("node_modules/"):
+                  continue
+              for lineno, text in joined_lines(path):
+                  # A line that talks *about* the retirement is documentation,
+                  # not a prescription.
+                  if "retired" in text.lower():
+                      continue
+                  for verb, flags in retired.items():
+                      if not re.search(r"\bdocs\s+%s\b" % re.escape(verb), text):
+                          continue
+                      for flag in flags:
+                          if re.search(r"%s(?![a-z0-9-])" % re.escape(flag), text):
+                              violations.append((rel, lineno, verb, flag, text.strip()[:100]))
+
+          if violations:
+              print("\nSuite prose prescribes docs-cli flags the pinned release has RETIRED.")
+              print("Such a command exits 2 and writes nothing. Use the supported")
+              print("form, or reword the line to describe the retirement.\n")
+              for rel, lineno, verb, flag, text in violations:
+                  print("  %s:%d  docs %s ... %s" % (rel, lineno, verb, flag))
+                  print("      %s" % text)
+              raise SystemExit(1)
+
+          print("No retired-flag prescriptions found.")
+          PY
+
       - name: Validate workflow consistency
         run: |
           python3 - <<'PY'

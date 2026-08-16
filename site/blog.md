@@ -59,7 +59,7 @@ The skills write everything through `docs`, a stdlib-only Python CLI (Python 3.1
 ```sh
 docs new milestone m1-fetch --project demo --title "M1 — Fetch"
 docs touch m1-fetch.md --check        # bump date, reindex, validate, one step
-docs archive m1-fetch.md --cascade    # milestone + log + matrix move to archive/
+docs archive m1-fetch.md --cascade-only 'm1-fetch*'   # milestone + log + matrix move to archive/
 ```
 
 `docs check` validates the whole tree: missing fields, broken links, lifecycle drift, stale docs. That is the gate the skills run at every step boundary.
