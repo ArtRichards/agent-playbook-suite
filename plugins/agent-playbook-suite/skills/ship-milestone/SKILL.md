@@ -88,7 +88,8 @@ audit, simplify, or edit project code or docs. It only:
 - creates and checks out branches;
 - spawns fresh sub-agents and sequences them;
 - conditionally invokes `explore` and routes its disposition;
-- triages questions and findings, and runs `AskUserQuestion`;
+- triages questions and findings, and asks the operator
+  (`AskUserQuestion` where available);
 - runs read-only end-of-run verification.
 
 Every heavyweight unit is a **fresh high-capability sub-agent**. For creation,
@@ -214,7 +215,7 @@ On resume, start at the ledger's first incomplete state; do not repeat work.
    Keep its agent id/name.
 3. It returns a draft milestone task plan, implementation log, test
    matrix, and an `OPEN QUESTIONS` list. **Triage** the questions
-   (see *Triage rules*); `AskUserQuestion` for genuine scope or
+   (see *Triage rules*); ask the operator for genuine scope or
    contract forks.
 4. **Resume the agent** (SendMessage) with the operator's
    answers: it finalizes the milestone doc, implementation log, test
@@ -332,8 +333,7 @@ remains in its history, but do not begin production implementation:
 3. The planning agent returns a plan and an `OPEN QUESTIONS`
    list. **Triage** each question (see *Triage rules*): auto-resolve
    doc/spec/conventional ones and record the
-   decision; for genuine requirement or scope forks, call
-   `AskUserQuestion`.
+   decision; for genuine requirement or scope forks, ask the operator.
 4. **Spawn the implementation agent** using the host's worker/general-purpose sub-agent under
    [The conductor model](#the-conductor-model) policy with the
    [Implementation agent prompt](references/agent-prompts.md#implementation-agent),
@@ -435,10 +435,11 @@ review agent flags a finding:
   default, and clear bugs. Record the decision (in the
   milestone doc's Decisions or the log) and fold the fix into
   the relevant agent's work.
-- **Ask the operator (`AskUserQuestion`)** — changes to milestone scope or
-  intended behavior, or a genuine requirement fork with no clear answer. Apply
-  the shared operator-interaction policy before the host UI; never forward a
-  bare worker question. Concentrate these in Step 0 and planning.
+- **Ask the operator (`AskUserQuestion` where available)** — changes to
+  milestone scope or intended behavior, or a genuine requirement fork with no
+  clear answer. Apply the shared operator-interaction policy before asking;
+  never forward a bare worker question. Concentrate these in Step 0 and
+  planning.
 - **Blockers from either review** — preserve their source ids and disposition
   each as `fixed`, `disproven` with contract/code/test evidence, or `operator
   decision` with the recorded answer and applied result. Reviewer agreement is
@@ -450,7 +451,7 @@ review agent flags a finding:
   subjective finding, the conductor decides **fix** or **waive
   with a recorded reason**: on Lite/Standard milestones the
   conductor waives on its own authority; on High-risk milestones
-  every waiver goes to the operator via `AskUserQuestion`. Pass
+  every waiver goes to the operator. Pass
   all decisions to the implementation agent as
   `{taste_triage_decisions}` so the impl log's taste-triage table
   is complete before sync-and-commit.
@@ -472,15 +473,14 @@ test — when:
 - a High-risk milestone has completed Step 1 and needs operator
   approval for the contract, visible tests, hidden/generalization
   plan, mock policy, and selected gates before Step 2;
-- a review finding needs an operator decision (use
-  `AskUserQuestion`);
+- a review finding needs an operator decision (ask the operator);
 - neither provider-family review returns for a Step 0, 1, or 2 packet, or any
   reviewer-labeled blocker lacks a completed disposition;
 - a taste finding is left untriaged — no fixed/waived-with-reason
   decision recorded (a High-risk waiver additionally needs
   operator approval);
-- exploration requires an operator-owned product decision (use
-  `AskUserQuestion`) or all route families share the same external blocker;
+- exploration requires an operator-owned product decision (ask the operator)
+  or all route families share the same external blocker;
 - Step 3 lacks a clean pre-archive checkpoint, applicable High-risk approval, an
   exact archive preview/apply match, or recovery proof of no code change after
   the checkpoint; or verification would require editing an archived document.
@@ -488,8 +488,9 @@ test — when:
 ## Notes
 
 - Prompts carry the deep-reasoning directive; record substituted models. End-of-step reviewer selection follows the narrower provider protocol.
-- The conductor owns `AskUserQuestion`; sub-agents return questions and resume
-  with the answers.
+- The conductor owns operator questions; sub-agents return questions and resume
+  with the answers. Use `AskUserQuestion` where available; otherwise ask in
+  ordinary operator-visible conversation and wait for the answer.
 - Lite/Standard continue only when the Step 1 RED checkpoint allows it. High
   pauses there for operator approval. The consistency audit and Step 0-2
   review protocol remain gates.

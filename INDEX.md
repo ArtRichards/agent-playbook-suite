@@ -9,7 +9,7 @@ _Generated 2026-08-17. 12 docs active, 0 archived._
 
 ### Active — Log
 
-- [docs/specs/feedback-integration/feedback-log.md](docs/specs/feedback-integration/feedback-log.md) — _log_ — This log records feedback considered under the Feedback Integration Process. Use it to keep a visible trail from raw…. Updated 2026-08-16.
+- [docs/specs/feedback-integration/feedback-log.md](docs/specs/feedback-integration/feedback-log.md) — _log_ — This log records feedback considered under the Feedback Integration Process. Use it to keep a visible trail from raw…. Updated 2026-08-17.
 
 ### Active — Guide
 
