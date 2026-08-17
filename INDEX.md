@@ -1,5 +1,5 @@
 <!-- docs:generated start -->
-_Generated 2026-08-16. 12 docs active, 0 archived._
+_Generated 2026-08-17. 12 docs active, 0 archived._
 
 ## Project — agent-playbook-suite
 
@@ -22,9 +22,9 @@ _Generated 2026-08-16. 12 docs active, 0 archived._
 
 ### Active — Notes
 
+- [blog-post.md](blog-post.md) — _notes_ — One Claude Code session decides the API. The next writes tests against a different shape. A week later, a fresh agent…. Updated 2026-08-17.
 - [AGENTS.md](AGENTS.md) — _notes_ — This project produces public documentation and marketplace package metadata for Agent Playbook Suite: one suite plugin…. Updated 2026-08-16.
 - [CLAUDE.md](CLAUDE.md) — _notes_ — This project produces public documentation and marketplace package metadata for Agent Playbook Suite: one suite plugin…. Updated 2026-08-16.
-- [blog-post.md](blog-post.md) — _notes_ — [Agent Playbook Suite](https://github.com/ArtRichards/agent-playbook-suite) is one plugin for Claude Code and Codex…. Updated 2026-08-16.
 - [briefing.md](briefing.md) — _notes_ — Historical scope: this briefing captures the original five-workflow-skill model used to draft the first overview and…. Updated 2026-08-16.
 
 ## Archived
