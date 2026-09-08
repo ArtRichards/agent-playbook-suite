@@ -141,6 +141,9 @@ This project uses risk-aware agentic TDD. Visible tests drive
 implementation, but visible tests are not sufficient evidence of
 intent.
 
+Before counting a check as evidence, establish what wrong answer it can reject;
+ordinary inspection or RED feedback usually suffices.
+
 Risk levels:
 - Lite:
 - Standard:

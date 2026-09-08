@@ -3,7 +3,7 @@
 Lifecycle: draft
 Role: log
 Project: agent-playbook-suite
-Updated: 2026-08-17
+Updated: 2026-09-08
 
 ## Purpose
 
@@ -31,6 +31,30 @@ Related process: [Feedback Integration Process](process.md)
 ```
 
 ## Entries
+
+### 2026-09-08 — Improve test selection without expanding the testing process
+
+- Source: operator review of [Dan Luu's agentic-testing article](https://danluu.com/agentic-testing/) and the suite's [assessment](../agentic-testing/report.md).
+- Feedback: "I'm concerned that we will over-specify the tests and make the testing phase too convoluted and expensive." Retain the principle "before counting a check as evidence, establish what wrong answer it can reject." The operator then requested: "Please CAREFULLY update the agent-playbook-suite skills with respect to this minimal recommended changes, keeping in mind the spirit of our work here today."
+- Example or evidence: palindromic reversal fixtures and identical stream values cannot expose ordering mistakes; tests can encode the same mistaken expectation as production code. The existing suite already provides risk-selected checks, semantic test calibration, mock guidance, and independent reviews.
+- Discovery and authorization: the article review and subsequent scope reduction establish the use case and desired behavior. The operator approved implementing the minimal recommendations, then requested the public/blog updates and a version update using the publishing procedure. No additional discovery or approval gate is needed for these edits.
+- Expected outcome: trustworthy expectations, inputs that expose plausible mistakes, and failure diagnosis inside existing test writing/review. Ordinary inspection or RED feedback usually establishes sensitivity. Stop expanding testing once selected checks pass and concrete concerns are resolved.
+- Workflow moment: foundation acceptance criteria, milestone tests and baseline, ordinary review, simplification, and verification.
+- Release risk: Standard, inferred from changes to shipped workflow guidance and public documentation. The selected checks are the existing suite/plugin validations, bounded agent scenarios, marketplace install smoke tests, site build, and docs checks. No runtime-code, dependency, security, or installation-schema change is introduced; deeper product-test gates are not configured for this slice.
+- Owning skill or artifact: `_shared/references/agentic-quality-model.md` owns the compact testing guidance; existing workflow references carry only the necessary local adaptations.
+- Intent preservation — foundation: `project-foundation` defines intent, readiness, and selected commands. Clarify observable acceptance criteria and reuse the existing matrix; add no inventory, readiness gate, or mandatory use-case stage.
+- Intent preservation — milestones: `create-milestones` drives the existing ten phases. Retain meaningful RED for changed behavior, permit adequate GREEN refactor baselines, and diagnose erroneous expectations without weakening the agreed contract. No additional phase or per-test record.
+- Intent preservation — shipping: `ship-milestone` orchestrates existing workers and reviews. Align its prompts and consistency checks with the shared guidance; preserve reviewer count, provider policy, ownership, and approval boundaries.
+- Intent preservation — cleanup and verification: `simplify` preserves behavior and meaningful coverage; `sync-and-commit` checks selected evidence and existing gates. Treat accepted baselines and metrics as evidence, diagnose actual protection loss, and reuse still-applicable results without claiming that a commit or test pass proves correctness.
+- Existing skill vs new skill decision: focused edits to the existing payload. No new skill, dependency, evidence framework, mutation obligation, reviewer, or benchmark programme. The separately vendored `docs` content and installation model remain unchanged; release metadata follows the requested version bump.
+- Validation required: changed-skill validation, applicable existing CI and plugin checks, a bounded independent scenario check, cross-skill consistency review, public/blog source alignment, site build, Markdown diff checks, `docs index`, and `docs check .`.
+- Implemented change: the shared Check calibration section carries the central principle, trustworthy expectations, evidenced test repair, and stopping rule. Foundation reuses observable criteria, commands, and the existing matrix. TDD and ship prompts accept adequate GREEN refactor baselines with unchanged checkpoints, permit useful earlier integration, and keep simple test repairs out of contract-change recovery. Simplify assesses actual protection loss and reuses still-applicable results; sync consumes the same baseline and coverage rules. Shared High skipped-gate wording now matches the explicit approval already enforced by sync. The separately vendored `docs` payload, reviewer count, and phase/artifact inventory remain unchanged.
+- Public documentation: README and overview distinguish selected checks and changed-behavior RED from adequate refactor baselines. The blog and its identical site body explain the central principle, an explicitly illustrative reversal example, trustworthy expectations, failure diagnosis, and the stopping rule. The article is cited without claiming a measured improvement for this suite.
+- Version procedure: prepared patch version `0.8.2` in both plugin manifests and the Claude marketplace entry. The Codex marketplace uses the plugin manifest version. PyPI's newest `docs-cli`, the installed runtime, and the CI pin are all `2.0.0`; all seven bundled `docs` files match the installed package, so no runtime or vendored-content change is needed.
+- Validation results: five changed skills passed the skill validator. Existing manifest, payload, interface, quality-model, operator/review, tracker, archive-contract, retired-flag, workflow-consistency, docs-cli runtime, and bounded-archive checks passed. A fresh agent completed three isolated scenarios: changed only a palindrome fixture to distinguish reversal; repaired an erroneous expected value against the unchanged arithmetic contract; and simplified a Standard-risk function using its four existing GREEN tests. All final scenario tests passed (1, 2, and 4 respectively), with no extra tests, mutation checks, framework, docs, or approval request. These bounded checks validate the intended decisions, not a general performance gain. Final source review, `git diff --check`, `docs index .`, and `docs check .` passed; the docs tree reports no violations.
+- Public/release validation: the final blog and site bodies match, and blog/overview lengths fit their targets. Public-doc review checked source fidelity and proportionality. Updated JSON/version alignment, Claude marketplace and plugin validation, the staged system plugin validator, and the existing workflow-consistency check passed. The final site built successfully with Ruby 3.3 and Jekyll 3.10.0 in a disposable container, including the final illustration wording; no build artifacts changed the checkout. Local marketplace installs passed in disposable Codex 0.153.4 and Claude Code 2.1.251 environments. Fresh CLI discovery found all nine skills, retained `_shared` without exposing it as a skill, and resolved the required shared references and docs quality guidance. All 45 installed files matched the current payload; temporary environments were removed without changing host configuration.
+- Status: implemented and validated for `0.8.2`. The operator authorized committing, merging to `main`, and pushing through the publishing procedure. Remote CI/Pages results and the matching release tag provide the publication record.
+- Follow-up: retain only issues demonstrated by validation or later use; do not expand the proposed testing process speculatively.
 
 ### 2026-08-15 — Require two-provider reviews at the end of ship steps 0–2
 

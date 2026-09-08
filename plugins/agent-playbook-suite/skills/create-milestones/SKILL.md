@@ -156,9 +156,10 @@ activated or historical paths.
    dropped. In interactive runs there is no conductor, so taste
    waivers fall to the operator at the phase boundary.
 8. **High-risk RED checkpoint.** For High-risk milestones,
-   stop after Phase 4's RED baseline and ask for operator
+   stop after Phase 4's baseline and ask for operator
    approval before implementation continues, unless a project
-   policy explicitly allows automatic continuation.
+   policy explicitly allows automatic continuation. A pure refactor may use
+   an adequate GREEN baseline; the checkpoint and approval still apply.
 9. **`docs check . --stale 14`** runs from the docs root at every phase
    boundary. Exit 2 blocks progression; exit 1 reviewed;
    exit 0 passes.

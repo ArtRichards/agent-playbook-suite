@@ -313,14 +313,18 @@ remains in its history, but do not begin production implementation:
    protocol, triage, and risk-aware RED-baseline checkpoint on the corrected
    contract and tests. Log these as contract-rework entries rather than
    erasing the earlier phase history.
-3. Close the marker only after the corrected contract is stable, the RED
-   baseline fails for the intended reason, review findings are resolved, and
+3. Close the marker only after the corrected contract is stable, the Phase 4
+   baseline meets the TDD phase criteria, review findings are resolved, and
    any High-risk approval is recorded.
 4. Spawn a fresh Step 2 planning agent and process its exploration signal from
    the corrected artifacts. If interrupted before the marker closes, resume
    this recovery sequence rather than skipping to implementation.
 
 ### Step 1 — Contract & RED baseline (phases 1–4)
+
+The baseline is RED for new or corrected behavior; a pure refactor may use
+adequate GREEN coverage under the TDD phase reference. The same review and
+High-risk approval checkpoint applies to either baseline.
 
 1. If Step 0 ran, create `<project-branch-prefix><slug>/phases-1-4` off
    `<project-branch-prefix><slug>/milestone-setup`. If Step 0 was unnecessary, use the

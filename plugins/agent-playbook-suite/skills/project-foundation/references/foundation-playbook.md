@@ -349,6 +349,10 @@ identity, order, stored execution state, dependencies, and derived next
 work. `<project-path>status.md` remains a narrative summary and link surface,
 not a second scheduler.
 
+Express goals and demo/acceptance criteria as observable outcomes. Clarify
+consequential ambiguity; note the source of an expectation only when it is
+non-obvious or disputed.
+
 Decompose demand-driven (see the shared quality model's
 Demand-driven chains): each milestone's deliverables name their
 consumer — the end user, or a specific later milestone. Prefer
@@ -446,6 +450,10 @@ adequacy metrics**. `outline` (not `spec`) because the detail fills
 in as implementation proceeds; graduates to `spec` later if it
 becomes the canonical test contract.
 
+Reuse existing commands for the selected gates. Template entries do not select
+extra techniques. If a greenfield harness does not yet exist, record planned
+commands and schedule its implementation in a milestone.
+
 Use this starter shape:
 
 ```markdown
@@ -456,6 +464,9 @@ Use this starter shape:
 - Functional tests:
 - Technical tests:
 - Cross-cutting adequacy tests:
+
+Contract-to-test mapping uses the existing `create-milestones` test-matrix
+template in `references/milestone-playbook.md`; each milestone fills it in.
 
 ## Risk levels
 
@@ -602,7 +613,7 @@ Gate-check before implementation begins. Implementation does not start until eve
 - [ ] **Fast PR gate commands are documented.** → [test-strategy.md](test-strategy.md)
 - [ ] **Deep/nightly/release gate commands are documented or explicitly marked not applicable.** → [test-strategy.md](test-strategy.md)
 - [ ] **Hidden/generalization strategy is documented without exposing private cases.** → [test-strategy.md](test-strategy.md)
-- [ ] **Contract-to-test matrix template exists.** → [test-strategy.md](test-strategy.md)
+- [ ] **Test strategy references the existing `create-milestones` contract-to-test matrix template.** → [test-strategy.md](test-strategy.md)
 - [ ] **Mock policy exists.** → [test-strategy.md](test-strategy.md)
 - [ ] **Human approval triggers are listed.** → [test-strategy.md](test-strategy.md), [risks.md](risks.md)
 - [ ] **Codex/Claude agent context is generated or proposed.** → [documentation-plan.md](documentation-plan.md)

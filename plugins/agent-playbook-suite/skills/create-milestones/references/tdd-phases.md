@@ -29,8 +29,9 @@ phase.
 
 ## Cross-phase quality policies
 
-- Visible tests drive implementation, but green visible tests are
-  not sufficient evidence of intent for Standard or High-risk work.
+- Visible tests drive implementation; complete the selected risk-level gates
+  before acceptance. Use the shared model's Check calibration guidance for
+  meaningful cases, failure diagnosis, and when to stop expanding testing.
 - Classify validation as product tests or explicit non-product
   checks. Planning, documentation, and handoff checks must not enter
   default product-test discovery unless they define shipped behavior.
@@ -45,8 +46,9 @@ phase.
 - Do not add or expand mocks without justification. Prefer
   real-path tests for domain behavior, and record whether a
   real-path test covers each mocked boundary.
-- Do not weaken, skip, delete, or narrow tests or configured explicit
-  checks unless the contract changes and the decision is logged.
+- Do not weaken, skip, delete, or narrow valid tests or configured explicit
+  checks merely to obtain GREEN. Correct erroneous checks under the shared
+  model's Check calibration rule; preserve the agreed behavior and coverage.
 - Do not special-case visible examples, fixture names, literals, or
   test-only branches.
 - Taste is part of the quality model (see the shared quality model's
@@ -121,7 +123,7 @@ phase.
 - **Objective:** Express desired behaviour as failing product tests
   or explicit non-product checks before implementation, using enough
   evidence to pin the contract without overbuilding the test surface.
-- **Activities:** Write visible product tests that trace to contract
+- **Activities:** Reuse or write visible product tests that trace to contract
   clauses where practical and, when the project has a
   `<project-path>use-cases.md`, to the primary use cases they demonstrate —
   tests focus on use cases first; for planning, documentation, or handoff
@@ -138,8 +140,9 @@ phase.
   provenance outside display names and, when useful, place it in the
   milestone Decisions section, test matrix, or a nearby resolvable
   comment or doc; do not require repository-wide renaming;
-  add negative and boundary cases where they clarify the contract or
-  cover meaningful risk; propose hidden/generalization categories
+  choose cases that reject a plausible wrong result under the shared model's
+  Check calibration rule; add negative and boundary cases where they clarify
+  the contract or cover meaningful risk; propose hidden/generalization categories
   separately; justify any new mocks.
 - **Deliverables:** Test or check module(s) with clear names and
   docstrings; minimum coverage targets noted where applicable; test
@@ -157,7 +160,9 @@ phase.
         observable behavior clear from test-runner output alone; any
         useful provenance lives outside the display name and resolves
         without guessing.
-  - [ ] Tests are expected to fail for missing behavior, not import/setup mistakes.
+  - [ ] New or corrected behavior has tests expected to fail for that reason,
+        not import/setup mistakes. For a behavior-preserving refactor, an
+        adequate GREEN baseline suffices; add tests only for an actual gap.
   - [ ] Hidden/generalization categories are recorded without leaking private cases.
   - [ ] New mocks are listed and justified.
 - **Docs touchpoints:** standard per-phase set above.
@@ -167,8 +172,8 @@ phase.
 - **Objective:** Provide synthetic data/builders to exercise the
   tests.
 - **Activities:** Add representative, boundary, malformed,
-  adversarial, and realistic fixtures where applicable; cover all
-  enums / statuses / variants; ensure correctness for money,
+  adversarial, and realistic fixtures where applicable; cover the
+  enums / statuses / variants required by the changed behavior; ensure correctness for money,
   date-handling, edge sizes; add at least one real-path fixture
   where mocks are used.
 - **Deliverables:** Fixture files or factory helpers; integrity
@@ -180,26 +185,28 @@ phase.
 
 ## Phase 4 — Run Tests (RED Baseline)
 
-- **Objective:** Confirm tests fail for the right reasons.
+- **Objective:** Confirm the intended baseline: RED for new or corrected
+  behavior; adequate GREEN coverage for a behavior-preserving refactor.
 - **Activities:** Run the focused product tests and any explicit
-  non-product checks selected for this phase; capture failure summary
+  non-product checks selected for this phase; capture results
   verbatim; inspect already-green visible tests/checks; check that
   the test matrix is complete enough to proceed.
-- **Deliverables:** Test/check output with failure reasons noted
-  in the impl log; RED status summarized in the test matrix when
+- **Deliverables:** Test/check output with the expected state and its reason
+  in the existing impl log; baseline status summarized in the test matrix when
   useful.
 - **Exit:** Failing tests/checks trace to missing implementation, not
   misconfiguration; the test matrix is complete enough to proceed.
-  Trivial, under-constrained, already-green, or setup-only tests/checks
-  block progression only when they are the main evidence for a
-  contract clause.
+  Already-green checks are valid for supported behavior and pure refactors.
+  An unexpected pass for missing behavior, or trivial, under-constrained, or
+  setup-only checks used as the main clause evidence, blocks progression.
 - **Docs touchpoints:** standard per-phase set above. Paste the
-  RED baseline output into the Phase 4 log section verbatim.
+  baseline output into the Phase 4 log section verbatim.
 - **High-risk checkpoint:** For High-risk milestones, stop after
   the RED baseline and ask the operator to approve the contract,
   visible tests, hidden/generalization plan, mock policy, and risk
   selected gates before Phase 5 starts, unless project policy explicitly
-  allows automatic continuation.
+  allows automatic continuation. This checkpoint also applies to a High-risk
+  refactor with a GREEN baseline.
 - **Solution-uncertainty checkpoint:** Risk and solution uncertainty are
   separate. Before Phase 5, invoke `explore` only when the shared quality
   model's automatic-trigger gates are met after direct inspection or a cheap
@@ -282,7 +289,7 @@ phase.
     checks green when selected; lint/type/build green where
     configured; docs check green.
   - **Standard:** Lite plus coverage report if configured;
-    property/stateful smoke where useful; hidden/generalization
+    property/stateful smoke selected for the contract; hidden/generalization
     smoke where configured; mock audit complete.
   - **High:** Standard plus security/schema/benchmark/migration
     checks where they match the risk; mutation smoke or baseline where
@@ -300,8 +307,8 @@ phase.
   UI browser checks, CLI dogfooding, benchmark validation,
   migration rehearsal, realistic fixture runs, or manual
   exploratory acceptance. Add online / remote paths only when the
-  milestone actually owns them. This is the first time the whole
-  chain runs end to end, so also run the liveness walk: trace
+  milestone actually owns them. Integration checks may run earlier when useful;
+  this phase confirms acceptance and also runs the liveness walk: trace
   backward from the observable outputs and flag anything the
   chain produces but never consumes — return fields no caller
   reads, parameters always passed the same value, threaded
@@ -331,7 +338,7 @@ phase.
   - Summarize adequacy results.
   - Record hidden-generalization gap if visible and hidden pass
     rates are available.
-  - Log mutation/property/fuzz/benchmark gaps as open
+  - Log gaps in selected mutation/property/fuzz/benchmark checks as open
     `<project-path>followup-log.md` entries if not run.
   - Complete the mock audit.
   - Run the taste checklist from the shared quality model's Taste
@@ -362,8 +369,8 @@ phase.
   taste findings triaged (each fixed or waived with a logged
   reason — none untriaged); boundary sweep complete (speculative
   outputs ledgered or removed; inbound ledger entries closed or
-  challenged); skipped selected deep gates have explicit approval
-  or an open `<project-path>followup-log.md` entry; handoff notes written; the
+  challenged); skipped selected deep gates follow the shared risk policy,
+  with deferred work in `<project-path>followup-log.md`; handoff notes written; the
   milestone tracker row remains `active`, links the materialized task
   plan, and matches its durable dependencies and recognized reciprocal
   relationships. Ready for the playbook's same-scope preview and
@@ -404,9 +411,9 @@ After every phase, regardless of which one:
 ## Phase ordering invariants
 
 - **Phases run sequentially.** Never skip ahead.
-- **Phase 4 must reveal RED for the right reasons** — a Phase 4
-  that already shows GREEN means Phase 2 didn't test what was
-  intended; go back.
+- **Phase 4 must establish the intended baseline** — new or corrected behavior
+  requires meaningful RED; a pure refactor may use adequate GREEN coverage.
+  Do not manufacture failures or add mutation checks to satisfy this phase.
 - **High-risk milestones pause after Phase 4** for operator
   approval of the contract, visible tests, hidden/generalization
   plan, mock policy, and selected gates unless project policy

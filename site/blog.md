@@ -55,7 +55,7 @@ is genuinely uncertain.
 
 **3. Keep identity separate from order with [`manage-milestone-tracker`](https://github.com/ArtRichards/agent-playbook-suite/tree/main/plugins/agent-playbook-suite/skills/manage-milestone-tracker).** Use it for direct tracker operations; foundation and both delivery drivers enforce the same contract. Milestones use stable slugs such as `fetch-and-parse`; `milestone-plan.md` stores order, state, and dependencies. Reordering changes an integer; inserting adds a row without renaming existing files or branches. Both delivery skills derive `next` from the same eligible rows.
 
-**4. Run each milestone with `create-milestones` or [`ship-milestone`](https://github.com/ArtRichards/agent-playbook-suite/tree/main/plugins/agent-playbook-suite/skills/ship-milestone).** Both use ten phases: define the contract, write RED tests, create fixtures, capture the RED baseline, update base interfaces, implement the core path, update wrappers, run GREEN, integrate and dogfood, then finish quality, docs, and refactoring. `create-milestones` asks you to confirm each phase. `ship-milestone` runs up to four autonomous steps: Step 0 creates missing artifacts when needed; Step 1 runs phases 1–4; Step 2 runs phases 5–10; Step 3 simplifies and closes. Its conductor delegates to fresh sub-agents on stacked branches. Steps 0–2 attempt isolated Claude- and GPT-family reviews, and nothing merges to `main` without you.
+**4. Run each milestone with `create-milestones` or [`ship-milestone`](https://github.com/ArtRichards/agent-playbook-suite/tree/main/plugins/agent-playbook-suite/skills/ship-milestone).** Both use ten phases: define the contract, write RED tests, create fixtures, capture the RED baseline, update base interfaces, implement the core path, update wrappers, run GREEN, integrate and dogfood, then finish quality, docs, and refactoring. Pure refactors may use adequate existing GREEN tests as the baseline, with the same review and approval checkpoints. `create-milestones` asks you to confirm each phase. `ship-milestone` runs up to four autonomous steps: Step 0 creates missing artifacts when needed; Step 1 runs phases 1–4; Step 2 runs phases 5–10; Step 3 simplifies and closes. Its conductor delegates to fresh sub-agents on stacked branches. Steps 0–2 attempt isolated Claude- and GPT-family reviews, and nothing merges to `main` without you.
 
 **5. Wrap every step with [`sync-and-commit`](https://github.com/ArtRichards/agent-playbook-suite/tree/main/plugins/agent-playbook-suite/skills/sync-and-commit).** It verifies the work against the milestone and tracker, syncs the docs tree to reality, commits, and pushes when the current feature branch, remote, and project policy allow it. It does not bypass git hooks on its own and never pushes `main`. If the docs disagree with the code, its commit does not happen.
 
@@ -103,8 +103,36 @@ The workflow records decisions, plans, phase results, and open questions as they
 Three more reasons the structure earns its keep:
 
 - **Independent, cross-provider review.** At the end of Steps 0–2, `ship-milestone` freezes one evidence packet and independently attempts one fresh Claude-family and one fresh GPT-family reviewer. Neither sees the other's conclusions first. If one provider is unavailable, it uses one reviewer from the available provider, not a same-provider substitute. Blockers must be fixed, disproven with evidence, or routed to you. Review repeats only when evidence cannot close a concern, a correction materially changes the approach, or concerns conflict.
-- **Tests with taste, not just tests.** Agent-written tests drift toward the current implementation. The suite instead wants behavioral, structure-insensitive tests: sensitive to behavior changes and unmoved by safe refactors. It flags overconstrained byte-exact goldens, exhaustive snapshots, and change-detectors just as it flags weak tests. The rule is to use the least constraining check that gives confidence, anchor it to primary use cases, and freeze representation only when exact bytes are the contract. Risk decides the remaining validation depth.
+- **Tests tied to behavior.** Tests should catch wrong behavior and survive safe refactors. Freeze exact bytes only when those bytes are part of the contract. Risk and concrete gaps determine additional validation.
 - **No dead artifacts.** Every doc, log, and phase output is supposed to have a live downstream consumer — a demand-driven chain the suite calls information liveness. A milestone contract feeds the test matrix; the status file feeds the next session; a decision note feeds the reviewer. An artifact nobody reads is not neutral; it is a smell: either it is missing a consumer or it should not exist. This is the same discipline that makes a week-later handoff cheap, applied to the docs themselves.
+
+## Make each check earn its cost
+
+Dan Luu's [agentic-testing experiments](https://danluu.com/agentic-testing)
+show how elaborate testing plans can yield weak evidence. One example used
+palindromic inputs to test bitstream reversal. For a simple illustration, `aba`
+is still `aba` when a broken implementation returns its input. Use `abc` and
+expect `cba`, and the same test can expose the mistake. His results concern how
+agents applied the techniques;
+they do not establish that TDD, property testing, or formal methods are
+inherently ineffective.
+
+The suite's rule is: **Before counting a check as evidence, establish what wrong
+answer it can reject.** Ordinary inspection or the existing RED run usually
+answers that. Replacing an uninformative fixture can be enough; no new mutation
+check or per-test record is required.
+
+Expected answers come from agreed behavior or a trustworthy reference. An agent
+copying its implementation's output into a fixture can preserve the same error
+on both sides. When a test fails, establish whether the behavior, expectation,
+or setup is wrong before changing code or assertions.
+
+Foundation work identifies observable acceptance criteria and reuses the
+project's test commands. Milestones reuse adequate tests; simplification and
+sync can reuse results while their relevant inputs remain unchanged, unless
+project policy requires a fresh run. Once selected checks pass and concrete
+concerns are resolved, stop expanding testing. Add deeper checks for a
+demonstrated gap or an existing project requirement.
 
 ## What it costs
 

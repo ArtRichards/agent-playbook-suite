@@ -84,6 +84,9 @@ For the phase/step just completed, verify:
 
 ### 2b. Test completeness
 
+Apply the shared [Check calibration](../_shared/references/agentic-quality-model.md#check-calibration)
+guidance when judging test evidence or diagnosing a failed check.
+
 - Validation is classified as product tests or explicit non-product
   checks. Planning, documentation, handoff, and workflow checks are
   not in default product-test discovery unless they define shipped
@@ -93,9 +96,10 @@ For the phase/step just completed, verify:
 - E2E tests for user-facing flows when the milestone owns the flow.
 - Important edge cases and error paths covered.
 - Selected tests/checks are in the expected phase state. Ordinarily they pass.
-  With explicit `ship-milestone` Step 1 context, product tests instead remain
-  RED for the intended contract reason while positive verification commands
-  and all unrelated selected checks pass.
+  With explicit `ship-milestone` Step 1 context, new or corrected behavior remains
+  RED for the intended contract reason; a behavior-preserving refactor may use
+  an adequate GREEN baseline. Positive verification commands and all unrelated
+  selected checks pass.
 
 ### 2c. Type safety and linting
 
@@ -107,6 +111,8 @@ make test`):
 - Typecheck clean.
 - Lint clean.
 - No `any`/`unknown` types introduced without justification.
+
+Reuse still-applicable results under Step 4's rule.
 
 ### 2d. Code consistency
 
@@ -195,6 +201,11 @@ After ordinary verification and docs sync, but before commit, run the
 risk-aware gate for the current milestone or change slice. Use the
 project's shared quality model or test matrix when present.
 
+Reuse captured results from the current work when the relevant code, tests,
+configuration, and environment are unchanged, unless project policy or an explicit
+step requirement calls for fresh execution. Do not rerun the same checks solely
+because both technical verification and this gate refer to them.
+
 Read the risk level from the milestone doc, contract/test matrix,
 quality log, or project policy:
 
@@ -210,6 +221,8 @@ results rather than adding a post-archive record.
   impossible to judge.
 - For High-risk work in or after Phase 5, look for recorded operator approval
   from the Phase 4 RED-baseline checkpoint before committing.
+  For a behavior-preserving refactor, the approved checkpoint may instead contain
+  an adequate GREEN baseline; the approval boundary is unchanged.
   Acceptable evidence is a milestone-doc, test-matrix,
   implementation-log, or quality-log entry approving the contract,
   visible product tests or explicit non-product checks,
@@ -219,10 +232,11 @@ results rather than adding a post-archive record.
 - Record skipped deep gates as `not configured`, `deferred with reason`,
   or `operator-approved skip`; never silently mark them green.
 
-With explicit `ship-milestone` Step 1 context, the expected product-test state
-is the reviewed Phase 4 RED baseline. Require captured output proving the tests
-fail for the intended contract reason; an unexpected pass or an unrelated
-failure blocks. Positive RED-verifier commands, docs checks, lint, type, build,
+With explicit `ship-milestone` Step 1 context, require the reviewed Phase 4 baseline:
+captured RED output for the intended new or corrected behavior, or an adequate
+GREEN baseline for a behavior-preserving refactor. An unexpected pass for changed
+behavior or an unrelated failure blocks; do not manufacture a refactor failure.
+Positive RED-verifier commands when applicable, docs checks, lint, type, build,
 and other selected checks must still pass.
 
 ### Risk-aware quality gate
@@ -237,7 +251,7 @@ Lite:
 Standard:
 
 - Lite plus coverage report if already configured;
-- property/stateful smoke where configured;
+- property/stateful smoke selected for the contract under the shared quality model;
 - hidden/generalization smoke where configured;
 - security/schema smoke where configured;
 - mock audit when mocks are added or expanded.
@@ -247,11 +261,12 @@ High:
 - Standard plus benchmark/security/migration/rollback checks where they match
   the risk;
 - mutation smoke or recorded mutation baseline where configured;
-- recorded operator approval after the Phase 4 RED baseline before phases 5-10
+- recorded operator approval after the Phase 4 baseline (RED for changed behavior,
+  adequate GREEN for a behavior-preserving refactor) before phases 5-10
   or any sync that contains Phase 5-10 work, unless an explicit
   operator-approved exception is logged. The Step 1 review-closure sync may
-  record the reviewed RED evidence before approval; it does not authorize Step
-  2;
+  record the reviewed baseline evidence before approval; it does not authorize
+  Step 2;
 - explicit approval for any skipped High-risk deep gate.
 - explicit Step 3 code-changing simplification has one fresh-reviewer or operator
   approval bound to its frozen tree before checkpoint; `not required` needs no code change.
@@ -263,8 +278,10 @@ Check:
 - Contract file or contract section exists.
 - Product tests or explicit non-product checks trace to contract
   clauses where practical.
-- No visible test or selected explicit check was weakened, skipped,
-  or deleted without a logged contract change.
+- No meaningful protection from a visible test or selected explicit check was
+  reduced without the existing logged approval or contract-change decision.
+  Assess metric or count decreases for actual protection loss; duplicate removal
+  with equivalent coverage or a denominator change alone needs no exception.
 - No code appears to branch on test literals, fixture names, or visible
   examples.
 - New mocks are listed and justified.
@@ -408,7 +425,7 @@ milestone artifacts are archived and immutable to this skill:
 - Deep gate commands run:
 - Deferred/not configured gates:
 - Visible test result:
-- Expected visible-test state (GREEN or intentional Step 1 RED):
+- Expected visible-test state (GREEN, including an adequate refactor baseline, or intentional Step 1 RED):
 - Hidden/generalization result:
 - Coverage:
 - Mutation:
@@ -427,7 +444,7 @@ milestone artifacts are archived and immutable to this skill:
 - Commit:
 - Push:
 - Operator approvals:
-- High-risk RED-baseline approval:
+- High-risk RED-baseline approval (or adequate GREEN refactor baseline):
 - Remaining risks:
 ```
 
@@ -444,7 +461,8 @@ Stop before commit and fix or escalate on:
 - ambiguous or potentially High risk level that cannot be inferred safely;
 - missing contract/test evidence needed to judge Standard or High-risk work;
 - unapproved skipped High-risk deep gates selected for the milestone;
-- unauthorized visible-test or selected-check weakening, deletion, or skip;
+- unauthorized loss of meaningful test/check protection or unauthorized skip of
+  a selected gate;
 - an untriaged taste finding from this step's review (no fixed or
   waived-with-reason record in the taste-triage table), or a High-risk
   taste waiver without operator approval;
@@ -463,9 +481,9 @@ Stop before commit and fix or escalate on:
   or any required post-archive edit/touch;
 - unexplained new or expanded mocks in Standard or High-risk work.
 
-Do not proceed by weakening tests, removing hooks, or relabeling a
-selected gate as optional. If a configured gate cannot run, record
-whether it is `not configured`, `deferred with reason`, or
+Do not proceed by weakening the agreed contract or meaningful test protection,
+removing hooks, or relabeling a selected gate as optional. If a configured gate
+cannot run, record whether it is `not configured`, `deferred with reason`, or
 `operator-approved skip`.
 
 ## Step 5 — Review changes

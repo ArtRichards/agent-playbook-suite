@@ -9,7 +9,7 @@
       "name": "agent-playbook-suite",
       "source": "./plugins/agent-playbook-suite",
       "description": "A curated suite of agent workflow skills for docs-backed project planning, semantic milestone tracking, technical exploration, delivery, verification, and simplification.",
-      "version": "0.8.1",
+      "version": "0.8.2",
       "author": {
         "name": "Art Richards"
       },

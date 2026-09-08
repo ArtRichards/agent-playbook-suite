@@ -32,7 +32,8 @@ projects and empty only for one project-wide namespace:
 1. `<project-branch-prefix><slug>/milestone-setup` — milestone creation agent (only if the milestone's task plan, implementation log, or test matrix does not yet exist) → isolated fresh-eyes review gate.
 2. `<project-branch-prefix><slug>/phases-1-4` — planning agent → implementation agent
    (contract, visible RED product tests or selected explicit non-product
-   checks, hidden/generalization categories, test matrix) → isolated
+   checks, or an adequate GREEN baseline for a pure refactor;
+   hidden/generalization categories, test matrix) → isolated
    fresh-eyes review gate and risk-aware RED checkpoint.
 3. `<project-branch-prefix><slug>/phases-5-10` — planning agent → implementation agent (implement, integrate, quality) → isolated fresh-eyes review gate.
 4. `<project-branch-prefix><slug>/simplify` — retained simplify-and-close writer
