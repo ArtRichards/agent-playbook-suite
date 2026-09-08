@@ -298,7 +298,7 @@ Selected gates:
 
 - Do not special-case visible examples.
 - Do not branch on test literals.
-- Do not weaken, skip, or delete tests or configured explicit checks unless the contract changes and the decision is logged.
+- Do not weaken valid tests or configured explicit checks merely to obtain GREEN. Correct erroneous expectations under the shared quality model's Check calibration rule; preserve the agreed behavior and meaningful coverage.
 
 ### Test hooks
 

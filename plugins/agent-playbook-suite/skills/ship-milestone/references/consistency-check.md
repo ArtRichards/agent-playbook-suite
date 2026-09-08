@@ -108,8 +108,8 @@ intent — list those in your return message for the operator.
 ## Tests & quality
 
 - The selected product test suite and configured explicit non-product checks are in the
-  state the phases require: the intended RED baseline for phases 1–4; fully
-  GREEN from phase 8 onward.
+  state the phases require: meaningful RED for new/corrected behavior or
+  adequate GREEN for a pure refactor at Phase 4; fully GREEN from phase 8 onward.
 - Configured lint, format check, and type check are clean for the touched
   surface, or known unrelated failures are documented.
 - **Phases 1–4 only:** the product tests or explicit non-product checks
@@ -117,7 +117,8 @@ intent — list those in your return message for the operator.
   under-constrain the implementation, and do not overconstrain it by
   freezing incidental representation (byte-exact goldens or
   change-detector assertions without a contract reason). This is the
-  highest-leverage check; every later step trusts these tests/checks.
+  highest-leverage check; apply the shared Check calibration rule to expected
+  results and cases without adding a separate evidence record or review pass.
 - New or actively modified test suites and cases have behavior-first names.
   Test-runner output states the scenario and observable behavior. Milestone,
   decision, phase, step, review, and amendment provenance stays outside display
@@ -136,8 +137,9 @@ intent — list those in your return message for the operator.
   `<project-path>followup-log.md`.
 - No code path appears keyed to visible test literals, fixture names, or narrow
   examples.
-- No tests or selected explicit checks were weakened, skipped, deleted, or
-  rewritten without a logged contract change.
+- No valid tests or selected explicit checks were weakened merely to obtain
+  GREEN. Erroneous expectations were corrected under Check calibration;
+  genuine contract changes and adequacy reductions followed existing policy.
 
 ## Mock audit
 

@@ -157,7 +157,7 @@ When contract-change recovery repeats Step 1, append a uniquely headed
 `Step 1 contract-rework-NNN` entry after the prior review pass and before any
 new review pass. Record the triggering marker/decision, the exact prior-pass
 location, rework base and checkpoint SHAs, changed contract clauses, corrected
-RED evidence, and status. Close that entry only when the rework evidence is
+Phase 4 baseline evidence, and status. Close that entry only when the rework evidence is
 durable, then append a new `Step 1 review-pass-NNN` with fresh provider slots
 and a fresh frozen packet. The canonical shape is
 `review-pass-001 -> contract-rework-001 -> review-pass-002`. Never reuse the

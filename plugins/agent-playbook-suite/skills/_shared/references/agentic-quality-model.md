@@ -54,6 +54,25 @@ Overconstrained tests are a defect for review to flag, just like
 under-constrained ones: they push complexity into the system instead of
 checking correctness.
 
+**Before counting a check as evidence, establish what wrong answer it can
+reject.** Take expected results from the contract or a trustworthy reference,
+not solely from the implementation's output. Choose inputs that expose a
+plausible mistake: distinct values reveal ordering errors; a palindrome
+cannot reveal missing reversal. Ordinary inspection or RED feedback usually
+suffices; this adds no per-test record, mutation requirement, or review pass.
+
+When a check fails, determine whether the behavior, expectation, or setup is
+wrong before changing it. Correct erroneous tests against the unchanged
+contract while preserving meaningful coverage; explain non-obvious corrections
+in the existing implementation log. Genuine behavior changes still need the
+existing contract decision process. Never weaken a valid expectation merely
+to obtain GREEN.
+
+Reuse adequate existing tests. Add deeper checks only for a concrete remaining
+gap or a project requirement. Once selected checks pass and identified concerns
+are resolved, stop expanding testing. A selected check that did not run is not
+a pass; existing deferral and approval rules still apply.
+
 Name test suites and cases for the scenario and observable behavior in plain
 domain language. Make test-runner output understandable without opening a
 milestone or decision record. Keep milestone IDs, decision numbers, review
@@ -113,15 +132,16 @@ performance-sensitive core paths.
 
 Default gate set:
 - Standard gates;
-- operator approval after RED baseline before implementation continues, unless
+- operator approval after the Phase 4 baseline before implementation continues
+  (RED for changed behavior; adequate GREEN for a pure refactor), unless
   project policy allows automatic continuation;
 - benchmark/security/schema/migration/rollback checks where they match the
   risk;
 - mutation smoke or mutation baseline where configured;
 - fresh-eyes review signoff when available;
-- explicit approval or an open entry in the owning project's follow-up log
-  (`<project-path>followup-log.md` in a shared docs root) for skipped deep
-  gates selected for the milestone.
+- explicit approval for skipped deep gates selected for the milestone, as
+  required by `sync-and-commit`; record deferred work in the owning project's
+  follow-up log (`<project-path>followup-log.md` in a shared docs root).
 
 ## Solution uncertainty
 
@@ -268,7 +288,7 @@ preserve without question.
 - Phase 5 designs interfaces pull-style: derived backward from the
   milestone's Deliverables and the phase-2 tests, with each intermediate
   output naming its downstream consumer.
-- Phase 9 — the first end-to-end run — walks the chain backward from the
+- Phase 9 acceptance walks the chain backward from the
   observable outputs and flags anything produced but never consumed.
 - Review checks the inverse of completeness: everything demanded is present,
   and everything present is demanded (traceable to a contract clause, a
@@ -333,8 +353,10 @@ preserve without question.
 
 - Do not special-case visible examples, fixture names, literals, or test-only
   branches.
-- Do not weaken, skip, or delete tests or configured explicit checks unless the
-  contract changed and the decision is logged.
+- Do not weaken, skip, or delete valid tests or configured explicit checks
+  merely to obtain GREEN. Correct test defects under Check calibration;
+  contract changes and actual adequacy reductions retain their existing
+  decision and approval requirements.
 - Do not treat green visible tests as sufficient when the risk level requires
   or project policy selects deeper gates.
 - Do not allow simplification to reduce test adequacy silently.

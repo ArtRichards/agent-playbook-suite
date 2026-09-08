@@ -3,7 +3,7 @@
 Lifecycle: active
 Role: guide
 Project: agent-playbook-suite
-Updated: 2026-08-16
+Updated: 2026-09-08
 
 Agent Playbook Suite is a public plugin for Codex and Claude Code that keeps
 long-running software work understandable across agents and sessions. It
@@ -120,12 +120,20 @@ implementation/quality, and simplify/closeout. Both drive the same phases:
 9. Integrate, Accept, and Dogfood
 10. Quality, Docs, and Refactor
 
+New or corrected behavior needs meaningful RED evidence. Pure refactors may use
+an adequate GREEN baseline with the same review and approval checkpoints.
+
 The shared quality model scales checks by Lite, Standard, or High risk. It
 prefers semantic behavior tests over incidental representation, records hidden
 or generalization coverage in the implementation log and test matrix, audits
 mocks, and checks that new interfaces have a real downstream consumer. Durable
 quality logs are added where the selected risk gates need them. High-risk work
 adds the relevant deeper gates and explicit approvals.
+
+Before counting a check as evidence, establish what wrong answer it can reject.
+Expectations follow agreed behavior or trustworthy references. Reuse adequate
+tests; once selected checks pass and concrete concerns are resolved, stop
+expanding testing. Deeper checks address a demonstrated gap or project requirement.
 
 At the end of completed autonomous Steps 0–2, the conductor freezes one
 evidence packet and attempts one isolated Claude-family review and one isolated

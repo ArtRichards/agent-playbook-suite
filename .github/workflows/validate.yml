@@ -249,8 +249,8 @@ jobs:
               skills / "sync-and-commit" / "SKILL.md",
               "caller explicitly passes all three",
               "at least one provider-family review returned",
-              "expected product-test state is the reviewed Phase 4 RED baseline",
-              "Step 1 review-closure sync may record the reviewed RED evidence",
+              "require the reviewed Phase 4 baseline",
+              "Step 1 review-closure sync may record the reviewed baseline evidence",
               "`final-sync` is `ready`",
           )
 

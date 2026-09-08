@@ -11,8 +11,8 @@ explicit checks are green. It is invoked manually.
 
 You are in post-implementation simplify mode.
 
-Assume the current code is correct but too complex. The task is to reduce complexity while
-preserving behavior.
+Treat the current code as the accepted baseline. The task is to reduce complexity while
+preserving the agreed behavior; a commit or passing suite is evidence, not proof of correctness.
 
 ## Read first
 
@@ -20,18 +20,21 @@ Read [`../_shared/references/operator-interaction.md`](../_shared/references/ope
 before asking for a clarification, approval, or contract decision. It requires
 grounded, understandable explanations without adding approval gates.
 
+Apply the shared [Check calibration](../_shared/references/agentic-quality-model.md#check-calibration)
+guidance when judging the baseline, coverage changes, or failing checks.
+
 ## Establish the baseline
 
 Before changing anything, anchor to the most recent commit:
 
 1. Run `git log -1 --stat` and `git status` to see the last commit and what is uncommitted.
-2. If a commit exists, treat its code as the **known-good output of the prior TDD phases** —
-   it is correct and tested. Simplification refines that code; it must never discard,
-   regress, or silently rewrite it.
+2. If a commit exists, treat its code as **accepted prior work**. Check the available
+   regression evidence; simplification must not discard that work or silently change
+   its agreed behavior.
 3. Run `git diff HEAD` to see exactly what the current working changes are. This is the
    boundary between committed prior work and the code in flight.
-4. If there is no commit yet, use the current working tree as the baseline and rely on the
-   test suite alone to guard against regressions.
+4. If there is no commit yet, use the current working tree as the baseline and judge
+   regression evidence against the contract.
 
 ## Scope
 
@@ -41,9 +44,9 @@ files. Do not touch unrelated code, and do not undo good code from earlier TDD s
 ## Preserve quality, not only behavior
 
 The quality baseline is part of the behavior baseline. Simplification must preserve the
-contract, selected visible tests, configured hidden/generalization hooks, adequacy
-metrics already being tracked, and realistic coverage expected for the milestone's
-risk level.
+contract, meaningful protection from selected tests and hidden/generalization hooks,
+and realistic coverage expected for the milestone's risk level. Metrics already being
+tracked help assess that protection.
 
 Before simplifying:
 
@@ -69,14 +72,14 @@ During simplification:
 
 After simplifying:
 
-- Run the same selected risk-level gate as before.
+- Verify the same selected risk-level gates as described below.
 - Compare test count, coverage, mutation score, hidden/generalization result, property
   result, fuzz result, and benchmark deltas when available.
-- If a metric drops, restore the stronger version or request an explicit
-  operator-approved exception. Ground that request in the before/after result,
-  explain what protection would be lost and why the exception is needed now,
-  and recommend restoration unless the project evidence supports accepting the
-  drop.
+- If a metric drops, assess whether meaningful protection was lost. A denominator
+  change or removal of duplicate tests with equivalent coverage is not itself a
+  regression. Restore lost protection or request the existing explicit
+  operator-approved exception, explaining the before/after protection and why
+  accepting that loss is needed now.
 - Update the test matrix and quality log if simplification affects test or quality
   posture.
 
@@ -87,8 +90,8 @@ when available, otherwise ask the operator under the shared interaction policy. 
 single conditional gate, not a two-provider review. Record the reviewer/operator,
 frozen tree id, findings and dispositions; with no code change, record `not required`.
 
-If simplification would reduce adequacy, remove realistic coverage, weaken hidden hooks,
-or require speculative rewrites, return with no changes and explain why.
+If simplification would require speculative rewrites or leave an unapproved loss of
+meaningful protection, return with no changes and explain why.
 
 ## Focus on
 
@@ -103,8 +106,9 @@ or require speculative rewrites, return with no changes and explain why.
   and comment/docstring density.
 - Removing dead information flow: return fields no caller reads, parameters
   always passed the same value, threaded context nobody consumes, results
-  computed and then dropped. When the dead output is part of the contract
-  (or asserted by a visible test), do NOT remove it unilaterally — surface a
+  computed and then dropped. If a test asserts an output, resolve its contract
+  basis under Check calibration before removing it. When the dead output is part of the contract,
+  do NOT remove it unilaterally — surface a
   contract-change proposal instead; removal goes through the "contract
   changed and the decision is logged" path. Dead outputs covered by a
   speculative-ledger entry in `<project-path>followup-log.md` stay: their
@@ -121,9 +125,9 @@ or require speculative rewrites, return with no changes and explain why.
 - Do not create reusable abstractions unless they remove more complexity than they add.
 - Do not optimize prematurely.
 - Do not rewrite working code just to make it look different.
-- Do not reduce selected visible, property, fixture, integration, hidden-hook,
-  mutation, fuzz, benchmark, security, schema, or real-path coverage without
-  explicit logged approval.
+- Do not reduce meaningful protection from selected visible, property, fixture,
+  integration, hidden-hook, mutation, fuzz, benchmark, security, schema, or
+  real-path checks without explicit logged approval.
 - Do not replace real-path tests with mocks or preserve a green suite by weakening tests.
 
 ## Success criteria
@@ -134,23 +138,26 @@ or require speculative rewrites, return with no changes and explain why.
 
 ## Verify behavior is preserved
 
-Behavior preservation is not optional — prove it with the same selected product tests
-and configured explicit checks used for the baseline:
+Use the same selected product tests and configured explicit checks to establish
+regression evidence. Reuse recorded results when their relevant code, tests,
+configuration, and environment are unchanged, unless project policy explicitly
+requires a fresh run:
 
-1. Run the selected product suite or focused gate first to confirm the green baseline.
-2. Run configured explicit non-product checks if the milestone has them.
-3. After simplifying, run the same suite and checks again. Every selected gate must still pass.
-4. If a test or selected check fails, the change altered behavior — revert or fix it.
-   Never relax a test or check to make it pass.
+1. Establish a GREEN baseline for the selected product suite or focused gate.
+2. Include configured explicit non-product checks if the milestone has them.
+3. After simplifying, rerun checks affected by the change. Every selected gate must
+   have a still-applicable passing result.
+4. If a check fails, diagnose the behavior, expectation, or setup against the
+   contract before changing it. Revert or fix a regression; correct a faulty
+   expectation or setup without weakening the agreed contract to obtain GREEN.
 
-Also run the configured project quality gate, or the relevant subset for the touched
+Include the configured project quality gate, or the relevant subset for the touched
 files, e.g. `make format && make lint && make typecheck && make test` (or the
-project equivalent).
+project equivalent), reusing applicable results under the same rule.
 
 Then review the final `git diff HEAD` against the baseline: every change must be a
 deliberate simplification. If the diff removes or alters code from a prior TDD step that was
-not the target of this pass, restore it — that is good code being overwritten, not
-simplified.
+not the target of this pass, restore it as outside this simplification's scope.
 
 ## After simplifying
 

@@ -3,7 +3,7 @@
 Lifecycle: active
 Role: guide
 Project: agent-playbook-suite
-Updated: 2026-08-16
+Updated: 2026-09-08
 
 Agent Playbook Suite is a single marketplace-distributed plugin for agent
 workflow skills. It packages the project planning, technical exploration,
@@ -29,10 +29,10 @@ It intentionally does not include `next-task`.
 The suite treats tests as more than RED/GREEN examples. Each milestone records:
 
 - the behavior contract;
-- visible red tests;
+- visible tests, with meaningful RED evidence for new or corrected behavior;
 - hidden/generalization strategy;
-- adequacy checks such as property/stateful tests, mutation, fuzzing,
-  benchmarks, and security or schema checks;
+- selected adequacy checks, which may include property/stateful tests, mutation,
+  fuzzing, benchmarks, and security or schema checks when applicable;
 - a risk level that determines how much validation runs before commit or merge;
 - mock audit notes and real-path coverage expectations;
 - taste anchors (reference modules, in-project libraries to reuse, patterns,
@@ -52,6 +52,12 @@ selects the simplest supported approach, and reports the exact remaining gap
 when evidence cannot support a route.
 The shared reference lives at
 `plugins/agent-playbook-suite/skills/_shared/references/agentic-quality-model.md`.
+
+Before counting a check as evidence, establish what wrong answer it can reject.
+Expected results follow the agreed behavior; ordinary inspection or RED feedback
+usually suffices. Reuse adequate tests and add deeper checks only for a concrete
+gap or project requirement. Pure refactors may use an adequate GREEN baseline
+with the same review and approval checkpoints.
 
 ## Install The Runtime CLI
 

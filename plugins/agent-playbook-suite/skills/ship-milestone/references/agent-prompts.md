@@ -367,7 +367,9 @@ Quality-plan rules:
     ask the operator in OPEN QUESTIONS.
   - For Step 1, include the risk-aware RED-baseline checkpoint decision inputs:
     visible contract coverage, hidden/generalization plan, mock policy, and
-    gates that need approval before Step 2 for High-risk work.
+    gates that need approval before Step 2 for High-risk work. A pure refactor
+    may use an adequate GREEN baseline under the TDD phase reference; this
+    does not bypass the checkpoint or its High-risk approval.
 
 ALSO pressure-test the milestone spec itself: surface every ambiguity, missing
 decision, underspecified requirement, or gap. End with an "OPEN QUESTIONS"
@@ -409,10 +411,12 @@ EXPLORATION HANDOFF:
 
 Revise the phase-by-phase plan and QUALITY PLAN only where this evidence
 requires it. Preserve the milestone behavior contract, fixed constraints, and
-RED tests. Return the complete finalized plan, QUALITY PLAN, OPEN QUESTIONS,
-critical files, and `EXPLORATION SIGNAL: NONE`. If the handoff requires changing
-any of those, return `CONTRACT CHANGE REQUIRED` instead of finalizing an
-implementation plan.
+intended test coverage. A demonstrated test error under the unchanged contract
+may be scheduled for implementation repair under Check calibration; planning
+does not edit the tests. Return the complete finalized plan, QUALITY PLAN,
+OPEN QUESTIONS, critical files, and `EXPLORATION SIGNAL: NONE`. If the handoff
+requires changing the contract or fixed constraints, return `CONTRACT CHANGE REQUIRED`
+instead of finalizing an implementation plan.
 ```
 
 ### Exploration resume after an operator decision
@@ -515,8 +519,10 @@ Rules:
   - Do not put planning, documentation, handoff, or workflow checks into
     default product-test discovery unless they define shipped behavior.
   - Do not weaken, skip, delete, or rewrite tests or selected explicit checks
-    merely to get green. Change them only when the contract changes and the
-    decision is logged.
+    merely to get green. Correct erroneous expectations under the shared
+    quality model's Check calibration rule, preserving the agreed behavior
+    and meaningful coverage. Genuine contract changes retain their existing
+    decision process.
   - Whenever tests are written or actively modified, give their suites and
     cases behavior-first names: test-runner output must explain the scenario
     and observable behavior. Keep milestone, decision, phase, step, review,
@@ -536,7 +542,8 @@ Rules:
 IMPLEMENT phases {phase_range} of the 10-phase TDD cycle, in order. For each:
   - Do the phase's work per the plan and the milestone doc's exit criteria.
   - Keep the selected product tests and explicit checks in the state the phase expects
-    (the intended RED baseline for phases 1-4; fully GREEN by phase 8).
+    (meaningful RED for new/corrected behavior or adequate GREEN for a pure
+    refactor at Phase 4; fully GREEN by phase 8).
   - After each patch or coherent implementation step, run the configured gate
     for the current phase and risk level. Stop on abnormalities; do not
     continue accumulating changes after a failed gate.
@@ -786,7 +793,10 @@ If taste is sound, say so plainly.
   and observable behavior? Are milestone, decision, phase, step, review, and
   amendment references kept out of display names? If provenance is present
   nearby, does it resolve to its source?
-- Are any tests trivial, tautological, or implementation-detail-only?
+- Under the shared Check calibration rule, are expected results trustworthy,
+  can the cases reject plausible wrong answers, and do assertions avoid
+  incidental implementation details? Ordinary inspection or RED evidence
+  usually suffices; no extra review pass is implied.
 - Are there likely hidden/generalization gaps?
 - Are property/stateful tests appropriate for this risk?
 - Are there mutation targets worth inspecting?
@@ -890,8 +900,8 @@ exists, verify it and resume at archive preview instead of simplifying again.
 
 Run the post-implementation simplification process — follow the project's
 `/simplify` skill exactly: establish the green baseline, reduce complexity in
-this milestone's code while preserving behavior, then prove behavior is
-preserved by re-running the same selected suite and quality gate.
+this milestone's code while preserving behavior, then verify the same selected
+gates under simplify's result-reuse rule.
 
 UNRESOLVED TASTE FINDINGS from this milestone's fresh-eyes reviews (waived or
 deferred; see the impl log's taste-triage tables):

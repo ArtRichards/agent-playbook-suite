@@ -6,8 +6,9 @@ An agent workflow skill for post-implementation simplification — TDD Phase 10
 Reduces code complexity while preserving behavior and test adequacy: replaces
 clever code with obvious code, removes abstraction layers that don't earn their
 keep, collapses needless helpers, favors linear execution. Anchors to the most
-recent commit as the known-good baseline, simplifies, then proves behavior is
-preserved by re-running the same risk-level gate.
+recent commit as accepted prior work, simplifies, then checks for regressions
+with the same selected gates. Still-applicable results may be reused; checks
+affected by the change run again.
 
 ## When to invoke
 
@@ -18,9 +19,9 @@ Manually invoked (e.g. `/simplify`) once a milestone's implementation is complet
 - Does not change public behavior.
 - Does not add generic architecture or new abstractions (unless they remove more complexity than they add).
 - Does not rewrite working code just to make it look different.
-- Does not reduce selected visible, property/stateful, hidden-hook, mutation,
-  fuzz, benchmark, security, schema, fixture, or real-path coverage without
-  explicit logged approval.
+- Does not reduce meaningful protection from selected visible, property/stateful,
+  hidden-hook, mutation, fuzz, benchmark, security, schema, fixture, or real-path
+  checks without explicit logged approval.
 - Does not replace real-path tests with mocks.
 - If nothing genuinely simplifies, makes no changes.
 
