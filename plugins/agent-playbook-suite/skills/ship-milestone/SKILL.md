@@ -93,13 +93,14 @@ audit, simplify, or edit project code or docs. It only:
 - runs read-only end-of-run verification.
 
 Every heavyweight unit is a **fresh high-capability sub-agent**. For creation,
-planning, implementation, and simplification, prefer Codex `gpt-5.6-sol`
+planning, implementation, and simplification, prefer Codex `gpt-6-astra`
 `xhigh` or Claude Code's newest `opus` alias at `xhigh`. Record any effective
 substitution. Fresh agents rebuild from branch artifacts; reviewers follow the
 linked protocol and never fill a missing provider slot with a same-provider
 substitute.
 
-Run the conductor on that per-host model target with high reasoning for triage.
+Run the conductor on Claude Code's `fable` alias (currently Claude Fable 5.1)
+or Codex `gpt-6-astra`, with high reasoning for triage.
 
 ## The steps
 

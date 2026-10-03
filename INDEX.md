@@ -1,5 +1,5 @@
 <!-- docs:generated start -->
-_Generated 2026-09-08. 13 docs active, 0 archived._
+_Generated 2026-10-03. 13 docs active, 0 archived._
 
 ## Project — agent-playbook-suite
 
@@ -22,7 +22,7 @@ _Generated 2026-09-08. 13 docs active, 0 archived._
 
 ### Active — Notes
 
-- [blog-post.md](blog-post.md) — _notes_ — One Claude Code session decides the API. The next writes tests against a different shape. A week later, a fresh agent…. Updated 2026-09-08.
+- [blog-post.md](blog-post.md) — _notes_ — One Claude Code session decides the API. The next writes tests against a different shape. A week later, a fresh agent…. Updated 2026-10-03.
 - [docs/specs/agentic-testing/report.md](docs/specs/agentic-testing/report.md) — _notes_ — The most useful lesson from Dan Luu’s [“How well do agents use test/verification…. Updated 2026-09-08.
 - [AGENTS.md](AGENTS.md) — _notes_ — This project produces public documentation and marketplace package metadata for Agent Playbook Suite: one suite plugin…. Updated 2026-08-16.
 - [CLAUDE.md](CLAUDE.md) — _notes_ — This project produces public documentation and marketplace package metadata for Agent Playbook Suite: one suite plugin…. Updated 2026-08-16.

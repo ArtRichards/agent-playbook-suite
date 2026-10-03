@@ -10,11 +10,13 @@ fresh-eyes reviews, and simplification/closeout. It commits each step to a
 semantic branch stack and finishes with an explicit docs-cli archive plan.
 Each sub-agent starts with a clean context, builds understanding from artifacts
 on disk, and returns a structured report; the conductor's job is triage, not
-implementation. For GPT-family agents, use Codex `gpt-5.6-sol` with `xhigh`
-reasoning when available. For Claude-family agents, use the Claude Code `opus`
-alias with `xhigh`; the alias tracks the newest supported Opus model. Record
-any host or account model substitution instead of claiming the requested model
-ran.
+implementation. In Claude Code, run the conductor itself on the `fable` alias
+(currently Claude Fable 5.1); in Codex, run it on `gpt-6-astra` (GPT-6 Astra).
+For GPT-family sub-agents, use Codex `gpt-6-astra` with `xhigh` reasoning when
+available. For Claude-family sub-agents, use the Claude Code `opus` alias with
+`xhigh`; the alias tracks the newest supported Opus model, currently Claude
+Opus 5.5. Record any host or account model substitution instead of claiming
+the requested model ran.
 
 ## Step model
 

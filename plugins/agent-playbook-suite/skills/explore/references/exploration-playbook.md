@@ -693,13 +693,14 @@ Use the host's available worker mechanism without changing the protocol:
 
 - In Codex, use collaboration workers such as `spawn_agent` and collect their
   returned reports; use follow-up messaging only to request missing evidence.
-  For the fresh advisor and challenger, use `gpt-5.6-sol` with `xhigh`
+  For the fresh advisor and challenger, use `gpt-6-astra` with `xhigh`
   reasoning when available; record any substituted effective model. Use the
   advisor only at the escalation point, not as a routine vote.
 - In Claude Code, use the available Agent/Task mechanism with fresh worker
   context and collect reports before synthesis. For the fresh advisor and
   challenger, use the `opus` alias with `xhigh`; the alias tracks the newest
-  supported Opus model. A headless advisor or challenger call is also
+  supported Opus model, currently Claude Opus 5.5. A headless advisor or
+  challenger call is also
   acceptable only when policy authorizes sending that role's exact packet to
   the service; it receives the same frozen packet and cannot edit the
   canonical record. Record any substituted effective model.
