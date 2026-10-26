@@ -52,6 +52,10 @@ This SKILL.md is intentionally short. The full procedure lives in:
 - [`../_shared/references/operator-interaction.md`](../_shared/references/operator-interaction.md)
   — shared requirements for grounded, understandable operator
   questions, approvals, and decisions.
+- [`../_shared/references/verbless-metadata-edits.md`](../_shared/references/verbless-metadata-edits.md)
+  — the operator-approval rule for the two metadata edits no docs-cli
+  verb performs yet (non-archived `Lifecycle:` changes, free-form
+  `Related:` bullets).
 
 **Read the milestone playbook, phase guide, shared quality model,
 milestone-tracker contract, and operator-interaction policy before
@@ -114,9 +118,12 @@ activated or historical paths.
    `docs check` before creating artifacts, delegating production work,
    or creating a branch. Never silently reclaim an `active` row.
 3. **Every doc is *created* with `docs new`.** Never hand-author
-   the metadata block. After creation, direct **metadata** edits are limited to
-   `Lifecycle:` when a draft artifact becomes active and free-form
-   `Related:` links such as companion `pairs-with` edges. Body content remains
+   the metadata block. After creation, two metadata edits have no
+   docs-cli verb yet — `Lifecycle:` when a draft artifact becomes active, and
+   free-form `Related:` links such as companion `pairs-with` edges. They are
+   hand-edits and need operator approval under
+   [`verbless-metadata-edits.md`](../_shared/references/verbless-metadata-edits.md);
+   ask once, up front, for the run's full list. Body content remains
    editable through the documented workflow. Use
    `docs relate` for every recognized reciprocal pair, `docs archive`
    to write archived lifecycle metadata, and `docs touch` to bump

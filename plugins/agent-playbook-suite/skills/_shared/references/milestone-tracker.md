@@ -205,7 +205,10 @@ free-form relationships or infer dependency from sequence.
 - **Initialize:** create the tracker with `docs new plan
   <project-path>milestone-plan` and the exact table. It starts
   `Lifecycle: draft`; promote it to `active` only after the initial table,
-  project scope, Definition of Ready, and dependencies validate. Update
+  project scope, Definition of Ready, and dependencies validate. Each
+  `Lifecycle:` promotion in this contract is an operator-approved hand-edit
+  under [`verbless-metadata-edits.md`](verbless-metadata-edits.md) until
+  docs-cli ships a verb for it. Update
   `<project-path>status.md` to preserve its narrative summary, add the relative
   body link `[Milestone Plan](milestone-plan.md)`, and remove any copied rows or
   independent schedule/next claims. If it is absent, create it with `docs new

@@ -17,6 +17,10 @@ contract, and docs-cli owns metadata, relationships, moves, and validation.
 - Read
   [`../_shared/references/operator-interaction.md`](../_shared/references/operator-interaction.md)
   before asking any clarification, confirmation, or decision.
+- Read
+  [`../_shared/references/verbless-metadata-edits.md`](../_shared/references/verbless-metadata-edits.md)
+  before any `Lifecycle:` promotion or free-form `Related:` edit; both are
+  operator-approved hand-edits until docs-cli ships verbs for them.
 - Read the project-root `AGENTS.md`, `CLAUDE.md`, or equivalent and the
   project's qualified tracker, status summary, Definition of Ready, and
   relevant milestone artifacts.
@@ -108,7 +112,8 @@ If no plan exists and foundation context is otherwise present, create it with
 `docs new plan <project-path>milestone-plan` and the exact five-column table.
 It begins with `Lifecycle: draft`; after the table, project scope, Definition
 of Ready, and initial dependencies validate, promote only that field to
-`Lifecycle: active`. Update `<project-path>status.md` to retain the project
+`Lifecycle: active` (an operator-approved edit under the verbless-metadata
+policy; include it in the run's up-front approval list). Update `<project-path>status.md` to retain the project
 narrative, add `[Milestone Plan](milestone-plan.md)`, and remove independent
 schedule or next-work claims. If status is absent, create it with
 `docs new status <project-path>status` and promote it to `Lifecycle: active`.

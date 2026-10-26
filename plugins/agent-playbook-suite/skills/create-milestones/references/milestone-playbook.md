@@ -597,7 +597,9 @@ membership.
 
 ### 2f. Flip the milestone artifacts to active
 
-Edit `Lifecycle: draft` → `Lifecycle: active` in `<milestone-path>`
+With the operator approval collected up front (see
+[`verbless-metadata-edits.md`](../../_shared/references/verbless-metadata-edits.md)),
+edit `Lifecycle: draft` → `Lifecycle: active` in `<milestone-path>`
 and `<matrix-path>` if `docs new spec` created the matrix as a draft.
 Update `<status-path>` as a narrative summary linking
 to `<tracker-path>` and the current milestone/phase; do not copy the
@@ -942,7 +944,8 @@ BFS-crawls same-origin links to depth N and returns
 the later `persistence` row.
 
 Add the companion `pairs-with` links and the milestone's
-`child-of: milestone-plan.md` link. Replace the tracker cell with:
+`child-of: milestone-plan.md` link — free-form edges, so they were on the
+run's up-front approval list. Replace the tracker cell with:
 
 ```markdown
 | 100 | [fetch-and-parse](fetch-and-parse.md) | active | — | HTTP fetch, link extraction, in-memory crawl |

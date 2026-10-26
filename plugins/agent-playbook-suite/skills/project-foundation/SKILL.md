@@ -55,6 +55,10 @@ This SKILL.md is intentionally short. The full procedure lives in:
 - [`../_shared/references/operator-interaction.md`](../_shared/references/operator-interaction.md)
   — shared requirements for grounded, understandable operator
   questions, clarifications, approvals, and decisions.
+- [`../_shared/references/verbless-metadata-edits.md`](../_shared/references/verbless-metadata-edits.md)
+  — the operator-approval rule for the two metadata edits no docs-cli
+  verb performs yet (non-archived `Lifecycle:` changes, free-form
+  `Related:` bullets).
 - [`../_shared/references/milestone-tracker.md`](../_shared/references/milestone-tracker.md)
   — canonical milestone identity, order, state, dependency, and
   relationship contract. Read it before Phase 4 or any tracker hand-off.
@@ -75,10 +79,12 @@ another skill.
 These are non-negotiable across the whole flow:
 
 1. **Every doc is *created* with `docs new`.** Never hand-author
-   the metadata block. After creation, only two metadata fields
-   are touched in place: `Lifecycle:` (when a doc advances
-   draft → active or similar), and free-form `Related:` entries.
-   For the six recognized reciprocal verbs, use `docs relate add/remove`
+   the metadata block. After creation, two metadata edits have no
+   docs-cli verb yet: `Lifecycle:` (when a doc advances draft → active or
+   similar) and free-form `Related:` entries. They are hand-edits and need
+   operator approval under
+   [`verbless-metadata-edits.md`](../_shared/references/verbless-metadata-edits.md);
+   ask once, up front, for the run's full list. For the six recognized reciprocal verbs, use `docs relate add/remove`
    so both endpoints change together. Every other field is owned by the
    CLI; use `docs touch` to bump `Updated:`.
 2. **The controlled-vocab lifecycle field is `Lifecycle:`.**

@@ -646,7 +646,9 @@ Exit-code verdict:
   checkbox justified, every link resolves, success metric
   measurable, residual risks logged). Flip the DoR doc and
   every front-half doc from `Lifecycle: draft` to
-  `Lifecycle: active`, then perform the qualified status/touch/index/check
+  `Lifecycle: active` — operator-approved edits under
+  [`verbless-metadata-edits.md`](../../_shared/references/verbless-metadata-edits.md),
+  listed in the run's up-front approval — then perform the qualified status/touch/index/check
   completion sequence below.
 - `1` → warnings (medium-confidence inferences or stale docs).
   Review; touch the qualified paths if still correct, or update content, then
