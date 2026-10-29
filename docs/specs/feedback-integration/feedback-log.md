@@ -3,7 +3,7 @@
 Lifecycle: draft
 Role: log
 Project: agent-playbook-suite
-Updated: 2026-09-08
+Updated: 2026-10-29
 
 ## Purpose
 
@@ -31,6 +31,20 @@ Related process: [Feedback Integration Process](process.md)
 ```
 
 ## Entries
+
+### 2026-10-29 — Prescribe `docs lifecycle` and free-form `docs relate`; retire the verbless-metadata stopgap
+
+- Source: the docs-cli feedback-log entry of 2026-10-26 ("No verb for draft→active or free-form `Related:` edges; suite and bundled skill disagree on the hand-edit fallback") and its self-contained hand-off "For the suite pin-bump PR"; the operator requested this suite update for the published docs-cli 2.1.0.
+- Feedback: a downstream `create-milestones` 0.8.3 run on docs-cli 2.0.0 halted at milestone activation, because the suite sanctioned hand-edits of `Lifecycle:` and free-form `Related:` that the bundled `docs` skill forbids. The unmerged stopgap (`66d295a`, `a997954`) replaced those carve-outs with an operator-approved hand-edit policy, `_shared/references/verbless-metadata-edits.md`, and a CI guard tying it to the pin.
+- Example or evidence: docs-cli 2.1.0 (PyPI, 2026-10-29; wheel sha256 `2c5fa0b3e3c3db05e4f452bc900b31fa7a7acb5b3f330cd8d52a9bd80c19a185`) adds `docs lifecycle <file>... <state>` and one-sided free-form `docs relate add|remove`. Against it, the guard run in the `a997954` tree exits 1 with the ten-line checklist the docs-cli hand-off records.
+- Owning skill or artifact: `create-milestones`, `project-foundation`, `manage-milestone-tracker`, `use-cases`, `ship-milestone`, and the shared tracker contract; `explore` names the verb; CI pin and vendored `docs` skill.
+- Existing skill vs new skill decision: edits only.
+- Intent preservation check: the never-hand-edit rule now holds without exception; `archived` stays `docs archive`'s alone; recognized reciprocal verbs keep writing both halves; no workflow asks the operator to approve a metadata edit any more.
+- Implemented change: every `Lifecycle:` transition the workflows prescribe is `docs lifecycle` (milestone task plan, implementation log, and test matrix together; tracker and status initialization; foundation living docs, decision log, and the DoR batch; use-cases), and every free-form `Related:` edge is one `docs relate add` per edge with `<project-path>`-qualified operands run from the docs root. The stopgap policy, its seven references, and `ship-milestone` Step 0's up-front approval are removed. Skill version floors move to docs-cli 2.1. The publishing guide's skill refresh now isolates `install-skill` from the host's recorded destination.
+- Version procedure: minor `0.9.0` in both plugin manifests and the Claude marketplace entry; `DOCS_CLI_VERSION` `2.0.0` → `2.1.0`; the bundled `docs` skill re-installed from the 2.1.0 binary with scratch XDG state and cache, byte-identical to the wheel's `docs_cli/skill/`, the host's recorded destination unchanged.
+- Validation results: every local CI step passed against the 2.1.0 binary; the stopgap guard prints `verbless-metadata stopgap consistent with docs-cli pin (lifecycle verb: True, free-form relate: True)`, exits 1 again on a seeded stopgap reference, and its code is unchanged from `a997954`; the retired-flag check is unchanged and clean. A paragraph-joined census found no remaining hand-edit prescription. The prescribed sequences ran clean end to end in a scratch shared root. `claude plugin validate .` passed, and disposable Claude Code and Codex installs matched the payload. The site build was not run (no Ruby/Bundler on the host). Six root docs past the 60-day stale window were reviewed, still accurate, and touched.
+- Status: implemented and validated locally for `0.9.0` on `release/0.9.0`; push, CI, merge, and tag pending.
+- Follow-up: `project-foundation/references/role-mapping.md` still prescribes role graduation (`sketch` → `reference`, `outline` → `spec`) as a `Role:` field edit; docs-cli 2.1.0 has no verb for it, so it remains in tension with the bundled `docs` skill. Operator decision.
 
 ### 2026-09-08 — Improve test selection without expanding the testing process
 

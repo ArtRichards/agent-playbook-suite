@@ -14,7 +14,7 @@ jobs:
       # `docs` skill from. The policy is to track the newest docs-cli: when a
       # newer release ships, re-vendor the skill (docs install-skill --force)
       # and bump this pin in the same change. See marketplace-publishing-guide.md.
-      DOCS_CLI_VERSION: "2.0.0"
+      DOCS_CLI_VERSION: "2.1.0"
     steps:
       - uses: actions/checkout@v4
 
@@ -455,7 +455,7 @@ jobs:
               skills / "create-milestones" / "SKILL.md",
               skills / "create-milestones" / "README.md",
           ):
-              require(path, "docs-cli", "2.0 or newer")
+              require(path, "docs-cli", "2.1 or newer")
 
           runtime_paths = [
               p for p in skills.rglob("*.md")
@@ -1203,6 +1203,95 @@ jobs:
               raise SystemExit(1)
 
           print("No retired-flag prescriptions found.")
+          PY
+
+      - name: Validate verbless-metadata stopgap matches the pinned docs-cli
+        run: |
+          python3 - <<'PY'
+          # The verbless-metadata policy was a stopgap: it made two metadata
+          # edits operator-approved hand-edits while the pinned docs-cli had
+          # no verb for them. Suite 0.9.0 retired it with the docs-cli 2.1.0
+          # pin, whose `docs lifecycle` and free-form `docs relate` the skills
+          # now prescribe. This check ties the stopgap's lifetime to the pin
+          # in BOTH directions, so it can neither outlive the verbs nor be
+          # removed before the pinned release can perform the edits:
+          #
+          #   - pinned binary CAN do an edit and the policy still covers it
+          #     -> fail: swap the prescription for the verb and retire that half;
+          #   - pinned binary CANNOT do an edit and the policy no longer covers
+          #     it -> fail: downstream projects on this pin would hit a
+          #     metadata edit with neither a verb nor a sanctioned path.
+          #
+          # Capabilities are probed from the pinned binary, never from a version
+          # number, matching the retired-flag check above.
+          import re
+          import subprocess
+          import tempfile
+          from pathlib import Path
+
+          skills = Path("plugins/agent-playbook-suite/skills")
+          policy = skills / "_shared" / "references" / "verbless-metadata-edits.md"
+          lifecycle_marker = "**A non-archived `Lifecycle:` transition**"
+          relate_marker = "**Adding or removing a free-form `Related:` bullet"
+
+          top = subprocess.check_output(["docs", "--help"], text=True)
+          verb_match = re.search(r"\{([a-z0-9,\-]+)\}", top)
+          if not verb_match:
+              raise SystemExit("Could not parse the verb list from `docs --help`")
+          can_lifecycle = "lifecycle" in verb_match.group(1).split(",")
+
+          # Behavioural probe: a free-form verb either plans cleanly (exit 0)
+          # or is refused as an unknown verb (exit 2, docs-cli 2.0).
+          with tempfile.TemporaryDirectory() as tmp:
+              (Path(tmp) / ".docs.toml").write_text("", encoding="utf-8")
+              for slug in ("a", "b"):
+                  subprocess.run(
+                      ["docs", "new", "spec", slug, "--quiet"], cwd=tmp, check=True
+                  )
+              probe = subprocess.run(
+                  ["docs", "relate", "add", "a.md", "pairs-with", "b.md", "--dry-run"],
+                  cwd=tmp,
+                  capture_output=True,
+                  text=True,
+              )
+          can_freeform = probe.returncode == 0
+
+          text = policy.read_text(encoding="utf-8") if policy.exists() else ""
+          errors = []
+          for able, marker, edit, verb in (
+              (can_lifecycle, lifecycle_marker, "non-archived Lifecycle: transitions", "docs lifecycle"),
+              (can_freeform, relate_marker, "free-form Related: edits", "free-form docs relate"),
+          ):
+              covered = marker in text
+              if able and covered:
+                  errors.append(
+                      f"pinned docs-cli performs {edit} ({verb}); retire that half of "
+                      f"{policy} and prescribe the verb instead"
+                  )
+              if not able and not covered:
+                  errors.append(
+                      f"pinned docs-cli cannot perform {edit}, but {policy} no longer "
+                      "covers them; restore the stopgap until the pin moves"
+                  )
+
+          if can_lifecycle and can_freeform:
+              if policy.exists():
+                  errors.append(f"both verbs are available; delete {policy}")
+              stale = sorted(
+                  str(path)
+                  for path in skills.rglob("*.md")
+                  if not str(path).startswith(str(skills / "docs"))
+                  and path != policy
+                  and "verbless-metadata-edits" in path.read_text(encoding="utf-8")
+              )
+              errors.extend(f"{path}: still references the retired stopgap" for path in stale)
+
+          if errors:
+              raise SystemExit("\n".join(errors))
+          print(
+              f"verbless-metadata stopgap consistent with docs-cli pin "
+              f"(lifecycle verb: {can_lifecycle}, free-form relate: {can_freeform})"
+          )
           PY
 
       - name: Validate workflow consistency

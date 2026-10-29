@@ -20,8 +20,9 @@ contract, and docs-cli owns metadata, relationships, moves, and validation.
 - Read the project-root `AGENTS.md`, `CLAUDE.md`, or equivalent and the
   project's qualified tracker, status summary, Definition of Ready, and
   relevant milestone artifacts.
-- Use the bundled `docs` skill and docs-cli 2.0 or newer for `docs new`,
-  `docs mv`, `docs relate`, `docs touch`, `docs index`, and `docs check`.
+- Use the bundled `docs` skill and docs-cli 2.1 or newer for `docs new`,
+  `docs lifecycle`, `docs mv`, `docs relate`, `docs touch`, `docs index`, and
+  `docs check`.
 
 The milestone-tracker contract is required. Verify that the shared reference
 exists before inspecting or changing a tracker. If it is absent, stop and
@@ -78,8 +79,9 @@ consistency and git closure.
    body content. Initialization and legacy migration also own the bounded
    status-body edit required by the contract: keep its narrative, link the
    tracker, and remove independent schedule/next claims. Use `docs mv` for a
-   permitted planned rename and `docs relate add/remove` for recognized
-   relationship pairs; never hand-edit CLI-owned metadata or one inverse.
+   permitted planned rename, `docs lifecycle` for a lifecycle promotion, and
+   `docs relate add/remove` for recognized relationship pairs; never hand-edit
+   CLI-owned metadata or one inverse.
 7. **Synchronize and prove.** Qualify every docs-cli document operand with
    `<project-path>`. Run `docs touch <project-path>milestone-plan.md` plus any
    changed body docs; initialization and migration must touch the qualified
@@ -107,11 +109,13 @@ Do not claim unless the operator or a consuming workflow asked to start/claim.
 If no plan exists and foundation context is otherwise present, create it with
 `docs new plan <project-path>milestone-plan` and the exact five-column table.
 It begins with `Lifecycle: draft`; after the table, project scope, Definition
-of Ready, and initial dependencies validate, promote only that field to
-`Lifecycle: active`. Update `<project-path>status.md` to retain the project
+of Ready, and initial dependencies validate, promote it with
+`docs lifecycle <project-path>milestone-plan.md active`. Update
+`<project-path>status.md` to retain the project
 narrative, add `[Milestone Plan](milestone-plan.md)`, and remove independent
 schedule or next-work claims. If status is absent, create it with
-`docs new status <project-path>status` and promote it to `Lifecycle: active`.
+`docs new status <project-path>status` and promote it with
+`docs lifecycle <project-path>status.md active`.
 Then run the contract's atomic qualified
 tracker/status touch before index/check. Never leave a newly initialized
 tracker draft when returning it as ready for delivery.
@@ -119,8 +123,9 @@ tracker draft when returning it as ready for delivery.
 For a legacy plan, build the complete proposal from all evidence and get
 confirmation for each ambiguous mapping before writing. The confirmed
 migration also normalizes the qualified status body; if it is absent, include
-`docs new status <project-path>status` and its promotion to
-`Lifecycle: active` in the proposal. Touch both qualified paths before
+`docs new status <project-path>status` and its
+`docs lifecycle <project-path>status.md active` promotion in the proposal.
+Touch both qualified paths before
 index/check. Preserve existing activated and historical slugs; do not
 mass-rename their linked physical artifact stems or generate milestone stubs.
 Record any frozen legacy flattened-basename collision as an explicit delivery

@@ -49,7 +49,8 @@ file operand from another working directory:
   shell-quoted argument.
 
 Use these root-relative paths for every `docs new`, `docs touch`, `docs
-archive`, `docs mv`, and `docs relate` operand. Apply the same project path to
+lifecycle`, `docs archive`, `docs mv`, and `docs relate` operand. Apply the
+same project path to
 other project docs such as `definition-of-ready.md`, `followup-log.md`, and
 `feedback-log.md`. `<slug>` remains semantic tracker identity and the branch
 component; `<artifact-stem>` is physical identity that keeps dated archive
@@ -510,24 +511,25 @@ EOF
 
 ### 2d. Link the milestone artifacts and plan
 
-Add `Related:` typed edges (careful Edit on the metadata block;
-`Related:` is the only metadata field this skill extends after
-`docs new`).
+Add the `Related:` typed edges with `docs relate add`, one edge per
+call. These verbs are free-form, so each call writes the source's
+bullet alone; a companion pair is linked from both of its ends:
 
-To `<milestone-path>`:
-- `pairs-with: <impl-path>`
-- `pairs-with: <matrix-path>`
-- `child-of: <tracker-path>`
-- `implements: <project-path>charter.md`
-- any relevant `pairs-with:` (architecture, test-strategy, etc.)
+```sh
+docs relate add <milestone-path> pairs-with <impl-path>
+docs relate add <milestone-path> pairs-with <matrix-path>
+docs relate add <milestone-path> child-of <tracker-path>
+docs relate add <milestone-path> implements <project-path>charter.md
+docs relate add <impl-path> pairs-with <milestone-path>
+docs relate add <impl-path> pairs-with <matrix-path>
+docs relate add <matrix-path> pairs-with <milestone-path>
+docs relate add <matrix-path> pairs-with <impl-path>
+```
 
-To `<impl-path>`:
-- `pairs-with: <milestone-path>`
-- `pairs-with: <matrix-path>`
-
-To `<matrix-path>`:
-- `pairs-with: <milestone-path>`
-- `pairs-with: <impl-path>`
+Add any other relevant `pairs-with` edge from `<milestone-path>` the
+same way, such as `<project-path>architecture.md` or
+`<project-path>test-strategy.md`. Each call is idempotent and bumps
+`Updated:` only on a document whose bytes changed.
 
 Archive candidate discovery follows `pairs-with` and `child-of` one
 hop — never transitively, and never the reciprocal verbs
@@ -595,10 +597,16 @@ the reciprocal edit and archived revision audit. Do not infer a
 dependency from order, and do not treat any relationship as archive
 membership.
 
-### 2f. Flip the milestone artifacts to active
+### 2f. Activate the milestone artifacts
 
-Edit `Lifecycle: draft` → `Lifecycle: active` in `<milestone-path>`
-and `<matrix-path>` if `docs new spec` created the matrix as a draft.
+`docs new` scaffolds all three artifacts as `Lifecycle: draft`. Promote
+them in one call; it bumps `Updated:` where the lifecycle changed,
+leaves an already `active` document untouched, and reindexes once:
+
+```sh
+docs lifecycle <milestone-path> <impl-path> <matrix-path> active
+```
+
 Update `<status-path>` as a narrative summary linking
 to `<tracker-path>` and the current milestone/phase; do not copy the
 tracker rows or independently declare next work. Then:
@@ -942,7 +950,20 @@ BFS-crawls same-origin links to depth N and returns
 the later `persistence` row.
 
 Add the companion `pairs-with` links and the milestone's
-`child-of: milestone-plan.md` link. Replace the tracker cell with:
+`child-of: milestone-plan.md` link, each free-form edge written on its
+source:
+
+```sh
+docs relate add fetch-and-parse.md pairs-with fetch-and-parse-impl.md
+docs relate add fetch-and-parse.md pairs-with fetch-and-parse-test-matrix.md
+docs relate add fetch-and-parse.md child-of milestone-plan.md
+docs relate add fetch-and-parse-impl.md pairs-with fetch-and-parse.md
+docs relate add fetch-and-parse-impl.md pairs-with fetch-and-parse-test-matrix.md
+docs relate add fetch-and-parse-test-matrix.md pairs-with fetch-and-parse.md
+docs relate add fetch-and-parse-test-matrix.md pairs-with fetch-and-parse-impl.md
+```
+
+Replace the tracker cell with:
 
 ```markdown
 | 100 | [fetch-and-parse](fetch-and-parse.md) | active | — | HTTP fetch, link extraction, in-memory crawl |
@@ -950,10 +971,12 @@ Add the companion `pairs-with` links and the milestone's
 
 `persistence` is not materialized, so no sequence or dependency
 relationship can be written to it yet. The tracker still records both
-facts. Flip the task plan and matrix to `Lifecycle: active`, update the
-status narrative, and validate:
+facts. Promote the three artifacts to `active`, update the status
+narrative, and validate:
 
 ```sh
+docs lifecycle fetch-and-parse.md fetch-and-parse-impl.md \
+  fetch-and-parse-test-matrix.md active
 docs touch milestone-plan.md fetch-and-parse.md fetch-and-parse-impl.md \
   fetch-and-parse-test-matrix.md status.md
 docs index .

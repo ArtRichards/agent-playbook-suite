@@ -107,7 +107,11 @@ Before any phase question:
 4. **Create the five living docs** before any phase question at
    `<project-path>{status,foundation-log,risks,followup-log,feedback-log}.md`.
    `status.md` uses `Role: status`; the others use `Role: log`; all five use
-   `Lifecycle: active`. These
+   `Lifecycle: active`. `docs new` scaffolds each as `draft`, so promote the
+   five in one call right after creating them:
+   `docs lifecycle <project-path>status.md <project-path>foundation-log.md
+   <project-path>risks.md <project-path>followup-log.md
+   <project-path>feedback-log.md active`. These
    accumulate throughout the project — see the
    [worked example](#worked-example-link-checker) for their
    initial bodies.
@@ -176,10 +180,14 @@ self-correct.
 
 ## Adding `Related:` edges
 
-For free-form verbs such as `pairs-with`, `implements`, and `references`,
-use a careful Edit on the metadata block to add
-`- <verb>: <project-path><target>.md` under `Related:` (or insert the block if
-it was not scaffolded), then run `docs touch <project-path><file>.md`.
+Every "Add `Related: <verb>: <target>`" step in this playbook is one
+`docs relate add` call per edge, run from the docs root. For free-form verbs
+such as `pairs-with`, `implements`, and `references`, run
+`docs relate add <project-path><file>.md <verb> <project-path><target>.md`.
+It writes `- <verb>: <project-path><target>.md` on the source alone — creating
+its `Related:` group if needed — bumps that document's `Updated:`, and
+reindexes; it never writes the target. Remove an edge with the matching
+`docs relate remove`. Never hand-edit the metadata block.
 
 For the recognized reciprocal pairs `precedes`/`follows`,
 `depends-on`/`required-by`, and `blocks`/`blocked-by`, never hand-author
@@ -233,7 +241,8 @@ Ask:
 Author `docs new spec <project-path>scope-and-constraints` with body sections:
 **In scope**, **Out of scope**, **Assumptions**, **Constraints**,
 **Open questions**. Add
-`Related: pairs-with: <project-path>charter.md`.
+`Related: pairs-with: <project-path>charter.md` with
+`docs relate add <project-path>scope-and-constraints.md pairs-with <project-path>charter.md`.
 
 ## Phase 2 — Stakeholders & Interfaces
 
@@ -247,7 +256,8 @@ Ask:
 Author `docs new reference <project-path>stakeholders` with body sections:
 **Stakeholders**, **Interfaces (consumed)**, **Interfaces
 (produced)**, **Data flows**, **Ownership**. Add
-`Related: pairs-with: <project-path>charter.md`.
+`Related: pairs-with: <project-path>charter.md` with
+`docs relate add <project-path>stakeholders.md pairs-with <project-path>charter.md`.
 
 If solo with no external interfaces, write a single paragraph
 acknowledging that — the doc still exists as a DoR checkbox.
@@ -292,11 +302,16 @@ Author the remaining two docs:
 
 2. `docs new sketch <project-path>architecture` — `Lifecycle: draft`. Body:
    **Shape**, **Data flow**, **Integration points**. Add
-   `Related: implements: <project-path>charter.md`, `Related: pairs-with:
-   <project-path>options-comparison.md`. Graduates to `Role: reference` when
+   `Related: implements: <project-path>charter.md` and `Related: pairs-with:
+   <project-path>options-comparison.md` with
+   `docs relate add <project-path>architecture.md implements <project-path>charter.md`
+   and
+   `docs relate add <project-path>architecture.md pairs-with <project-path>options-comparison.md`.
+   Graduates to `Role: reference` when
    authoritative. If no route is selected, record only known constraints and
    gaps and keep the sketch draft.
-3. `docs new log <project-path>decision-log` — `Lifecycle: active`. Ongoing
+3. `docs new log <project-path>decision-log`, then
+   `docs lifecycle <project-path>decision-log.md active`. Ongoing
    log of choices made during the project; the first entry summarises the
    Phase 3 disposition and, once settled, the architecture choice. Append dated
    `## YYYY-MM-DD — <one-line>` entries as decisions accumulate.
@@ -361,8 +376,15 @@ horizontal layers ("models-only", followed by "services-only");
 a milestone that delivers only surface for later milestones is
 an exception that needs explicit justification in the plan.
 
-Add `Related: implements: <project-path>charter.md`,
-`Related: pairs-with: <project-path>architecture.md`. Per-milestone task plans
+Add `Related: implements: <project-path>charter.md` and
+`Related: pairs-with: <project-path>architecture.md` to the tracker:
+
+```sh
+docs relate add <project-path>milestone-plan.md implements <project-path>charter.md
+docs relate add <project-path>milestone-plan.md pairs-with <project-path>architecture.md
+```
+
+Per-milestone task plans
 and companions at `<project-path><artifact-stem>.md`,
 `<project-path><artifact-stem>-impl.md`, and
 `<project-path><artifact-stem>-test-matrix.md` belong to `create-milestones`,
@@ -632,7 +654,13 @@ EOF
 
 Add `Related: pairs-with: <project-path>charter.md`,
 `Related: pairs-with: <project-path>milestone-plan.md`, and
-`Related: pairs-with: <project-path>status.md`.
+`Related: pairs-with: <project-path>status.md`:
+
+```sh
+docs relate add <project-path>definition-of-ready.md pairs-with <project-path>charter.md
+docs relate add <project-path>definition-of-ready.md pairs-with <project-path>milestone-plan.md
+docs relate add <project-path>definition-of-ready.md pairs-with <project-path>status.md
+```
 
 **Mechanical gate.** Before declaring green:
 
@@ -644,10 +672,10 @@ Exit-code verdict:
 
 - `0` → mechanically clean. Apply qualitative review (every
   checkbox justified, every link resolves, success metric
-  measurable, residual risks logged). Flip the DoR doc and
-  every front-half doc from `Lifecycle: draft` to
-  `Lifecycle: active`, then perform the qualified status/touch/index/check
-  completion sequence below.
+  measurable, residual risks logged). Promote the DoR doc and
+  every front-half doc from `draft` to `active` in one
+  `docs lifecycle <project-path><file>.md... active` call, then perform the
+  qualified status/touch/index/check completion sequence below.
 - `1` → warnings (medium-confidence inferences or stale docs).
   Review; touch the qualified paths if still correct, or update content, then
   re-run.
@@ -656,13 +684,13 @@ Exit-code verdict:
 
 ## Completion and hand-off
 
-When DoR flips to `active`:
+When `docs lifecycle` promotes the DoR to `active`:
 
 1. Update `<project-path>status.md` with a narrative foundation-complete
    summary and `[Milestone Plan](milestone-plan.md)`. Remove copied tracker
    rows and independent schedule/next claims.
-2. After the lifecycle and status body edits, atomically touch every changed
-   qualified path. The batch must include both
+2. After the `docs lifecycle` promotion and the status body edits,
+   atomically touch every changed qualified path. The batch must include both
    `<project-path>milestone-plan.md` and `<project-path>status.md`.
 3. Run `docs index .` and `docs check . --stale 14`; require exit 0.
 4. `docs list --root . --lifecycle active --project <p>` shows every
@@ -762,6 +790,9 @@ Append a dated H2 entry per item with body sub-sections:
 
 ## (no feedback logged yet)
 EOF
+
+docs lifecycle status.md foundation-log.md risks.md followup-log.md \
+  feedback-log.md active
 ```
 
 ### Phases 0-8
@@ -842,12 +873,17 @@ DoR doc authored per the template above. Mechanical gate:
 docs check . --stale 14   # exit 0
 ```
 
-Wizard ticks every checkbox after qualitative review, flips every front-half
-doc to `Lifecycle: active`, and updates `status.md` with the
-foundation-complete narrative and relative tracker link. It then touches all
-changed docs in one qualified batch; for this empty-prefix example:
+Wizard ticks every checkbox after qualitative review, promotes the DoR and
+every front-half doc to `active` with one `docs lifecycle` call, and updates
+`status.md` with the foundation-complete narrative and relative tracker link.
+It then touches all changed docs in one qualified batch; for this
+empty-prefix example:
 
 ```sh
+docs lifecycle charter.md scope-and-constraints.md stakeholders.md \
+  options-comparison.md architecture.md milestone-plan.md \
+  env-and-tooling.md data-plan.md test-strategy.md \
+  documentation-plan.md definition-of-ready.md active
 docs touch charter.md scope-and-constraints.md stakeholders.md \
   options-comparison.md architecture.md milestone-plan.md \
   env-and-tooling.md data-plan.md test-strategy.md \

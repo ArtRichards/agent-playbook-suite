@@ -3,7 +3,7 @@
 Lifecycle: active
 Role: guide
 Project: agent-playbook-suite
-Updated: 2026-08-16
+Updated: 2026-10-29
 
 This guide is the maintainer checklist for publishing Agent Playbook Suite as
 one plugin marketplace package for Codex and Claude Code.
@@ -49,10 +49,17 @@ docs --version
 ```
 
 Refresh the bundled `docs` skill from the installed PyPI package so it matches
-the version you just installed:
+the version you just installed. Every successful `install-skill` also records
+its `--dest` as this host's skill destination
+(`${XDG_STATE_HOME:-$HOME/.local/state}/docs-cli/install-skill.json`), so run
+it against scratch state and cache directories; the host's own record must be
+unchanged afterwards:
 
 ```bash
-docs install-skill --dest plugins/agent-playbook-suite/skills/docs --force
+tmp="$(mktemp -d)"
+env XDG_STATE_HOME="$tmp/state" XDG_CACHE_HOME="$tmp/cache" DOCS_CLI_NO_UPDATE_CHECK=1 \
+  docs install-skill --dest plugins/agent-playbook-suite/skills/docs --force
+rm -rf "$tmp"
 ```
 
 Then move the tested-version pin forward to the version you just vendored. The

@@ -18,9 +18,10 @@ or test matrix before TDD begins.
 
 Required tooling:
 
-- [`docs-cli`](https://github.com/ArtRichards/docs-cli) 2.0 or newer — for managed
-  lifecycle, reciprocal relationships, link rebasing, archive preview/apply,
-  and docs-tree validation.
+- [`docs-cli`](https://github.com/ArtRichards/docs-cli) 2.1 or newer — for managed
+  lifecycle (`docs lifecycle`), reciprocal and free-form relationships
+  (`docs relate`), link rebasing, archive preview/apply, and docs-tree
+  validation.
 
 Companion skills (sub-agents invoke them by name):
 
@@ -204,7 +205,9 @@ Run this when an artifact is missing/unlinked or an existing
 artifacts predated this run and no in-flight Step 0 state exists.
 
 The Step 0 artifact set is the task plan, implementation log, and test matrix;
-all three must be linked with `Related: pairs-with`.
+all three must be linked with `Related: pairs-with` edges written by
+`docs relate add` and promoted to `active` with `docs lifecycle`, as the
+`create-milestones` playbook prescribes.
 On resume, start at the ledger's first incomplete state; do not repeat work.
 
 1. Use the existing `<project-branch-prefix><slug>/milestone-setup` branch (or its

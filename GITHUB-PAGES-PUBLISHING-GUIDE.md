@@ -3,7 +3,7 @@
 Lifecycle: active
 Role: guide
 Project: agent-playbook-suite
-Updated: 2026-08-15
+Updated: 2026-10-29
 
 This guide describes how to turn this folder into the public `agent-playbook-suite` GitHub repository and publish a GitHub Pages site from it, while keeping the Markdown files in the repository as public technical reference material.
 

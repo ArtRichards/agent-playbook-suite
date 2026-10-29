@@ -48,7 +48,7 @@ direct skill-directory installs.
 
 ## Dependencies
 
-- [`docs-cli`](https://github.com/ArtRichards/docs-cli) 2.0 or newer — prefer the newest release; required for `Lifecycle:`, `docs new --body-from`, tree-wide `[exclude]` rules, atomic multi-file `docs touch <file>...`, and reciprocal `docs relate add/remove`. The skill calls `docs new`, `docs relate`, `docs index`, `docs touch`, and `docs check`. Install with `pip install --upgrade docs-cli`.
+- [`docs-cli`](https://github.com/ArtRichards/docs-cli) 2.1 or newer — prefer the newest release; required for `Lifecycle:`, `docs new --body-from`, tree-wide `[exclude]` rules, atomic multi-file `docs touch <file>...`, `docs lifecycle`, and reciprocal and free-form `docs relate add/remove`. The skill calls `docs new`, `docs lifecycle`, `docs relate`, `docs index`, `docs touch`, and `docs check`. Install with `pip install --upgrade docs-cli`.
 - Companion skills (recommended): `use-cases`, conditional `explore`, `manage-milestone-tracker`, [`create-milestones`](https://github.com/ArtRichards/create-milestones), [`ship-milestone`](https://github.com/ArtRichards/ship-milestone), [`sync-and-commit`](https://github.com/ArtRichards/sync-and-commit), [`simplify`](https://github.com/ArtRichards/simplify).
 
 ## Convention

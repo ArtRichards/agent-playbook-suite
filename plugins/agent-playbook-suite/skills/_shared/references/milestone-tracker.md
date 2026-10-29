@@ -204,12 +204,15 @@ free-form relationships or infer dependency from sequence.
 
 - **Initialize:** create the tracker with `docs new plan
   <project-path>milestone-plan` and the exact table. It starts
-  `Lifecycle: draft`; promote it to `active` only after the initial table,
-  project scope, Definition of Ready, and dependencies validate. Update
+  `Lifecycle: draft`; promote it with
+  `docs lifecycle <project-path>milestone-plan.md active` only after the
+  initial table, project scope, Definition of Ready, and dependencies
+  validate. Update
   `<project-path>status.md` to preserve its narrative summary, add the relative
   body link `[Milestone Plan](milestone-plan.md)`, and remove any copied rows or
   independent schedule/next claims. If it is absent, create it with `docs new
-  status <project-path>status` and promote it to `Lifecycle: active`. Then
+  status <project-path>status` and promote it with
+  `docs lifecycle <project-path>status.md active`. Then
   atomically run
   `docs touch <project-path>milestone-plan.md <project-path>status.md` before
   `docs index .` and `docs check .`. Foundation owns normal initialization.
@@ -238,8 +241,9 @@ free-form relationships or infer dependency from sequence.
   canonical companions. Docs-cli flattens all three basenames into the dated
   archive, then rebases the tracker link; preserve that link.
 
-Every body edit is followed by `docs touch`; every relationship operation uses
-`docs relate`; every batch ends with `docs index .` and `docs check .`.
+Every body edit is followed by `docs touch`; every lifecycle change uses
+`docs lifecycle`; every relationship operation uses `docs relate`; every batch
+ends with `docs index .` and `docs check .`.
 Initialization and migration explicitly own the status-body normalization
 above and touch the qualified tracker and status paths together. Other tracker
 operations do not edit status merely to cache a newly derived `next` result.
@@ -269,7 +273,8 @@ its project narrative and the same-directory link
 `[Milestone Plan](milestone-plan.md)` while removing copied tracker rows and
 independent schedule/next claims. If status is absent, include creation of
 `<project-path>status.md` with `docs new status <project-path>status` and
-promotion to `Lifecycle: active` in the confirmed proposal. Then synchronize
+its promotion with `docs lifecycle <project-path>status.md active` in the
+confirmed proposal. Then synchronize
 relationships, atomically `docs touch` the qualified tracker and status paths,
 and run `docs index .` followed by `docs check .`. Do not create milestone stubs,
 mass-rename history, or add cycle detection during migration.
