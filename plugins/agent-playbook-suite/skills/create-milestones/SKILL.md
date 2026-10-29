@@ -14,11 +14,12 @@ order, execution state, dependencies, and derived next work live in
 artifact scope with
 `docs archive <milestone-path> --cascade-only '<archive-scope>'`.
 
-Requires [`docs-cli`](https://github.com/ArtRichards/docs-cli) 2.0 or newer —
+Requires [`docs-cli`](https://github.com/ArtRichards/docs-cli) 2.1 or newer —
 prefer the newest release. The workflow relies on the
 `Lifecycle:` metadata convention, `docs new --body-from -|<path>`,
-atomic multi-file `docs touch <file>...`, reciprocal `docs relate`,
-and safe explicit archive selection.
+atomic multi-file `docs touch <file>...`, `docs lifecycle`,
+reciprocal and free-form `docs relate`, and safe explicit archive
+selection.
 
 ## When this applies
 
@@ -52,10 +53,6 @@ This SKILL.md is intentionally short. The full procedure lives in:
 - [`../_shared/references/operator-interaction.md`](../_shared/references/operator-interaction.md)
   — shared requirements for grounded, understandable operator
   questions, approvals, and decisions.
-- [`../_shared/references/verbless-metadata-edits.md`](../_shared/references/verbless-metadata-edits.md)
-  — the operator-approval rule for the two metadata edits no docs-cli
-  verb performs yet (non-archived `Lifecycle:` changes, free-form
-  `Related:` bullets).
 
 **Read the milestone playbook, phase guide, shared quality model,
 milestone-tracker contract, and operator-interaction policy before
@@ -118,17 +115,17 @@ activated or historical paths.
    `docs check` before creating artifacts, delegating production work,
    or creating a branch. Never silently reclaim an `active` row.
 3. **Every doc is *created* with `docs new`.** Never hand-author
-   the metadata block. After creation, two metadata edits have no
-   docs-cli verb yet — `Lifecycle:` when a draft artifact becomes active, and
-   free-form `Related:` links such as companion `pairs-with` edges. They are
-   hand-edits and need operator approval under
-   [`verbless-metadata-edits.md`](../_shared/references/verbless-metadata-edits.md);
-   ask once, up front, for the run's full list. Body content remains
-   editable through the documented workflow. Use
-   `docs relate` for every recognized reciprocal pair, `docs archive`
-   to write archived lifecycle metadata, and `docs touch` to bump
-   `Updated:` after body or permitted metadata edits. Every other
-   managed field is CLI-owned.
+   or hand-edit the metadata block; every later metadata change runs
+   a docs-cli verb. Use `docs lifecycle <milestone-path> <impl-path>
+   <matrix-path> active` when the draft artifacts become active, and
+   `docs relate add <source> <verb> <target>` for every `Related:`
+   link: a free-form edge such as a companion `pairs-with` or the
+   milestone's `child-of: <tracker-path>` is written on the source
+   alone, and a recognized reciprocal pair writes both ends together.
+   Use `docs archive` to write archived lifecycle metadata and
+   `docs touch` to bump `Updated:` after body edits. Body content
+   remains editable through the documented workflow; every managed
+   field is CLI-owned.
 4. **Controlled-vocab field is `Lifecycle:`.** A
    controlled-vocab `Status:` line is wrong; `docs check`
    exits 2.

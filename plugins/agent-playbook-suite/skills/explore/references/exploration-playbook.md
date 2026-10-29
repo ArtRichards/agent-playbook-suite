@@ -218,7 +218,8 @@ prefix ending in `/` in a shared root), then run docs-cli from that root and
 qualify every document operand and `Related:` target. Resolve an existing
 milestone implementation log from its tracker link and artifact paths; never
 derive its filename from a semantic slug. Update lifecycle and index through
-docs-cli, using `docs index .` and `docs check .` from the docs root. Outside a docs-managed
+docs-cli, using `docs lifecycle <project-path><file>.md <state>`,
+`docs index .`, and `docs check .` from the docs root. Outside a docs-managed
 tree, use the project's existing decision-record convention. For a short direct
 exploration with no durable project artifact, keep the registry and evidence
 current in response-local scratch state before each synthesis; the final

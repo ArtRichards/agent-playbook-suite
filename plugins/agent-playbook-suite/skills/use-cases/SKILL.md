@@ -52,7 +52,8 @@ Do **not** apply when the project has no docs tree yet — run
 2. **Primary use cases are primary goals.** Milestone test
    matrices map against them, and tests focus on demonstrating
    them first — semantic behavior over incidental representation.
-3. **The doc is docs-managed.** Author with `docs new`, bump with
+3. **The doc is docs-managed.** Author with `docs new`, link with
+   `docs relate add`, promote with `docs lifecycle`, bump with
    `docs touch`, validate with `docs check`. Resolve the docs root and owning
    project's one docs-root-relative `<project-path>` first, run docs-cli from
    that root, and qualify every project document operand and `Related:` target;

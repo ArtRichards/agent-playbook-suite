@@ -112,9 +112,10 @@ direct skill-directory installs.
 
 ## Dependencies
 
-- [`docs-cli`](https://github.com/ArtRichards/docs-cli) 2.0 or newer — required
-  for reciprocal relationships, body-link rebasing, explicit
-  `--cascade-dry-run` / `--cascade-only` archival, and docs-tree validation.
+- [`docs-cli`](https://github.com/ArtRichards/docs-cli) 2.1 or newer — required
+  for `docs lifecycle`, reciprocal and free-form relationships, body-link
+  rebasing, explicit `--cascade-dry-run` / `--cascade-only` archival, and
+  docs-tree validation.
   Install with `pip install --upgrade docs-cli`.
 - Companion skills — required:
   - [`create-milestones`](https://github.com/ArtRichards/create-milestones) (process + 10-phase TDD structure).

@@ -1,9 +1,13 @@
 # Role and Lifecycle Mapping
 
 Every foundation artifact maps to a controlled-vocab `Role:` and
-a starting `Lifecycle:` value. Pass these to `docs new` on every
-authoring call. Lifecycle transitions happen by editing the
-`Lifecycle:` value in the metadata block, then touching the qualified path.
+a starting `Lifecycle:` value. Pass the role to `docs new` on every
+authoring call; `docs new` always writes `Lifecycle: draft`, so an artifact
+that starts `active` is promoted in the step that creates it with
+`docs lifecycle <project-path><file>.md active`. Every later lifecycle
+transition is `docs lifecycle <project-path><file>.md... <state>`, which
+bumps `Updated:` and reindexes itself. Never hand-edit the `Lifecycle:`
+value; `archived` is set only by `docs archive`.
 
 Every basename below lives under the single `<project-path>` established by
 the foundation playbook: empty for a dedicated root, or a trailing-slash
@@ -12,10 +16,11 @@ docs-cli document operand and `Related:` target with it. Keep Markdown body
 links between docs in the same project directory relative. Run docs-cli from
 the docs root; `--root` does not rebase relative document operands.
 
-Assumes docs-cli 2.0 or newer — `Lifecycle:` is the controlled-vocab
+Assumes docs-cli 2.1 or newer — `Lifecycle:` is the controlled-vocab
 field name, `docs new --body-from` is available, multi-file
-`docs touch <project-path><file>.md...` is atomic, and recognized reciprocal
-relationships are managed with `docs relate`.
+`docs touch <project-path><file>.md...` is atomic, `docs lifecycle` changes a
+top-level lifecycle, and every relationship, recognized reciprocal or
+free-form, is managed with `docs relate`.
 
 ## Foundation artifacts
 
@@ -117,7 +122,9 @@ archived, include the required one-line `--reason`; hand-editing one side
 is what produces the error. The other verbs in the table above
 (`pairs-with`, `child-of`/`parent-of`, `supersedes`/`superseded-by`,
 `implements`, `spec-of`, `decision`, `references`) stay free-form with no
-reciprocal validation.
+reciprocal validation: write and remove them with the same
+`docs relate add|remove <project-path><source>.md <verb> <project-path><target>.md`,
+which changes the source's bullet only.
 
 ## Role graduation
 

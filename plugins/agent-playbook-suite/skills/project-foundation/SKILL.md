@@ -9,12 +9,14 @@ Drive the front-half foundation flow — charter through Definition
 of Ready — across ten phases, producing a docs-managed Markdown
 tree the `create-milestones` skill can pick up.
 
-Requires [`docs-cli`](https://github.com/ArtRichards/docs-cli) 2.0 or newer —
+Requires [`docs-cli`](https://github.com/ArtRichards/docs-cli) 2.1 or newer —
 prefer the newest release. The workflow relies on the
 `Lifecycle:` metadata convention, `docs new --body-from -|<path>`,
-tree-wide `[exclude]` rules in `.docs.toml`, and atomic
-multi-file `docs touch <project-path><file>.md...`. Recognized reciprocal milestone
-relationships use `docs relate`, never hand-authored halves.
+tree-wide `[exclude]` rules in `.docs.toml`, atomic
+multi-file `docs touch <project-path><file>.md...`, and `docs lifecycle`.
+Every `Related:` edge uses `docs relate` — free-form edges one-sided,
+recognized reciprocal milestone relationships both halves at once, never
+hand-authored.
 
 ## When this applies
 
@@ -55,10 +57,6 @@ This SKILL.md is intentionally short. The full procedure lives in:
 - [`../_shared/references/operator-interaction.md`](../_shared/references/operator-interaction.md)
   — shared requirements for grounded, understandable operator
   questions, clarifications, approvals, and decisions.
-- [`../_shared/references/verbless-metadata-edits.md`](../_shared/references/verbless-metadata-edits.md)
-  — the operator-approval rule for the two metadata edits no docs-cli
-  verb performs yet (non-archived `Lifecycle:` changes, free-form
-  `Related:` bullets).
 - [`../_shared/references/milestone-tracker.md`](../_shared/references/milestone-tracker.md)
   — canonical milestone identity, order, state, dependency, and
   relationship contract. Read it before Phase 4 or any tracker hand-off.
@@ -79,12 +77,13 @@ another skill.
 These are non-negotiable across the whole flow:
 
 1. **Every doc is *created* with `docs new`.** Never hand-author
-   the metadata block. After creation, two metadata edits have no
-   docs-cli verb yet: `Lifecycle:` (when a doc advances draft → active or
-   similar) and free-form `Related:` entries. They are hand-edits and need
-   operator approval under
-   [`verbless-metadata-edits.md`](../_shared/references/verbless-metadata-edits.md);
-   ask once, up front, for the run's full list. For the six recognized reciprocal verbs, use `docs relate add/remove`
+   or hand-edit the metadata block. After creation, change
+   `Lifecycle:` with `docs lifecycle <project-path><file>.md... <state>`
+   (when a doc advances draft → active or similar; `archived` is
+   `docs archive`'s alone), and add or remove a free-form `Related:`
+   entry with `docs relate add|remove <project-path><source>.md <verb>
+   <project-path><target>.md`, which writes the source's bullet only.
+   For the six recognized reciprocal verbs, use `docs relate add/remove`
    so both endpoints change together. Every other field is owned by the
    CLI; use `docs touch` to bump `Updated:`.
 2. **The controlled-vocab lifecycle field is `Lifecycle:`.**
@@ -162,14 +161,14 @@ Full table in [`references/role-mapping.md`](references/role-mapping.md).
 
 ## Hand-off to use-cases, then create-milestones
 
-When DoR flips to `active`:
+When `docs lifecycle` promotes the DoR to `active`:
 
 1. Update `<project-path>status.md` with a narrative foundation-complete
    summary and the same-directory body link
    `[Milestone Plan](milestone-plan.md)`; remove copied tracker rows and
    independent schedule/next claims.
-2. After all lifecycle and body edits, atomically touch every changed
-   qualified path. The batch must include
+2. After the `docs lifecycle` promotions and the body edits, atomically
+   touch every changed qualified path. The batch must include
    `<project-path>milestone-plan.md` and `<project-path>status.md`.
 3. Run `docs index .` and require `docs check . --stale 14` to exit 0.
 4. `docs list --root . --lifecycle active --project <p>` shows every

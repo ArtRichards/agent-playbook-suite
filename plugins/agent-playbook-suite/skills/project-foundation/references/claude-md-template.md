@@ -69,8 +69,9 @@ self-describing Markdown tree.
 - Auto-generated machine view: `<docs-root-path>/INDEX.md`
   (never hand-edit)
 
-**Always use `docs` CLI verbs** for metadata, reciprocal relationships,
-lifecycle, archive, or index actions — never hand-edit metadata blocks, the
+**Always use `docs` CLI verbs** for metadata, relationships (reciprocal or
+free-form, `docs relate`), lifecycle (`docs lifecycle`), archive, or index
+actions — never hand-edit metadata blocks, the
 `<!-- docs:generated -->` block in `INDEX.md`, or files into
 `archive/`. See the `docs` skill for the verb table.
 

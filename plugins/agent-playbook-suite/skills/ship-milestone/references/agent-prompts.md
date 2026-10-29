@@ -163,11 +163,12 @@ PRODUCE:
     {tracker_path}, without copying tracker rows or declaring next work.
 
 Use the `docs` tool throughout from `{docs_root}`: scaffold the new docs with
-`docs new`, bump dates with `docs touch`, and regenerate the INDEX with
+`docs new`, link them with `docs relate add`, promote them with
+`docs lifecycle`, bump dates with `docs touch`, and regenerate the INDEX with
 `docs index .` so it stays in lockstep; run `docs check .` clean before
-committing. Stop if docs-cli 2.0 or
-its reciprocal `docs relate` operation is unavailable; never hand-author one
-half of a tracker-derived relationship.
+committing. Stop if docs-cli 2.1 or newer, with `docs lifecycle` and
+free-form and reciprocal `docs relate`, is unavailable; never hand-edit a
+metadata block or hand-author one half of a tracker-derived relationship.
 
 Do NOT run `create-milestones` interactively. Draft autonomously wherever the
 answer is determined by {tracker_path}, the charter, the specs, or prior

@@ -102,13 +102,16 @@ surfaces new use-case information.
 EOF
 ```
 
-Add `Related: pairs-with: <project-path>charter.md` and
-`Related: pairs-with: <project-path>test-strategy.md` (careful Edit on the
-metadata block, then `docs touch <project-path>use-cases.md`).
+Add the two `pairs-with` edges, each written on `use-cases.md` alone:
 
-Flip `Lifecycle: draft` to `active` once the operator confirms
-the primary set; `docs touch <project-path>use-cases.md`; `docs check .`
-clean.
+```sh
+docs relate add <project-path>use-cases.md pairs-with <project-path>charter.md
+docs relate add <project-path>use-cases.md pairs-with <project-path>test-strategy.md
+```
+
+Once the operator confirms the primary set, promote the doc with
+`docs lifecycle <project-path>use-cases.md active` (it bumps `Updated:` and
+reindexes); `docs check .` clean.
 
 ### 5. Map to test matrices
 

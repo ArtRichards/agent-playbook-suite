@@ -70,10 +70,11 @@ direct skill-directory installs.
 
 ## Dependencies
 
-- [`docs-cli`](https://github.com/ArtRichards/docs-cli) 2.0 or newer — prefer
+- [`docs-cli`](https://github.com/ArtRichards/docs-cli) 2.1 or newer — prefer
   the newest release; required for `Lifecycle:`, `docs new --body-from`, multi-file
-  `docs touch`, reciprocal `docs relate`, body-link rebasing/checking, and safe
-  explicit archive selection. Install with `pip install --upgrade docs-cli`.
+  `docs touch`, `docs lifecycle`, reciprocal and free-form `docs relate`,
+  body-link rebasing/checking, and safe explicit archive selection. Install with
+  `pip install --upgrade docs-cli`.
 - Companion skills (recommended):
   [`project-foundation`](https://github.com/ArtRichards/project-foundation)
   (run first), the thin `manage-milestone-tracker` workflow for independent

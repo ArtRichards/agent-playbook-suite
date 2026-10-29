@@ -14,7 +14,7 @@ jobs:
       # `docs` skill from. The policy is to track the newest docs-cli: when a
       # newer release ships, re-vendor the skill (docs install-skill --force)
       # and bump this pin in the same change. See marketplace-publishing-guide.md.
-      DOCS_CLI_VERSION: "2.0.0"
+      DOCS_CLI_VERSION: "2.1.0"
     steps:
       - uses: actions/checkout@v4
 
@@ -455,7 +455,7 @@ jobs:
               skills / "create-milestones" / "SKILL.md",
               skills / "create-milestones" / "README.md",
           ):
-              require(path, "docs-cli", "2.0 or newer")
+              require(path, "docs-cli", "2.1 or newer")
 
           runtime_paths = [
               p for p in skills.rglob("*.md")
@@ -1208,9 +1208,11 @@ jobs:
       - name: Validate verbless-metadata stopgap matches the pinned docs-cli
         run: |
           python3 - <<'PY'
-          # The verbless-metadata policy is a stopgap: it makes two metadata
-          # edits operator-approved hand-edits because the pinned docs-cli has
-          # no verb for them. This check ties the stopgap's lifetime to the pin
+          # The verbless-metadata policy was a stopgap: it made two metadata
+          # edits operator-approved hand-edits while the pinned docs-cli had
+          # no verb for them. Suite 0.9.0 retired it with the docs-cli 2.1.0
+          # pin, whose `docs lifecycle` and free-form `docs relate` the skills
+          # now prescribe. This check ties the stopgap's lifetime to the pin
           # in BOTH directions, so it can neither outlive the verbs nor be
           # removed before the pinned release can perform the edits:
           #
