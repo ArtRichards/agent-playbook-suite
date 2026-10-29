@@ -3,7 +3,7 @@
 Lifecycle: active
 Role: notes
 Project: agent-playbook-suite
-Updated: 2026-08-16
+Updated: 2026-10-29
 
 Historical scope: this briefing captures the original five-workflow-skill
 model used to draft the first overview and blog post. It is not the current

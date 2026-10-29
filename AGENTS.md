@@ -3,7 +3,7 @@
 Lifecycle: active
 Role: notes
 Project: agent-playbook-suite
-Updated: 2026-08-16
+Updated: 2026-10-29
 
 This project produces public documentation and marketplace package metadata for
 Agent Playbook Suite: one suite plugin that bundles eight workflow skills plus
